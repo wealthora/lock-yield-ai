@@ -13,10 +13,10 @@ const Index = () => {
             <span className="text-xl font-bold">FX.ai</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link to="/login">
+            <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link to="/onboarding">
+            <Link to="/auth">
               <Button>Get Started</Button>
             </Link>
           </div>
@@ -44,7 +44,7 @@ const Index = () => {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Link to="/onboarding">
+              <Link to="/auth">
                 <Button size="lg" className="gap-2">
                   Start Trading <ArrowRight className="h-4 w-4" />
                 </Button>
@@ -156,7 +156,7 @@ const Index = () => {
             <p className="text-lg opacity-90">
               Complete KYC verification in minutes and start allocating to AI-powered trading strategies today.
             </p>
-            <Link to="/onboarding">
+            <Link to="/auth">
               <Button size="lg" variant="secondary" className="gap-2">
                 Create Account <ArrowRight className="h-4 w-4" />
               </Button>
