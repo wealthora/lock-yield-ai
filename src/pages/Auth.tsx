@@ -46,7 +46,7 @@ export default function Auth() {
     const fullName = formData.get("full-name") as string;
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -57,7 +57,21 @@ export default function Auth() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('fetch')) {
+          throw new Error('Unable to connect to authentication service. Please check your Cloud configuration.');
+        }
+        throw error;
+      }
+
+      if (data?.user?.identities?.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Account already exists",
+          description: "This email is already registered. Please sign in instead.",
+        });
+        return;
+      }
 
       toast({
         title: "Success!",
@@ -88,7 +102,15 @@ export default function Auth() {
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('fetch')) {
+          throw new Error('Unable to connect to authentication service. Please check your Cloud configuration.');
+        }
+        if (error.message.includes('Invalid login credentials')) {
+          throw new Error('Invalid email or password. Please try again.');
+        }
+        throw error;
+      }
 
       toast({
         title: "Welcome back!",

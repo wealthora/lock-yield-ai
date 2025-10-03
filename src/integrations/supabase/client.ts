@@ -1,7 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-// These values are auto-injected by Lovable Cloud
-const supabaseUrl = "https://nhxcsxhxbsnhqyblxdxj.supabase.co";
-const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeGNzeGh4YnNuaHF5Ymx4ZHhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4MjM1ODIsImV4cCI6MjA1MTM5OTU4Mn0.k3FT3xPqH2k6uR4kXElqVrE1lFRxhD_zXAR3HF3RhD0";
+// Get Supabase credentials from Lovable Cloud
+// You can find these in: Cloud → Settings → API
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  supabaseUrl, 
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    }
+  }
+);
