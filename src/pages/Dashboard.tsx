@@ -51,20 +51,42 @@ export default function Dashboard() {
   const loadUserData = async (userId: string) => {
     try {
       const [profileRes, balanceRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", userId).single(),
-        supabase.from("balances").select("*").eq("user_id", userId).single(),
+        supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+        supabase.from("balances").select("*").eq("user_id", userId).maybeSingle(),
       ]);
 
-      if (profileRes.error) throw profileRes.error;
-      if (balanceRes.error) throw balanceRes.error;
+      if (profileRes.error && profileRes.error.code !== 'PGRST116') {
+        console.error("Profile error:", profileRes.error);
+      }
+      if (balanceRes.error && balanceRes.error.code !== 'PGRST116') {
+        console.error("Balance error:", balanceRes.error);
+      }
 
-      setProfile(profileRes.data);
-      setBalance(balanceRes.data);
+      // Set profile data or use session email as fallback
+      setProfile(profileRes.data || {
+        email: session?.user?.email || '',
+        full_name: session?.user?.user_metadata?.full_name || null,
+        kyc_status: 'not_started',
+        account_locked: false
+      });
+      
+      // Set balance data or use defaults
+      setBalance(balanceRes.data || {
+        available_balance: 0,
+        locked_balance: 0
+      });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error loading data",
-        description: error.message,
+      console.error("Error loading user data:", error);
+      // Set defaults on error
+      setProfile({
+        email: session?.user?.email || '',
+        full_name: session?.user?.user_metadata?.full_name || null,
+        kyc_status: 'not_started',
+        account_locked: false
+      });
+      setBalance({
+        available_balance: 0,
+        locked_balance: 0
       });
     } finally {
       setIsLoading(false);
@@ -84,12 +106,15 @@ export default function Dashboard() {
     );
   }
 
-  const kycStatusColor = {
+  const kycStatusColor: Record<string, "secondary" | "default" | "destructive" | "outline"> = {
     not_started: "secondary",
-    pending: "warning",
+    pending: "outline",
     approved: "default",
     rejected: "destructive",
-  }[profile?.kyc_status || "not_started"];
+  };
+  
+  const currentKycStatus = profile?.kyc_status || "not_started";
+  const badgeVariant = kycStatusColor[currentKycStatus] || "secondary";
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,10 +174,10 @@ export default function Dashboard() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <Badge variant={kycStatusColor as any} className="capitalize">
-                {profile?.kyc_status.replace("_", " ")}
+              <Badge variant={badgeVariant} className="capitalize">
+                {currentKycStatus.replace("_", " ")}
               </Badge>
-              {profile?.kyc_status === "not_started" && (
+              {currentKycStatus === "not_started" && (
                 <p className="text-xs text-muted-foreground mt-2">Complete KYC to unlock all features</p>
               )}
             </CardContent>
