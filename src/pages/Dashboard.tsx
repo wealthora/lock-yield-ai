@@ -5,8 +5,9 @@ import { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, LogOut, TrendingUp, Lock, Unlock, DollarSign, Activity } from "lucide-react";
+import { Loader2, LogOut, TrendingUp, Lock, Unlock, DollarSign, Activity, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
 import { AIBotsModal } from "@/components/AIBotsModal";
@@ -15,6 +16,7 @@ interface Profile {
   email: string | null;
   name: string | null;
   kyc_status: string;
+  avatar?: string | null;
 }
 
 interface Balance {
@@ -123,14 +125,28 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-primary/20 bg-card">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-primary">Forex AI Trading</h1>
-            <p className="text-sm text-muted-foreground">Welcome, {profile?.name || profile?.email}</p>
+          <div className="flex items-center gap-4">
+            <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
+              <AvatarImage src={profile?.avatar} alt={profile?.name || "User"} />
+              <AvatarFallback>
+                <User className="h-5 w-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-2xl font-bold text-primary">Forex AI Trading</h1>
+              <p className="text-sm text-muted-foreground">Welcome, {profile?.name || profile?.email}</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate("/profile")}>
+              <User className="h-4 w-4 mr-2" />
+              Profile
+            </Button>
+            <Button variant="outline" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
