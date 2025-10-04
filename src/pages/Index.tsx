@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Bot, TrendingUp, Lock, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import MarketTicker from "@/components/MarketTicker";
 
 const Index = () => {
   return (
@@ -214,6 +215,8 @@ const Index = () => {
           </div>
         </div>
       </footer>
+      
+      <MarketTicker />
     </div>
   );
 };
