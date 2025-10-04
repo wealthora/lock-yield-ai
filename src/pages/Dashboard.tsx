@@ -7,12 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, LogOut, TrendingUp, Lock, Unlock, DollarSign, Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { DepositModal } from "@/components/DepositModal";
+import { WithdrawModal } from "@/components/WithdrawModal";
+import { AIBotsModal } from "@/components/AIBotsModal";
 
 interface Profile {
-  email: string;
-  full_name: string | null;
+  email: string | null;
+  name: string | null;
   kyc_status: string;
-  account_locked: boolean;
 }
 
 interface Balance {
@@ -25,6 +27,9 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [balance, setBalance] = useState<Balance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
+  const [aiBotsModalOpen, setAIBotsModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,10 +69,9 @@ export default function Dashboard() {
 
       // Set profile data or use session email as fallback
       setProfile(profileRes.data || {
-        email: session?.user?.email || '',
-        full_name: session?.user?.user_metadata?.full_name || null,
-        kyc_status: 'not_started',
-        account_locked: false
+        email: session?.user?.email || null,
+        name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || null,
+        kyc_status: 'not_started'
       });
       
       // Set balance data or use defaults
@@ -79,10 +83,9 @@ export default function Dashboard() {
       console.error("Error loading user data:", error);
       // Set defaults on error
       setProfile({
-        email: session?.user?.email || '',
-        full_name: session?.user?.user_metadata?.full_name || null,
-        kyc_status: 'not_started',
-        account_locked: false
+        email: session?.user?.email || null,
+        name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || null,
+        kyc_status: 'not_started'
       });
       setBalance({
         available_balance: 0,
@@ -122,7 +125,7 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-primary">Forex AI Trading</h1>
-            <p className="text-sm text-muted-foreground">Welcome, {profile?.full_name || profile?.email}</p>
+            <p className="text-sm text-muted-foreground">Welcome, {profile?.name || profile?.email}</p>
           </div>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
@@ -191,15 +194,15 @@ export default function Dashboard() {
               <CardDescription>Manage your account and funds</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full" onClick={() => navigate("/deposit")}>
+              <Button className="w-full" onClick={() => setDepositModalOpen(true)}>
                 <Unlock className="h-4 w-4 mr-2" />
                 Deposit Crypto
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate("/withdraw")}>
+              <Button variant="outline" className="w-full" onClick={() => setWithdrawModalOpen(true)}>
                 <Lock className="h-4 w-4 mr-2" />
                 Withdraw Funds
               </Button>
-              <Button variant="secondary" className="w-full" onClick={() => navigate("/bots")}>
+              <Button variant="secondary" className="w-full" onClick={() => setAIBotsModalOpen(true)}>
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Allocate to AI Bots
               </Button>
@@ -233,6 +236,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </main>
+
+      <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
+      <WithdrawModal open={withdrawModalOpen} onOpenChange={setWithdrawModalOpen} />
+      <AIBotsModal open={aiBotsModalOpen} onOpenChange={setAIBotsModalOpen} />
     </div>
   );
 }
