@@ -49,9 +49,14 @@ export type Database = {
           date_of_birth: string | null
           email: string | null
           id: string
+          id_back_url: string | null
+          id_front_url: string | null
+          id_number: string | null
           kyc_status: string | null
+          kyc_submitted_at: string | null
           name: string | null
           phone: string | null
+          selfie_url: string | null
           updated_at: string
           user_id: string
         }
@@ -62,9 +67,14 @@ export type Database = {
           date_of_birth?: string | null
           email?: string | null
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
+          id_number?: string | null
           kyc_status?: string | null
+          kyc_submitted_at?: string | null
           name?: string | null
           phone?: string | null
+          selfie_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -75,9 +85,14 @@ export type Database = {
           date_of_birth?: string | null
           email?: string | null
           id?: string
+          id_back_url?: string | null
+          id_front_url?: string | null
+          id_number?: string | null
           kyc_status?: string | null
+          kyc_submitted_at?: string | null
           name?: string | null
           phone?: string | null
+          selfie_url?: string | null
           updated_at?: string
           user_id?: string
         }

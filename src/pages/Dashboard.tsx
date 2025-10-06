@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
 import { AIBotsModal } from "@/components/AIBotsModal";
+import { KYCModal } from "@/components/KYCModal";
 
 interface Profile {
   email: string | null;
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [aiBotsModalOpen, setAIBotsModalOpen] = useState(false);
+  const [kycModalOpen, setKycModalOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -187,7 +189,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-primary/20">
+          <Card className="border-primary/20 cursor-pointer hover:border-primary/40 transition-colors" onClick={() => setKycModalOpen(true)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">KYC Status</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
@@ -197,7 +199,7 @@ export default function Dashboard() {
                 {currentKycStatus.replace("_", " ")}
               </Badge>
               {currentKycStatus === "not_started" && (
-                <p className="text-xs text-muted-foreground mt-2">Complete KYC to unlock all features</p>
+                <p className="text-xs text-muted-foreground mt-2">Click to complete KYC verification</p>
               )}
             </CardContent>
           </Card>
@@ -256,6 +258,12 @@ export default function Dashboard() {
       <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
       <WithdrawModal open={withdrawModalOpen} onOpenChange={setWithdrawModalOpen} />
       <AIBotsModal open={aiBotsModalOpen} onOpenChange={setAIBotsModalOpen} />
+      <KYCModal 
+        isOpen={kycModalOpen} 
+        onClose={() => setKycModalOpen(false)} 
+        currentStatus={currentKycStatus}
+        onStatusUpdate={() => loadUserData(session?.user?.id || "")}
+      />
     </div>
   );
 }
