@@ -1,6 +1,10 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bitcoin, CircleDollarSign, Smartphone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bitcoin, CircleDollarSign, Smartphone, Copy, ArrowLeft } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface DepositModalProps {
   open: boolean;
@@ -32,45 +36,192 @@ const depositOptions = [
 ];
 
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
   const handleOptionClick = (optionId: string) => {
-    console.log("Selected deposit option:", optionId);
-    // Handle navigation or further actions here
+    setSelectedOption(optionId);
+  };
+
+  const handleBack = () => {
+    setSelectedOption(null);
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} copied to clipboard`,
+    });
+  };
+
+  const getDepositDetails = () => {
+    if (selectedOption === "btc") {
+      const btcAddress = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+      return (
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={handleBack} className="mb-2">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="bg-white p-4 rounded-lg">
+              <QRCodeSVG value={btcAddress} size={200} />
+            </div>
+            <div className="w-full">
+              <p className="text-sm text-muted-foreground mb-2">Bitcoin Address:</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-muted p-3 rounded text-sm break-all">
+                  {btcAddress}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopy(btcAddress, "Bitcoin address")}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedOption === "usdt") {
+      const usdtAddress = "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb";
+      return (
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={handleBack} className="mb-2">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="bg-white p-4 rounded-lg">
+              <QRCodeSVG value={usdtAddress} size={200} />
+            </div>
+            <div className="w-full">
+              <p className="text-sm text-muted-foreground mb-2">USDT Address (ERC-20):</p>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 bg-muted p-3 rounded text-sm break-all">
+                  {usdtAddress}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleCopy(usdtAddress, "USDT address")}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedOption === "mpesa") {
+      const paybill = "400200";
+      const accountNumber = "CRYPTO2025";
+      return (
+        <div className="space-y-6">
+          <Button variant="ghost" onClick={handleBack} className="mb-2">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <div className="space-y-4">
+            <Card className="bg-primary/5">
+              <CardContent className="p-4 space-y-3">
+                <div>
+                  <p className="text-sm text-muted-foreground">Paybill Number:</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-2xl font-bold">{paybill}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopy(paybill, "Paybill number")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Account Number:</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xl font-semibold">{accountNumber}</p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleCopy(accountNumber, "Account number")}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <h4 className="font-semibold">Instructions:</h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                <li>Go to M-Pesa on your phone</li>
+                <li>Select Lipa Na M-Pesa</li>
+                <li>Select Pay Bill</li>
+                <li>Enter Business Number: <strong>{paybill}</strong></li>
+                <li>Enter Account Number: <strong>{accountNumber}</strong></li>
+                <li>Enter the amount you wish to deposit</li>
+                <li>Enter your M-Pesa PIN and confirm</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(open) => {
+      onOpenChange(open);
+      if (!open) setSelectedOption(null);
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Deposit Funds</DialogTitle>
           <DialogDescription>
-            Choose your preferred deposit method
+            {selectedOption ? "Complete your deposit" : "Choose your preferred deposit method"}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3 mt-4">
-          {depositOptions.map((option) => {
-            const Icon = option.icon;
-            return (
-              <Card
-                key={option.id}
-                className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:scale-[1.02]"
-                onClick={() => handleOptionClick(option.id)}
-              >
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-base">
-                      {option.name} ({option.symbol})
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {option.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="mt-4">
+          {selectedOption ? (
+            getDepositDetails()
+          ) : (
+            <div className="space-y-3">
+              {depositOptions.map((option) => {
+                const Icon = option.icon;
+                return (
+                  <Card
+                    key={option.id}
+                    className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:scale-[1.02]"
+                    onClick={() => handleOptionClick(option.id)}
+                  >
+                    <CardContent className="flex items-center gap-4 p-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base">
+                          {option.name} ({option.symbol})
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
