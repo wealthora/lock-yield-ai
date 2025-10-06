@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      activities: {
+        Row: {
+          activity_type: string
+          amount: number | null
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          method: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          amount?: number | null
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          method?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          amount?: number | null
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          method?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       balances: {
         Row: {
           available_balance: number

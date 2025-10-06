@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Bitcoin, CircleDollarSign, Smartphone, ArrowLeft, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface WithdrawModalProps {
   open: boolean;
@@ -57,7 +58,7 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
     setFormData({ address: "", amount: "", mpesaNumber: "", mpesaName: "" });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -79,6 +80,23 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
         });
         return;
       }
+    }
+
+    // Log activity
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const methodName = selectedOption === "mpesa" ? "M-Pesa" : selectedOption?.toUpperCase();
+        await supabase.from("activities").insert({
+          user_id: user.id,
+          activity_type: "withdrawal",
+          description: `Withdrawal request: ${methodName}`,
+          amount: parseFloat(formData.amount),
+          method: methodName,
+        });
+      }
+    } catch (error) {
+      console.error("Error logging activity:", error);
     }
 
     setShowConfirmation(true);

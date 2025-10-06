@@ -12,6 +12,8 @@ import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
 import { AIBotsModal } from "@/components/AIBotsModal";
 import { KYCModal } from "@/components/KYCModal";
+import { ActivityItem } from "@/components/ActivityItem";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Profile {
   email: string | null;
@@ -25,10 +27,20 @@ interface Balance {
   locked_balance: number;
 }
 
+interface ActivityData {
+  id: string;
+  activity_type: string;
+  description: string;
+  amount?: number;
+  method?: string;
+  created_at: string;
+}
+
 export default function Dashboard() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [balance, setBalance] = useState<Balance | null>(null);
+  const [activities, setActivities] = useState<ActivityData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
@@ -59,9 +71,10 @@ export default function Dashboard() {
 
   const loadUserData = async (userId: string) => {
     try {
-      const [profileRes, balanceRes] = await Promise.all([
+      const [profileRes, balanceRes, activitiesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
         supabase.from("balances").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
       ]);
 
       if (profileRes.error && profileRes.error.code !== 'PGRST116') {
@@ -83,6 +96,39 @@ export default function Dashboard() {
         available_balance: 0,
         locked_balance: 0
       });
+
+      // Set activities
+      setActivities(activitiesRes.data || []);
+
+      // Setup realtime subscription for activities
+      const channel = supabase
+        .channel('activities-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'activities',
+            filter: `user_id=eq.${userId}`
+          },
+          () => {
+            // Reload activities on any change
+            supabase
+              .from("activities")
+              .select("*")
+              .eq("user_id", userId)
+              .order("created_at", { ascending: false })
+              .limit(10)
+              .then(({ data }) => {
+                if (data) setActivities(data);
+              });
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     } catch (error: any) {
       console.error("Error loading user data:", error);
       // Set defaults on error
@@ -95,6 +141,7 @@ export default function Dashboard() {
         available_balance: 0,
         locked_balance: 0
       });
+      setActivities([]);
     } finally {
       setIsLoading(false);
     }
@@ -233,11 +280,28 @@ export default function Dashboard() {
               <CardDescription>Your latest transactions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No recent activity</p>
-                <p className="text-xs mt-1">Make a deposit to get started</p>
-              </div>
+              {activities.length > 0 ? (
+                <ScrollArea className="h-[300px]">
+                  <div className="space-y-1">
+                    {activities.map((activity) => (
+                      <ActivityItem
+                        key={activity.id}
+                        activityType={activity.activity_type}
+                        description={activity.description}
+                        amount={activity.amount}
+                        method={activity.method}
+                        createdAt={activity.created_at}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No recent activity</p>
+                  <p className="text-xs mt-1">Make a deposit or withdrawal to get started</p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

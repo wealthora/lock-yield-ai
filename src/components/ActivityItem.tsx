@@ -1,0 +1,53 @@
+import { formatDistanceToNow } from "date-fns";
+import { DollarSign, ArrowUpRight, ArrowDownRight, Bot, Shield } from "lucide-react";
+
+interface ActivityItemProps {
+  activityType: string;
+  description: string;
+  amount?: number;
+  method?: string;
+  createdAt: string;
+}
+
+export const ActivityItem = ({ activityType, description, amount, method, createdAt }: ActivityItemProps) => {
+  const getIcon = () => {
+    switch (activityType) {
+      case "deposit":
+        return <ArrowDownRight className="h-4 w-4 text-green-500" />;
+      case "withdrawal":
+        return <ArrowUpRight className="h-4 w-4 text-red-500" />;
+      case "allocation":
+        return <Bot className="h-4 w-4 text-blue-500" />;
+      case "kyc_update":
+        return <Shield className="h-4 w-4 text-purple-500" />;
+      default:
+        return <DollarSign className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  return (
+    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
+      <div className="mt-1 p-2 rounded-full bg-muted">
+        {getIcon()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground">{description}</p>
+        <div className="flex items-center gap-2 mt-1">
+          {amount && (
+            <span className="text-sm font-semibold text-primary">
+              ${amount.toFixed(2)}
+            </span>
+          )}
+          {method && (
+            <span className="text-xs text-muted-foreground">
+              via {method}
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+        </p>
+      </div>
+    </div>
+  );
+};

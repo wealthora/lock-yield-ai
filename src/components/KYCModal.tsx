@@ -102,6 +102,13 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, onStatusUpdate }: KYC
 
       if (error) throw error;
 
+      // Log activity
+      await supabase.from("activities").insert({
+        user_id: user.id,
+        activity_type: "kyc_update",
+        description: "KYC verification submitted",
+      });
+
       toast({
         title: "KYC Submitted Successfully",
         description: "Your verification documents have been submitted for review. We'll notify you once verified.",
