@@ -1,0 +1,256 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAdminCheck } from "@/hooks/useAdminCheck";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Check, X } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+
+interface DepositRequest {
+  id: string;
+  user_id: string;
+  amount: number;
+  method: string;
+  status: string;
+  admin_notes: string | null;
+  created_at: string;
+  profiles: {
+    name: string | null;
+    email: string | null;
+  } | null;
+}
+
+export default function AdminDeposits() {
+  const { isLoading } = useAdminCheck();
+  const [deposits, setDeposits] = useState<DepositRequest[]>([]);
+  const [notes, setNotes] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    fetchDeposits();
+
+    const channel = supabase
+      .channel("deposit-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "deposit_requests" },
+        () => fetchDeposits()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchDeposits = async () => {
+    const { data: depositsData, error } = await supabase
+      .from("deposit_requests")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error || !depositsData) {
+      toast({ title: "Error fetching deposits", variant: "destructive" });
+      return;
+    }
+
+    const depositsWithProfiles = await Promise.all(
+      depositsData.map(async (deposit) => {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("name, email")
+          .eq("user_id", deposit.user_id)
+          .single();
+
+        return {
+          ...deposit,
+          profiles: profile,
+        };
+      })
+    );
+
+    setDeposits(depositsWithProfiles);
+  };
+
+  const handleApprove = async (deposit: DepositRequest) => {
+    const { error: updateError } = await supabase
+      .from("deposit_requests")
+      .update({
+        status: "approved",
+        admin_notes: notes[deposit.id] || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", deposit.id);
+
+    if (updateError) {
+      toast({ title: "Error approving deposit", variant: "destructive" });
+      return;
+    }
+
+    const { data: balance } = await supabase
+      .from("balances")
+      .select("available_balance")
+      .eq("user_id", deposit.user_id)
+      .single();
+
+    const currentBalance = Number(balance?.available_balance || 0);
+    const newBalance = currentBalance + Number(deposit.amount);
+
+    const { error: balanceError } = await supabase
+      .from("balances")
+      .update({ available_balance: newBalance })
+      .eq("user_id", deposit.user_id);
+
+    if (balanceError) {
+      toast({ title: "Error updating balance", variant: "destructive" });
+      return;
+    }
+
+    await supabase.from("activities").insert({
+      user_id: deposit.user_id,
+      activity_type: "deposit",
+      description: `Deposit approved: $${deposit.amount} via ${deposit.method}`,
+      amount: deposit.amount,
+      method: deposit.method,
+    });
+
+    toast({ title: "Deposit approved successfully" });
+    fetchDeposits();
+  };
+
+  const handleDecline = async (deposit: DepositRequest) => {
+    const { error } = await supabase
+      .from("deposit_requests")
+      .update({
+        status: "declined",
+        admin_notes: notes[deposit.id] || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", deposit.id);
+
+    if (error) {
+      toast({ title: "Error declining deposit", variant: "destructive" });
+    } else {
+      toast({ title: "Deposit declined" });
+      fetchDeposits();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <div>Loading...</div>
+      </AdminLayout>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Deposit Requests</h2>
+          <p className="text-muted-foreground">Review and approve user deposits</p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>All Deposits</CardTitle>
+            <CardDescription>
+              Pending requests: {deposits.filter((d) => d.status === "pending").length}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Method</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Admin Notes</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deposits.map((deposit) => (
+                  <TableRow key={deposit.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">
+                          {deposit.profiles?.name || "Unknown"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {deposit.profiles?.email}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-bold">
+                      ${Number(deposit.amount).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{deposit.method}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          deposit.status === "approved"
+                            ? "default"
+                            : deposit.status === "declined"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {deposit.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(deposit.created_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {deposit.status === "pending" ? (
+                        <Textarea
+                          placeholder="Add notes..."
+                          value={notes[deposit.id] || ""}
+                          onChange={(e) =>
+                            setNotes({ ...notes, [deposit.id]: e.target.value })
+                          }
+                          className="min-h-[60px]"
+                        />
+                      ) : (
+                        <p className="text-sm">{deposit.admin_notes || "—"}</p>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {deposit.status === "pending" && (
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleApprove(deposit)}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDecline(deposit)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </AdminLayout>
+  );
+}

@@ -1,10 +1,13 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Bitcoin, CircleDollarSign, Smartphone, Copy, ArrowLeft } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DepositModalProps {
   open: boolean;
@@ -37,6 +40,8 @@ const depositOptions = [
 
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [amount, setAmount] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOptionClick = (optionId: string) => {
     setSelectedOption(optionId);
@@ -44,6 +49,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
 
   const handleBack = () => {
     setSelectedOption(null);
+    setAmount("");
   };
 
   const handleCopy = (text: string, label: string) => {
@@ -52,6 +58,43 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       title: "Copied!",
       description: `${label} copied to clipboard`,
     });
+  };
+
+  const handleSubmitRequest = async () => {
+    if (!amount || !selectedOption) return;
+
+    setIsSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      const { error } = await supabase.from("deposit_requests").insert({
+        user_id: user.id,
+        amount: parseFloat(amount),
+        method: depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption,
+        status: "pending",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Deposit Request Submitted",
+        description: `Your deposit of $${amount} is pending admin approval`,
+      });
+
+      onOpenChange(false);
+      setSelectedOption(null);
+      setAmount("");
+    } catch (error) {
+      console.error("Deposit error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit deposit request",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getDepositDetails = () => {
@@ -82,6 +125,23 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 </Button>
               </div>
             </div>
+            <div className="w-full space-y-2">
+              <Label htmlFor="amount">Amount (USD)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmitRequest}
+              disabled={!amount || isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
+            </Button>
           </div>
         </div>
       );
@@ -114,6 +174,23 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 </Button>
               </div>
             </div>
+            <div className="w-full space-y-2">
+              <Label htmlFor="amount">Amount (USD)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmitRequest}
+              disabled={!amount || isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
+            </Button>
           </div>
         </div>
       );
@@ -171,6 +248,23 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 <li>Enter your M-Pesa PIN and confirm</li>
               </ol>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount (USD)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmitRequest}
+              disabled={!amount || isSubmitting}
+              className="w-full"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
+            </Button>
           </div>
         </div>
       );
@@ -182,7 +276,10 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   return (
     <Dialog open={open} onOpenChange={(open) => {
       onOpenChange(open);
-      if (!open) setSelectedOption(null);
+      if (!open) {
+        setSelectedOption(null);
+        setAmount("");
+      }
     }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

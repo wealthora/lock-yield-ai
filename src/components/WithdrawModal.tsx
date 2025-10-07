@@ -82,24 +82,32 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
       }
     }
 
-    // Log activity
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const methodName = selectedOption === "mpesa" ? "M-Pesa" : selectedOption?.toUpperCase();
-        await supabase.from("activities").insert({
-          user_id: user.id,
-          activity_type: "withdrawal",
-          description: `Withdrawal request: ${methodName}`,
-          amount: parseFloat(formData.amount),
-          method: methodName,
-        });
-      }
-    } catch (error) {
-      console.error("Error logging activity:", error);
-    }
+      if (!user) throw new Error("User not authenticated");
 
-    setShowConfirmation(true);
+      const methodName = selectedOption === "mpesa" ? "M-Pesa" : selectedOption?.toUpperCase();
+      const walletAddress = selectedOption === "mpesa" 
+        ? `${formData.mpesaNumber} (${formData.mpesaName})`
+        : formData.address;
+
+      await supabase.from("withdrawal_requests").insert({
+        user_id: user.id,
+        amount: parseFloat(formData.amount),
+        method: methodName || "",
+        wallet_address: walletAddress,
+        status: "pending",
+      });
+
+      setShowConfirmation(true);
+    } catch (error) {
+      console.error("Error submitting withdrawal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit withdrawal request",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleClose = () => {
