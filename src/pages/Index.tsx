@@ -14,6 +14,9 @@ const Index = () => {
             <span className="text-xl font-bold">FX.ai</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link to="/admin">
+              <Button variant="ghost">Admin</Button>
+            </Link>
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>

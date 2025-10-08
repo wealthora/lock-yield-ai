@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, LogOut, TrendingUp, Lock, Unlock, DollarSign, Activity, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import MarketTicker from "@/components/MarketTicker";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
@@ -187,6 +188,9 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="ghost" onClick={() => navigate("/admin")}>
+              Admin
+            </Button>
             <Button variant="ghost" onClick={() => navigate("/profile")}>
               <User className="h-4 w-4 mr-2" />
               Profile
@@ -328,6 +332,8 @@ export default function Dashboard() {
         currentStatus={currentKycStatus}
         onStatusUpdate={() => loadUserData(session?.user?.id || "")}
       />
+      
+      <MarketTicker />
     </div>
   );
 }
