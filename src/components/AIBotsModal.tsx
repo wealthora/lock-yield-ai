@@ -1,109 +1,280 @@
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Zap, TrendingUp, Target } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { TrendingUp, Zap, Target, Activity, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AIBotsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onInvestmentCreated?: () => void;
 }
 
-const aiBots = [
-  {
-    id: "quantum-edge",
-    name: "Quantum Edge Bot",
-    strategy: "High-Frequency Trading",
-    description: "Sharp entry/exit points with millisecond precision for maximum profit opportunities",
-    icon: Zap,
-    performance: "+127% (30d)",
-    riskLevel: "High",
-    color: "text-accent",
-    bgColor: "bg-accent/10",
-  },
-  {
-    id: "titan-growth",
-    name: "Titan Growth Bot",
-    strategy: "Medium-Term Strategy",
-    description: "Balanced approach focused on steady, compound returns with controlled risk management",
-    icon: TrendingUp,
-    performance: "+48% (30d)",
-    riskLevel: "Medium",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
-  },
-  {
-    id: "astra-horizon",
-    name: "Astra Horizon Bot",
-    strategy: "Long-Term Diversified",
-    description: "AI-powered portfolio diversification across multiple pairs for sustainable growth",
-    icon: Target,
-    performance: "+32% (30d)",
-    riskLevel: "Low",
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
-  },
-];
+interface Bot {
+  id: string;
+  name: string;
+  description: string | null;
+  daily_return_rate: number;
+  minimum_investment: number;
+  risk_level: string | null;
+  strategy: string | null;
+}
 
-export function AIBotsModal({ open, onOpenChange }: AIBotsModalProps) {
-  const handleBotClick = (botId: string) => {
-    console.log("Selected AI bot:", botId);
-    // Handle bot allocation logic here
+export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsModalProps) {
+  const [bots, setBots] = useState<Bot[]>([]);
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
+  const [amount, setAmount] = useState("");
+  const [duration, setDuration] = useState("30");
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (open) {
+      loadBots();
+    }
+  }, [open]);
+
+  const loadBots = async () => {
+    const { data, error } = await supabase
+      .from("ai_bots")
+      .select("*")
+      .eq("is_active", true)
+      .order("minimum_investment", { ascending: true });
+
+    if (error) {
+      console.error("Error loading bots:", error);
+    } else {
+      setBots(data || []);
+    }
+  };
+
+  const handleInvest = async () => {
+    if (!selectedBot) return;
+
+    const investAmount = parseFloat(amount);
+    if (isNaN(investAmount) || investAmount < selectedBot.minimum_investment) {
+      toast({
+        variant: "destructive",
+        title: "Invalid amount",
+        description: `Minimum investment is $${selectedBot.minimum_investment}`,
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Check balance
+      const { data: balance } = await supabase
+        .from("balances")
+        .select("available_balance, locked_balance")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!balance || balance.available_balance < investAmount) {
+        toast({
+          variant: "destructive",
+          title: "Insufficient funds",
+          description: "You don't have enough available balance for this investment.",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + parseInt(duration));
+
+      // Create investment
+      const { error: investError } = await supabase
+        .from("bot_investments")
+        .insert({
+          user_id: user.id,
+          bot_id: selectedBot.id,
+          initial_amount: investAmount,
+          locked_amount: investAmount,
+          daily_return_rate: selectedBot.daily_return_rate,
+          end_date: endDate.toISOString(),
+        });
+
+      if (investError) throw investError;
+
+      // Update balance - move to locked
+      const { error: balanceError } = await supabase
+        .from("balances")
+        .update({
+          available_balance: balance.available_balance - investAmount,
+          locked_balance: (balance.locked_balance || 0) + investAmount,
+        })
+        .eq("user_id", user.id);
+
+      if (balanceError) throw balanceError;
+
+      // Create activity log
+      await supabase.from("activities").insert({
+        user_id: user.id,
+        activity_type: "bot_allocation",
+        description: `Allocated $${investAmount} to ${selectedBot.name}`,
+        amount: investAmount,
+      });
+
+      toast({
+        title: "Investment successful!",
+        description: `You've allocated $${investAmount} to ${selectedBot.name}`,
+      });
+
+      setSelectedBot(null);
+      setAmount("");
+      onOpenChange(false);
+      onInvestmentCreated?.();
+    } catch (error: any) {
+      console.error("Error creating investment:", error);
+      toast({
+        variant: "destructive",
+        title: "Investment failed",
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getBotIcon = (riskLevel: string | null) => {
+    switch (riskLevel?.toLowerCase()) {
+      case "low": return TrendingUp;
+      case "medium": return Target;
+      case "high": return Zap;
+      default: return Activity;
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Allocate to AI Trading Bots</DialogTitle>
+          <DialogTitle>AI Trading Bots</DialogTitle>
           <DialogDescription>
-            Choose an AI bot that matches your trading strategy and risk appetite
+            {selectedBot ? "Configure your investment" : "Select an AI bot to automatically manage your forex trading"}
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 mt-4">
-          {aiBots.map((bot) => {
-            const Icon = bot.icon;
-            return (
-              <Card
-                key={bot.id}
-                className="cursor-pointer transition-all hover:shadow-lg hover:border-primary/50 hover:scale-[1.01]"
-                onClick={() => handleBotClick(bot.id)}
-              >
-                <CardContent className="p-5">
-                  <div className="flex items-start gap-4">
-                    <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${bot.bgColor}`}>
-                      <Icon className={`h-7 w-7 ${bot.color}`} />
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-bold text-lg">{bot.name}</h3>
-                          <p className="text-sm text-muted-foreground">{bot.strategy}</p>
+
+        {!selectedBot ? (
+          <div className="grid gap-4 md:grid-cols-2 mt-4">
+            {bots.map((bot) => {
+              const Icon = getBotIcon(bot.risk_level);
+              return (
+                <Card 
+                  key={bot.id} 
+                  className="cursor-pointer hover:border-primary/50 transition-colors"
+                  onClick={() => setSelectedBot(bot)}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Icon className="h-5 w-5 text-primary" />
                         </div>
-                        <Badge variant="outline" className="whitespace-nowrap">
-                          {bot.performance}
-                        </Badge>
-                      </div>
-                      <p className="text-sm leading-relaxed">{bot.description}</p>
-                      <div className="flex items-center gap-2 pt-1">
-                        <span className="text-xs font-medium text-muted-foreground">Risk Level:</span>
-                        <Badge 
-                          variant={
-                            bot.riskLevel === "High" ? "destructive" : 
-                            bot.riskLevel === "Medium" ? "secondary" : 
-                            "outline"
-                          }
-                          className="text-xs"
-                        >
-                          {bot.riskLevel}
-                        </Badge>
+                        <div>
+                          <CardTitle className="text-lg">{bot.name}</CardTitle>
+                          <CardDescription className="text-xs">{bot.strategy}</CardDescription>
+                        </div>
                       </div>
                     </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">{bot.description}</p>
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Daily Return</p>
+                        <p className="text-sm font-semibold text-primary">{bot.daily_return_rate}%</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Min. Investment</p>
+                        <p className="text-sm font-semibold">${bot.minimum_investment}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Risk</p>
+                        <p className="text-sm font-semibold">{bot.risk_level}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-4 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>{selectedBot.name}</CardTitle>
+                <CardDescription>{selectedBot.strategy}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Daily Return</p>
+                    <p className="font-semibold text-primary">{selectedBot.daily_return_rate}%</p>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                  <div>
+                    <p className="text-muted-foreground">Min. Investment</p>
+                    <p className="font-semibold">${selectedBot.minimum_investment}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Risk Level</p>
+                    <p className="font-semibold">{selectedBot.risk_level}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Investment Amount ($)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder={`Min. $${selectedBot.minimum_investment}`}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min={selectedBot.minimum_investment}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">Lock Period (Days)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    min="1"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setSelectedBot(null)}
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={handleInvest}
+                    disabled={isLoading}
+                  >
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Invest Now
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

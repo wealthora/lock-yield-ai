@@ -47,6 +47,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_bots: {
+        Row: {
+          created_at: string
+          daily_return_rate: number
+          description: string | null
+          id: string
+          is_active: boolean | null
+          minimum_investment: number
+          name: string
+          risk_level: string | null
+          strategy: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_return_rate: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_investment?: number
+          name: string
+          risk_level?: string | null
+          strategy?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_return_rate?: number
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          minimum_investment?: number
+          name?: string
+          risk_level?: string | null
+          strategy?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       balances: {
         Row: {
           available_balance: number
@@ -73,6 +112,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      bot_investments: {
+        Row: {
+          accumulated_returns: number | null
+          bot_id: string
+          created_at: string
+          daily_return_rate: number
+          end_date: string
+          id: string
+          initial_amount: number
+          locked_amount: number
+          start_date: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accumulated_returns?: number | null
+          bot_id: string
+          created_at?: string
+          daily_return_rate: number
+          end_date: string
+          id?: string
+          initial_amount: number
+          locked_amount: number
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accumulated_returns?: number | null
+          bot_id?: string
+          created_at?: string
+          daily_return_rate?: number
+          end_date?: string
+          id?: string
+          initial_amount?: number
+          locked_amount?: number
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_investments_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "ai_bots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       deposit_requests: {
         Row: {

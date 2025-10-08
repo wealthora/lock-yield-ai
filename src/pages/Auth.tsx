@@ -97,7 +97,7 @@ export default function Auth() {
     const password = formData.get("signin-password") as string;
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -112,10 +112,29 @@ export default function Auth() {
         throw error;
       }
 
-      toast({
-        title: "Welcome back!",
-        description: "You've successfully signed in.",
-      });
+      // Check user role and redirect accordingly
+      if (data.user) {
+        const { data: roleData } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+
+        if (roleData) {
+          toast({
+            title: "Welcome Admin!",
+            description: "Redirecting to admin dashboard...",
+          });
+          navigate("/admin");
+        } else {
+          toast({
+            title: "Welcome back!",
+            description: "You've successfully signed in.",
+          });
+          navigate("/dashboard");
+        }
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

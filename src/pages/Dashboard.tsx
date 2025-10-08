@@ -15,6 +15,7 @@ import { AIBotsModal } from "@/components/AIBotsModal";
 import { KYCModal } from "@/components/KYCModal";
 import { ActivityItem } from "@/components/ActivityItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ActiveInvestments } from "@/components/ActiveInvestments";
 
 interface Profile {
   email: string | null;
@@ -188,9 +189,6 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" onClick={() => navigate("/admin")}>
-              Admin
-            </Button>
             <Button variant="ghost" onClick={() => navigate("/profile")}>
               <User className="h-4 w-4 mr-2" />
               Profile
@@ -256,7 +254,9 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
+        <ActiveInvestments />
+
+        <div className="grid gap-6 md:grid-cols-2 mb-8 mt-6">
           <Card className="border-primary/20">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
@@ -325,7 +325,11 @@ export default function Dashboard() {
 
       <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
       <WithdrawModal open={withdrawModalOpen} onOpenChange={setWithdrawModalOpen} />
-      <AIBotsModal open={aiBotsModalOpen} onOpenChange={setAIBotsModalOpen} />
+      <AIBotsModal 
+        open={aiBotsModalOpen} 
+        onOpenChange={setAIBotsModalOpen}
+        onInvestmentCreated={() => loadUserData(session?.user?.id || "")}
+      />
       <KYCModal 
         isOpen={kycModalOpen} 
         onClose={() => setKycModalOpen(false)} 
