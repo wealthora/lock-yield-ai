@@ -44,6 +44,9 @@ export default function Auth() {
     const email = formData.get("signup-email") as string;
     const password = formData.get("signup-password") as string;
     const fullName = formData.get("full-name") as string;
+    const phone = formData.get("phone") as string;
+    const country = formData.get("country") as string;
+    const dob = formData.get("dob") as string;
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -53,6 +56,9 @@ export default function Auth() {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName,
+            phone,
+            country,
+            date_of_birth: dob,
           },
         },
       });
@@ -225,6 +231,35 @@ export default function Auth() {
                     name="signup-email"
                     type="email"
                     placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+1 (555) 000-0000"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Country</Label>
+                  <Input
+                    id="country"
+                    name="country"
+                    type="text"
+                    placeholder="United States"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Input
+                    id="dob"
+                    name="dob"
+                    type="date"
                     required
                   />
                 </div>

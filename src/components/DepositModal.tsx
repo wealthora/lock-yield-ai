@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Bitcoin, CircleDollarSign, Smartphone, Copy, ArrowLeft } from "lucide-react";
+import { Bitcoin, CircleDollarSign, Smartphone, Copy, ArrowLeft, Loader2 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -41,6 +41,8 @@ const depositOptions = [
 export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
+  const [transactionRef, setTransactionRef] = useState("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleOptionClick = (optionId: string) => {
@@ -50,6 +52,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const handleBack = () => {
     setSelectedOption(null);
     setAmount("");
+    setTransactionRef("");
+    setScreenshot(null);
   };
 
   const handleCopy = (text: string, label: string) => {
@@ -63,16 +67,47 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const handleSubmitRequest = async () => {
     if (!amount || !selectedOption) return;
 
+    if (selectedOption === "mpesa" && !transactionRef) {
+      toast({
+        title: "Missing Reference",
+        description: "Please enter the M-Pesa transaction reference",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
+
+      let screenshotUrl = null;
+
+      // Upload screenshot if provided
+      if (screenshot) {
+        const fileExt = screenshot.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('deposit-screenshots')
+          .upload(fileName, screenshot);
+
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('deposit-screenshots')
+          .getPublicUrl(fileName);
+        
+        screenshotUrl = publicUrl;
+      }
 
       const { error } = await supabase.from("deposit_requests").insert({
         user_id: user.id,
         amount: parseFloat(amount),
         method: depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption,
         status: "pending",
+        screenshot_url: screenshotUrl,
+        transaction_reference: transactionRef || null,
       });
 
       if (error) throw error;
@@ -85,6 +120,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       onOpenChange(false);
       setSelectedOption(null);
       setAmount("");
+      setTransactionRef("");
+      setScreenshot(null);
     } catch (error) {
       console.error("Deposit error:", error);
       toast({
@@ -135,11 +172,24 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 onChange={(e) => setAmount(e.target.value)}
               />
             </div>
+            <div className="w-full space-y-2">
+              <Label>Payment Screenshot (Optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Upload a screenshot of your payment confirmation
+              </p>
+            </div>
             <Button
               onClick={handleSubmitRequest}
               disabled={!amount || isSubmitting}
               className="w-full"
             >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
             </Button>
           </div>
@@ -184,11 +234,24 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 onChange={(e) => setAmount(e.target.value)}
               />
             </div>
+            <div className="w-full space-y-2">
+              <Label>Payment Screenshot (Optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Upload a screenshot of your payment confirmation
+              </p>
+            </div>
             <Button
               onClick={handleSubmitRequest}
               disabled={!amount || isSubmitting}
               className="w-full"
             >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
             </Button>
           </div>
@@ -258,11 +321,35 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
                 onChange={(e) => setAmount(e.target.value)}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="mpesa-ref">Transaction Reference <span className="text-destructive">*</span></Label>
+              <Input
+                id="mpesa-ref"
+                type="text"
+                value={transactionRef}
+                onChange={(e) => setTransactionRef(e.target.value)}
+                placeholder="Enter M-Pesa transaction code"
+                required
+              />
+            </div>
+            <div className="w-full space-y-2">
+              <Label>Payment Screenshot (Optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+                className="cursor-pointer"
+              />
+              <p className="text-xs text-muted-foreground">
+                Upload a screenshot of your payment confirmation
+              </p>
+            </div>
             <Button
               onClick={handleSubmitRequest}
               disabled={!amount || isSubmitting}
               className="w-full"
             >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting ? "Submitting..." : "Submit Deposit Request"}
             </Button>
           </div>
@@ -279,6 +366,8 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       if (!open) {
         setSelectedOption(null);
         setAmount("");
+        setTransactionRef("");
+        setScreenshot(null);
       }
     }}>
       <DialogContent className="sm:max-w-md">

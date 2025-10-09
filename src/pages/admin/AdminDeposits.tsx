@@ -169,6 +169,7 @@ export default function AdminDeposits() {
                   <TableHead>User</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Method</TableHead>
+                  <TableHead>Reference/Screenshot</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Admin Notes</TableHead>
@@ -191,22 +192,43 @@ export default function AdminDeposits() {
                     <TableCell className="font-bold">
                       ${Number(deposit.amount).toLocaleString()}
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{deposit.method}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          deposit.status === "approved"
-                            ? "default"
-                            : deposit.status === "declined"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {deposit.status}
-                      </Badge>
-                    </TableCell>
+                     <TableCell>
+                       <Badge variant="outline">{deposit.method}</Badge>
+                     </TableCell>
+                     <TableCell>
+                       <div className="space-y-1">
+                         {(deposit as any).transaction_reference && (
+                           <div className="text-xs">
+                             <span className="font-medium">Ref: </span>
+                             {(deposit as any).transaction_reference}
+                           </div>
+                         )}
+                         {(deposit as any).screenshot_url && (
+                           <a 
+                             href={(deposit as any).screenshot_url} 
+                             target="_blank" 
+                             rel="noopener noreferrer"
+                             className="text-xs text-primary hover:underline block"
+                           >
+                             View Screenshot
+                           </a>
+                         )}
+                         {!(deposit as any).transaction_reference && !(deposit as any).screenshot_url && "—"}
+                       </div>
+                     </TableCell>
+                     <TableCell>
+                       <Badge
+                         variant={
+                           deposit.status === "approved"
+                             ? "default"
+                             : deposit.status === "declined"
+                             ? "destructive"
+                             : "secondary"
+                         }
+                       >
+                         {deposit.status}
+                       </Badge>
+                     </TableCell>
                     <TableCell>
                       {new Date(deposit.created_at).toLocaleString()}
                     </TableCell>

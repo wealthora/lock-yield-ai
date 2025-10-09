@@ -173,7 +173,9 @@ export type Database = {
           created_at: string | null
           id: string
           method: string
+          screenshot_url: string | null
           status: string
+          transaction_reference: string | null
           updated_at: string | null
           user_id: string
         }
@@ -183,7 +185,9 @@ export type Database = {
           created_at?: string | null
           id?: string
           method: string
+          screenshot_url?: string | null
           status?: string
+          transaction_reference?: string | null
           updated_at?: string | null
           user_id: string
         }
@@ -193,11 +197,51 @@ export type Database = {
           created_at?: string | null
           id?: string
           method?: string
+          screenshot_url?: string | null
           status?: string
+          transaction_reference?: string | null
           updated_at?: string | null
           user_id?: string
         }
         Relationships: []
+      }
+      profile_change_requests: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          id: string
+          requested_changes: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          requested_changes: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          requested_changes?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_change_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {

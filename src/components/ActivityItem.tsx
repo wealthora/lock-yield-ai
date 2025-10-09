@@ -31,16 +31,18 @@ export const ActivityItem = ({ activityType, description, amount, method, create
         {getIcon()}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-foreground">{description}</p>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground">{description}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 mt-1">
           {amount && (
             <span className="text-sm font-semibold text-primary">
               ${amount.toFixed(2)}
             </span>
           )}
           {method && (
-            <span className="text-xs text-muted-foreground">
-              via {method}
+            <span className="text-xs text-muted-foreground px-2 py-0.5 bg-muted rounded">
+              {method}
             </span>
           )}
         </div>
