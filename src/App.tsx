@@ -5,9 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import ProfileView from "./pages/ProfileView";
 import NotFound from "./pages/NotFound";
+import { DashboardLayout } from "./components/DashboardLayout";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import Finances from "./pages/dashboard/Finances";
+import RewardsHub from "./pages/dashboard/RewardsHub";
+import Analytics from "./pages/dashboard/Analytics";
+import ProfileSettings from "./pages/dashboard/ProfileSettings";
+import HelpCenter from "./pages/dashboard/HelpCenter";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDeposits from "./pages/admin/AdminDeposits";
@@ -26,14 +31,23 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/profile" element={<ProfileView />} />
+          
+          {/* Dashboard Routes with Sidebar Layout */}
+          <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
+          <Route path="/dashboard/finances" element={<DashboardLayout><Finances /></DashboardLayout>} />
+          <Route path="/dashboard/rewards" element={<DashboardLayout><RewardsHub /></DashboardLayout>} />
+          <Route path="/dashboard/analytics" element={<DashboardLayout><Analytics /></DashboardLayout>} />
+          <Route path="/dashboard/profile" element={<DashboardLayout><ProfileSettings /></DashboardLayout>} />
+          <Route path="/dashboard/help" element={<DashboardLayout><HelpCenter /></DashboardLayout>} />
+          
+          {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/deposits" element={<AdminDeposits />} />
           <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
