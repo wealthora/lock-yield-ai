@@ -13,8 +13,7 @@ import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
 import { AIBotsModal } from "@/components/AIBotsModal";
 import { KYCModal } from "@/components/KYCModal";
-import { ActivityItem } from "@/components/ActivityItem";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { RecentActivity } from "@/components/RecentActivity";
 import { ActiveInvestments } from "@/components/ActiveInvestments";
 
 interface Profile {
@@ -278,36 +277,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-primary/20">
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Your latest transactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {activities.length > 0 ? (
-                <ScrollArea className="h-[300px]">
-                  <div className="space-y-1">
-                    {activities.map((activity) => (
-                      <ActivityItem
-                        key={activity.id}
-                        activityType={activity.activity_type}
-                        description={activity.description}
-                        amount={activity.amount}
-                        method={activity.method}
-                        createdAt={activity.created_at}
-                      />
-                    ))}
-                  </div>
-                </ScrollArea>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No recent activity</p>
-                  <p className="text-xs mt-1">Make a deposit or withdrawal to get started</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <RecentActivity />
         </div>
 
         <Card className="border-warning/20 bg-warning/5">
