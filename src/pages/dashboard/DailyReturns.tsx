@@ -75,17 +75,14 @@ export default function DailyReturns() {
           table: "bot_returns",
         },
         () => {
+          console.log("Bot returns updated - reloading data");
           loadReturns();
         }
       )
       .subscribe();
 
-    // Auto-refresh every 24 hours
-    const interval = setInterval(loadReturns, 24 * 60 * 60 * 1000);
-
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
     };
   }, []);
 

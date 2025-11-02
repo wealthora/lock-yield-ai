@@ -95,6 +95,7 @@ export type Database = {
           created_at: string
           id: string
           locked_balance: number
+          returns_balance: number
           updated_at: string
           user_id: string
         }
@@ -103,6 +104,7 @@ export type Database = {
           created_at?: string
           id?: string
           locked_balance?: number
+          returns_balance?: number
           updated_at?: string
           user_id: string
         }
@@ -111,6 +113,7 @@ export type Database = {
           created_at?: string
           id?: string
           locked_balance?: number
+          returns_balance?: number
           updated_at?: string
           user_id?: string
         }
@@ -120,6 +123,7 @@ export type Database = {
         Row: {
           accumulated_returns: number | null
           bot_id: string
+          completed_at: string | null
           created_at: string
           daily_return_rate: number
           end_date: string
@@ -134,6 +138,7 @@ export type Database = {
         Insert: {
           accumulated_returns?: number | null
           bot_id: string
+          completed_at?: string | null
           created_at?: string
           daily_return_rate: number
           end_date: string
@@ -148,6 +153,7 @@ export type Database = {
         Update: {
           accumulated_returns?: number | null
           bot_id?: string
+          completed_at?: string | null
           created_at?: string
           daily_return_rate?: number
           end_date?: string
@@ -171,6 +177,7 @@ export type Database = {
       }
       bot_returns: {
         Row: {
+          allocation_id: string | null
           bot_id: string
           created_at: string
           cumulative_return: number
@@ -181,6 +188,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          allocation_id?: string | null
           bot_id: string
           created_at?: string
           cumulative_return?: number
@@ -191,6 +199,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          allocation_id?: string | null
           bot_id?: string
           created_at?: string
           cumulative_return?: number
@@ -201,6 +210,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bot_returns_allocation_id_fkey"
+            columns: ["allocation_id"]
+            isOneToOne: false
+            referencedRelation: "bot_investments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bot_returns_bot_id_fkey"
             columns: ["bot_id"]
@@ -406,12 +422,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      credit_expired_investment: {
+        Args: {
+          p_locked_amount: number
+          p_returns_amount: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_returns_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {

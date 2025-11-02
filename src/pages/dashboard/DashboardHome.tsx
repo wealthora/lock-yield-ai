@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 interface Balance {
   available_balance: number;
   locked_balance: number;
+  returns_balance: number;
 }
 
 export default function DashboardHome() {
@@ -19,6 +20,27 @@ export default function DashboardHome() {
 
   useEffect(() => {
     loadData();
+
+    // Set up real-time subscription for balance updates
+    const channel = supabase
+      .channel("balance_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "balances",
+        },
+        () => {
+          console.log("Balance updated - reloading data");
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadData = async () => {
@@ -30,7 +52,7 @@ export default function DashboardHome() {
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     ]);
 
-    setBalance(balanceRes.data || { available_balance: 0, locked_balance: 0 });
+    setBalance(balanceRes.data || { available_balance: 0, locked_balance: 0, returns_balance: 0 });
     setProfile(profileRes.data);
   };
 
@@ -71,7 +93,7 @@ export default function DashboardHome() {
       </Card>
 
       {/* Balance Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
@@ -100,14 +122,27 @@ export default function DashboardHome() {
 
         <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+            <CardTitle className="text-sm font-medium">Returns Balance</CardTitle>
             <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              ${((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toFixed(2)}
+            <div className="text-2xl font-bold text-primary">
+              ${balance?.returns_balance?.toFixed(2) || "0.00"}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Portfolio value</p>
+            <p className="text-xs text-muted-foreground mt-1">Daily returns earned</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
+            <TrendingUp className="h-4 w-4 text-accent" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${((balance?.available_balance || 0) + (balance?.locked_balance || 0) + (balance?.returns_balance || 0)).toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">All assets combined</p>
           </CardContent>
         </Card>
       </div>
