@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import Finances from "./pages/dashboard/Finances";
+import DailyReturns from "./pages/dashboard/DailyReturns";
 import RewardsHub from "./pages/dashboard/RewardsHub";
 import Analytics from "./pages/dashboard/Analytics";
 import ProfileSettings from "./pages/dashboard/ProfileSettings";
@@ -35,6 +36,7 @@ const App = () => (
           {/* Dashboard Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
           <Route path="/dashboard/finances" element={<DashboardLayout><Finances /></DashboardLayout>} />
+          <Route path="/dashboard/daily-returns" element={<DashboardLayout><DailyReturns /></DashboardLayout>} />
           <Route path="/dashboard/rewards" element={<DashboardLayout><RewardsHub /></DashboardLayout>} />
           <Route path="/dashboard/analytics" element={<DashboardLayout><Analytics /></DashboardLayout>} />
           <Route path="/dashboard/profile" element={<DashboardLayout><ProfileSettings /></DashboardLayout>} />

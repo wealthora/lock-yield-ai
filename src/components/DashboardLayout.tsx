@@ -10,12 +10,12 @@ import {
   Settings, 
   LogOut,
   Menu,
-  X
+  X,
+  DollarSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import MarketTicker from "@/components/MarketTicker";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -30,6 +30,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { title: "Finances", href: "/dashboard/finances", icon: CreditCard },
+  { title: "Daily Returns", href: "/dashboard/daily-returns", icon: DollarSign },
   { title: "Rewards Hub", href: "/dashboard/rewards", icon: Gift },
   { title: "Analytics & Education", href: "/dashboard/analytics", icon: TrendingUp },
   { title: "Help Center", href: "/dashboard/help", icon: HelpCircle },
@@ -180,8 +181,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
-
-      <MarketTicker />
     </div>
   );
 }

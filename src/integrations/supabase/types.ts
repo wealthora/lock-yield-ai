@@ -169,6 +169,47 @@ export type Database = {
           },
         ]
       }
+      bot_returns: {
+        Row: {
+          bot_id: string
+          created_at: string
+          cumulative_return: number
+          daily_return: number
+          date: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bot_id: string
+          created_at?: string
+          cumulative_return?: number
+          daily_return?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bot_id?: string
+          created_at?: string
+          cumulative_return?: number
+          daily_return?: number
+          date?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bot_returns_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "ai_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposit_requests: {
         Row: {
           admin_notes: string | null
