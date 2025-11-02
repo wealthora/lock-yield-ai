@@ -89,36 +89,6 @@ export type Database = {
         }
         Relationships: []
       }
-      balances: {
-        Row: {
-          available_balance: number
-          created_at: string
-          id: string
-          locked_balance: number
-          returns_balance: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          available_balance?: number
-          created_at?: string
-          id?: string
-          locked_balance?: number
-          returns_balance?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          available_balance?: number
-          created_at?: string
-          id?: string
-          locked_balance?: number
-          returns_balance?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       bot_investments: {
         Row: {
           accumulated_returns: number | null
@@ -360,6 +330,62 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          allocation_id: string | null
+          amount: number
+          bot_id: string | null
+          created_at: string | null
+          id: string
+          method: string | null
+          notes: string | null
+          processed_at: string | null
+          status: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          allocation_id?: string | null
+          amount: number
+          bot_id?: string | null
+          created_at?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          processed_at?: string | null
+          status?: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          allocation_id?: string | null
+          amount?: number
+          bot_id?: string | null
+          created_at?: string | null
+          id?: string
+          method?: string | null
+          notes?: string | null
+          processed_at?: string | null
+          status?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "ai_bots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -377,6 +403,36 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          available_balance: number
+          created_at: string
+          id: string
+          locked_balance: number
+          returns_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          id?: string
+          locked_balance?: number
+          returns_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          id?: string
+          locked_balance?: number
+          returns_balance?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

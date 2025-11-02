@@ -74,7 +74,7 @@ export default function Dashboard() {
     try {
       const [profileRes, balanceRes, activitiesRes] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
-        supabase.from("balances").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("wallets").select("*").eq("user_id", userId).maybeSingle(),
         supabase.from("activities").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(10),
       ]);
 

@@ -90,17 +90,17 @@ export default function AdminDeposits() {
       return;
     }
 
-    const { data: balance } = await supabase
-      .from("balances")
+    const { data: wallet } = await supabase
+      .from("wallets")
       .select("available_balance")
       .eq("user_id", deposit.user_id)
-      .single();
+      .maybeSingle();
 
-    const currentBalance = Number(balance?.available_balance || 0);
+    const currentBalance = Number(wallet?.available_balance || 0);
     const newBalance = currentBalance + Number(deposit.amount);
 
     const { error: balanceError } = await supabase
-      .from("balances")
+      .from("wallets")
       .update({ available_balance: newBalance })
       .eq("user_id", deposit.user_id);
 

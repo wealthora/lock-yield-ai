@@ -62,16 +62,16 @@ export default function AdminUsers() {
   const viewUserDetails = async (user: UserProfile) => {
     setSelectedUser(user);
     
-    const { data: balance } = await supabase
-      .from("balances")
+    const { data: wallet } = await supabase
+      .from("wallets")
       .select("available_balance, locked_balance")
       .eq("user_id", user.user_id)
-      .single();
+      .maybeSingle();
 
-    if (balance) {
+    if (wallet) {
       setUserBalance({
-        available: Number(balance.available_balance),
-        locked: Number(balance.locked_balance),
+        available: Number(wallet.available_balance),
+        locked: Number(wallet.locked_balance),
       });
     }
   };

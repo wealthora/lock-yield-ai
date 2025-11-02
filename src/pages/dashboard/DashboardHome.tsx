@@ -23,16 +23,16 @@ export default function DashboardHome() {
 
     // Set up real-time subscription for balance updates
     const channel = supabase
-      .channel("balance_changes")
+      .channel("wallet_changes")
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "balances",
+          table: "wallets",
         },
         () => {
-          console.log("Balance updated - reloading data");
+          console.log("Wallet updated - reloading data");
           loadData();
         }
       )
@@ -48,7 +48,7 @@ export default function DashboardHome() {
     if (!user) return;
 
     const [balanceRes, profileRes] = await Promise.all([
-      supabase.from("balances").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     ]);
 

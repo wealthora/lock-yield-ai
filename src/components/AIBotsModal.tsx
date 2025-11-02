@@ -72,13 +72,13 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsM
       if (!user) throw new Error("Not authenticated");
 
       // Check balance
-      const { data: balance } = await supabase
-        .from("balances")
+      const { data: wallet } = await supabase
+        .from("wallets")
         .select("available_balance, locked_balance")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
-      if (!balance || balance.available_balance < investAmount) {
+      if (!wallet || wallet.available_balance < investAmount) {
         toast({
           variant: "destructive",
           title: "Insufficient funds",
@@ -92,7 +92,7 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsM
       endDate.setDate(endDate.getDate() + parseInt(duration));
 
       // Create investment
-      const { error: investError } = await supabase
+      const { data: investment, error: investError } = await supabase
         .from("bot_investments")
         .insert({
           user_id: user.id,
@@ -100,21 +100,35 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsM
           initial_amount: investAmount,
           locked_amount: investAmount,
           daily_return_rate: selectedBot.daily_return_rate,
+          start_date: new Date().toISOString(),
           end_date: endDate.toISOString(),
-        });
+          status: 'active',
+        })
+        .select()
+        .single();
 
       if (investError) throw investError;
 
       // Update balance - move to locked
       const { error: balanceError } = await supabase
-        .from("balances")
+        .from("wallets")
         .update({
-          available_balance: balance.available_balance - investAmount,
-          locked_balance: (balance.locked_balance || 0) + investAmount,
+          available_balance: wallet.available_balance - investAmount,
+          locked_balance: (wallet.locked_balance || 0) + investAmount,
         })
         .eq("user_id", user.id);
 
       if (balanceError) throw balanceError;
+
+      // Create transaction record
+      await supabase.from("transactions").insert({
+        user_id: user.id,
+        type: "bot_allocation",
+        amount: investAmount,
+        status: "approved",
+        bot_id: selectedBot.id,
+        allocation_id: investment.id,
+      });
 
       // Create activity log
       await supabase.from("activities").insert({

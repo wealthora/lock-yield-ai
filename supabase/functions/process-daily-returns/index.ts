@@ -190,6 +190,17 @@ async function processExpiredInvestment(supabase: any, investment: BotInvestment
   }
 
   // Create transaction record
+  await supabase.from('transactions').insert({
+    user_id: investment.user_id,
+    type: 'bot_return_credit',
+    amount: totalCredit,
+    status: 'approved',
+    bot_id: investment.bot_id,
+    allocation_id: investment.id,
+    notes: `Bot allocation completed. Principal + returns credited.`,
+  });
+
+  // Create activity record
   await supabase.from('activities').insert({
     user_id: investment.user_id,
     activity_type: 'bot_return_credit',

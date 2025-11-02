@@ -17,7 +17,7 @@ import HelpCenter from "./pages/dashboard/HelpCenter";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDeposits from "./pages/admin/AdminDeposits";
-import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminKYC from "./pages/admin/AdminKYC";
 import AdminLogs from "./pages/admin/AdminLogs";
 
@@ -46,7 +46,7 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/deposits" element={<AdminDeposits />} />
-          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/admin/transactions" element={<AdminTransactions />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
           

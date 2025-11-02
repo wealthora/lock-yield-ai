@@ -14,10 +14,10 @@ interface WithdrawalRequest {
   id: string;
   user_id: string;
   amount: number;
-  method: string;
+  method: string | null;
   wallet_address: string | null;
   status: string;
-  admin_notes: string | null;
+  notes: string | null;
   created_at: string;
   profiles: {
     name: string | null;
@@ -37,7 +37,7 @@ export default function AdminWithdrawals() {
       .channel("withdrawal-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "withdrawal_requests" },
+        { event: "*", schema: "public", table: "transactions", filter: "type=eq.withdrawal" },
         () => fetchWithdrawals()
       )
       .subscribe();
@@ -49,8 +49,9 @@ export default function AdminWithdrawals() {
 
   const fetchWithdrawals = async () => {
     const { data: withdrawalsData, error } = await supabase
-      .from("withdrawal_requests")
+      .from("transactions")
       .select("*")
+      .eq("type", "withdrawal")
       .order("created_at", { ascending: false });
 
     if (error || !withdrawalsData) {
@@ -77,43 +78,15 @@ export default function AdminWithdrawals() {
   };
 
   const handleApprove = async (withdrawal: WithdrawalRequest) => {
-    const { data: balance } = await supabase
-      .from("balances")
-      .select("available_balance")
-      .eq("user_id", withdrawal.user_id)
-      .single();
-
-    const currentBalance = Number(balance?.available_balance || 0);
-
-    if (currentBalance < Number(withdrawal.amount)) {
-      toast({
-        title: "Insufficient balance",
-        description: "User doesn't have enough funds",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newBalance = currentBalance - Number(withdrawal.amount);
-
-    const { error: balanceError } = await supabase
-      .from("balances")
-      .update({ available_balance: newBalance })
-      .eq("user_id", withdrawal.user_id);
-
-    if (balanceError) {
-      toast({ title: "Error updating balance", variant: "destructive" });
-      return;
-    }
-
+    // Update the transaction status to approved (trigger will handle balance deduction)
     const { error: updateError } = await supabase
-      .from("withdrawal_requests")
+      .from("transactions")
       .update({
         status: "approved",
-        admin_notes: notes[withdrawal.id] || null,
-        updated_at: new Date().toISOString(),
+        notes: notes[withdrawal.id] || null,
       })
-      .eq("id", withdrawal.id);
+      .eq("id", withdrawal.id)
+      .eq("type", "withdrawal");
 
     if (updateError) {
       toast({ title: "Error approving withdrawal", variant: "destructive" });
@@ -134,13 +107,13 @@ export default function AdminWithdrawals() {
 
   const handleDecline = async (withdrawal: WithdrawalRequest) => {
     const { error } = await supabase
-      .from("withdrawal_requests")
+      .from("transactions")
       .update({
-        status: "declined",
-        admin_notes: notes[withdrawal.id] || null,
-        updated_at: new Date().toISOString(),
+        status: "rejected",
+        notes: notes[withdrawal.id] || null,
       })
-      .eq("id", withdrawal.id);
+      .eq("id", withdrawal.id)
+      .eq("type", "withdrawal");
 
     if (error) {
       toast({ title: "Error declining withdrawal", variant: "destructive" });
@@ -235,8 +208,8 @@ export default function AdminWithdrawals() {
                           }
                           className="min-h-[60px]"
                         />
-                      ) : (
-                        <p className="text-sm">{withdrawal.admin_notes || "—"}</p>
+                       ) : (
+                        <p className="text-sm">{withdrawal.notes || "—"}</p>
                       )}
                     </TableCell>
                     <TableCell>

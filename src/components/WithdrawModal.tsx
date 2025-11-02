@@ -86,14 +86,34 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // Check available balance first
+      const { data: wallet } = await supabase
+        .from("wallets")
+        .select("available_balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      const requestedAmount = parseFloat(formData.amount);
+      
+      if (!wallet || wallet.available_balance < requestedAmount) {
+        toast({
+          title: "Insufficient funds",
+          description: "You don't have enough available balance for this withdrawal",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const methodName = selectedOption === "mpesa" ? "M-Pesa" : selectedOption?.toUpperCase();
       const walletAddress = selectedOption === "mpesa" 
         ? `${formData.mpesaNumber} (${formData.mpesaName})`
         : formData.address;
 
-      await supabase.from("withdrawal_requests").insert({
+      // Create transaction record (pending status, no balance deduction yet)
+      await supabase.from("transactions").insert({
         user_id: user.id,
-        amount: parseFloat(formData.amount),
+        type: "withdrawal",
+        amount: requestedAmount,
         method: methodName || "",
         wallet_address: walletAddress,
         status: "pending",
