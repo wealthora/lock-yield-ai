@@ -7,14 +7,11 @@ import { DepositModal } from "@/components/DepositModal";
 import { WithdrawModal } from "@/components/WithdrawModal";
 import { AIBotsModal } from "@/components/AIBotsModal";
 import { RecentActivity } from "@/components/RecentActivity";
-
 export default function Finances() {
   const [depositModalOpen, setDepositModalOpen] = useState(false);
   const [withdrawModalOpen, setWithdrawModalOpen] = useState(false);
   const [aiBotsModalOpen, setAIBotsModalOpen] = useState(false);
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Finances</h1>
         <p className="text-muted-foreground mt-1">Manage your deposits, withdrawals, and investments</p>
@@ -37,9 +34,7 @@ export default function Finances() {
                 <CardDescription>Add funds to your account</CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full" onClick={() => setDepositModalOpen(true)}>
-                  Deposit Crypto
-                </Button>
+                <Button className="w-full" onClick={() => setDepositModalOpen(true)}>Deposit Funds</Button>
               </CardContent>
             </Card>
 
@@ -95,6 +90,5 @@ export default function Finances() {
       <DepositModal open={depositModalOpen} onOpenChange={setDepositModalOpen} />
       <WithdrawModal open={withdrawModalOpen} onOpenChange={setWithdrawModalOpen} />
       <AIBotsModal open={aiBotsModalOpen} onOpenChange={setAIBotsModalOpen} />
-    </div>
-  );
+    </div>;
 }
