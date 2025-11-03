@@ -1,8 +1,153 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { ActiveInvestments } from "@/components/ActiveInvestments";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, TrendingUp, Award, BarChart3 } from "lucide-react";
 
+interface Analytics {
+  totalInvested: number;
+  totalReturns: number;
+  roi: number;
+  activeInvestments: number;
+  successfulTrades: number;
+  daysActive: number;
+}
+
 export default function Analytics() {
+  const [analytics, setAnalytics] = useState<Analytics>({
+    totalInvested: 0,
+    totalReturns: 0,
+    roi: 0,
+    activeInvestments: 0,
+    successfulTrades: 0,
+    daysActive: 0,
+  });
+
+  useEffect(() => {
+    loadAnalytics();
+
+    // Set up real-time subscriptions
+    const walletsChannel = supabase
+      .channel("wallets_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "wallets",
+        },
+        () => {
+          loadAnalytics();
+        }
+      )
+      .subscribe();
+
+    const investmentsChannel = supabase
+      .channel("investments_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bot_investments",
+        },
+        () => {
+          loadAnalytics();
+        }
+      )
+      .subscribe();
+
+    const transactionsChannel = supabase
+      .channel("transactions_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "transactions",
+        },
+        () => {
+          loadAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(walletsChannel);
+      supabase.removeChannel(investmentsChannel);
+      supabase.removeChannel(transactionsChannel);
+    };
+  }, []);
+
+  const loadAnalytics = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Get wallet data
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("locked_balance, returns_balance")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    // Get active investments
+    const { data: investments } = await supabase
+      .from("bot_investments")
+      .select("initial_amount, accumulated_returns")
+      .eq("user_id", user.id)
+      .eq("status", "active");
+
+    // Count successful trades (bot_return_credit transactions)
+    const { count: successfulTrades } = await supabase
+      .from("transactions")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("type", "bot_return_credit")
+      .eq("status", "approved");
+
+    // Get first approved deposit date
+    const { data: firstDeposit } = await supabase
+      .from("transactions")
+      .select("created_at")
+      .eq("user_id", user.id)
+      .eq("type", "deposit")
+      .eq("status", "approved")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    // Calculate metrics
+    const totalInvested = wallet?.locked_balance || 0;
+    const totalReturns = wallet?.returns_balance || 0;
+    
+    // Calculate average ROI
+    let roi = 0;
+    if (investments && investments.length > 0) {
+      const totalInvestedAmount = investments.reduce((sum, inv) => sum + inv.initial_amount, 0);
+      const totalAccumulatedReturns = investments.reduce((sum, inv) => sum + (inv.accumulated_returns || 0), 0);
+      if (totalInvestedAmount > 0) {
+        roi = (totalAccumulatedReturns / totalInvestedAmount) * 100;
+      }
+    }
+
+    // Calculate days active
+    let daysActive = 0;
+    if (firstDeposit) {
+      const firstDate = new Date(firstDeposit.created_at);
+      const today = new Date();
+      daysActive = Math.floor((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    }
+
+    setAnalytics({
+      totalInvested,
+      totalReturns,
+      roi,
+      activeInvestments: investments?.length || 0,
+      successfulTrades: successfulTrades || 0,
+      daysActive,
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -24,15 +169,15 @@ export default function Analytics() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Total Invested</span>
-              <span className="font-semibold">$0.00</span>
+              <span className="font-semibold">${analytics.totalInvested.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Total Returns</span>
-              <span className="font-semibold text-primary">+$0.00</span>
+              <span className="font-semibold text-primary">+${analytics.totalReturns.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">ROI</span>
-              <span className="font-semibold">0%</span>
+              <span className="font-semibold">{analytics.roi.toFixed(2)}%</span>
             </div>
           </CardContent>
         </Card>
@@ -48,15 +193,15 @@ export default function Analytics() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Active Investments</span>
-              <span className="font-semibold">0</span>
+              <span className="font-semibold">{analytics.activeInvestments}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Successful Trades</span>
-              <span className="font-semibold">0</span>
+              <span className="font-semibold">{analytics.successfulTrades}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Days Active</span>
-              <span className="font-semibold">0</span>
+              <span className="font-semibold">{analytics.daysActive}</span>
             </div>
           </CardContent>
         </Card>
