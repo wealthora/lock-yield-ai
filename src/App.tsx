@@ -20,6 +20,7 @@ import AdminDeposits from "./pages/admin/AdminDeposits";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminKYC from "./pages/admin/AdminKYC";
 import AdminLogs from "./pages/admin/AdminLogs";
+import AdminProfileRequests from "./pages/admin/AdminProfileRequests";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,7 @@ const App = () => (
           <Route path="/admin/transactions" element={<AdminTransactions />} />
           <Route path="/admin/withdrawals" element={<AdminTransactions />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
+          <Route path="/admin/profile-requests" element={<AdminProfileRequests />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

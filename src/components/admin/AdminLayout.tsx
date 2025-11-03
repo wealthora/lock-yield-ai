@@ -6,7 +6,8 @@ import {
   TrendingUp,
   FileCheck,
   ScrollText,
-  Settings 
+  Settings,
+  UserCog
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
@@ -29,6 +30,7 @@ const adminNavItems = [
   { title: "Deposits", url: "/admin/deposits", icon: Wallet },
   { title: "Withdrawals", url: "/admin/withdrawals", icon: TrendingUp },
   { title: "KYC Verification", url: "/admin/kyc", icon: FileCheck },
+  { title: "Profile Requests", url: "/admin/profile-requests", icon: UserCog },
   { title: "System Logs", url: "/admin/logs", icon: ScrollText },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
