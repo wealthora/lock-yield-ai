@@ -64,27 +64,41 @@ export default function AdminProfileRequests() {
     try {
       let query = supabase
         .from("profile_change_requests")
-        .select(`
-          *,
-          profiles:user_id (
-            name,
-            email,
-            phone,
-            country,
-            date_of_birth,
-            avatar
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (filter !== "all") {
         query = query.eq("status", filter);
       }
 
-      const { data, error } = await query;
+      const { data: requestsData, error: requestsError } = await query;
 
-      if (error) throw error;
-      setRequests(data || []);
+      if (requestsError) throw requestsError;
+
+      // Fetch profiles separately for each request
+      const requestsWithProfiles = await Promise.all(
+        (requestsData || []).map(async (request) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("name, email, phone, country, date_of_birth, avatar")
+            .eq("user_id", request.user_id)
+            .single();
+
+          return {
+            ...request,
+            profiles: profile || {
+              name: '',
+              email: '',
+              phone: '',
+              country: '',
+              date_of_birth: '',
+              avatar: null
+            }
+          };
+        })
+      );
+
+      setRequests(requestsWithProfiles);
     } catch (error: any) {
       console.error("Error loading requests:", error);
       toast({
