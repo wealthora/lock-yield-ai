@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -42,6 +43,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const [profile, setProfile] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Auto-logout on inactivity
+  useInactivityLogout();
 
   useEffect(() => {
     loadProfile();

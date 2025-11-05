@@ -9,10 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Shield, Mail, Lock } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
+import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
+import { validatePassword } from "@/lib/passwordValidation";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
+  const [signupPassword, setSignupPassword] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -47,6 +50,18 @@ export default function Auth() {
     const phone = formData.get("phone") as string;
     const country = formData.get("country") as string;
     const dob = formData.get("dob") as string;
+
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      toast({
+        variant: "destructive",
+        title: "Weak Password",
+        description: passwordValidation.errors[0],
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -273,8 +288,10 @@ export default function Auth() {
                     name="signup-password"
                     type="password"
                     required
-                    minLength={6}
+                    value={signupPassword}
+                    onChange={(e) => setSignupPassword(e.target.value)}
                   />
+                  {signupPassword && <PasswordStrengthIndicator password={signupPassword} />}
                 </div>
                 <div className="text-xs text-muted-foreground bg-warning/10 border border-warning/20 rounded p-3">
                   <strong>Risk Warning:</strong> Trading carries significant risk. Crypto transactions are irreversible. Returns are not guaranteed.

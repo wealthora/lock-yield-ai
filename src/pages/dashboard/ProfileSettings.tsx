@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Shield, Clock, Upload, AlertCircle } from "lucide-react";
+import { Edit, Shield, Clock, Upload, AlertCircle, Check } from "lucide-react";
 import { KYCModal } from "@/components/KYCModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TwoFactorDialog } from "@/components/TwoFactorDialog";
 
 interface ProfileData {
   name: string;
@@ -30,6 +32,9 @@ export default function ProfileSettings() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showKYC, setShowKYC] = useState(false);
   const [pendingRequest, setPendingRequest] = useState<any>(null);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [enabling2FA, setEnabling2FA] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state for edit request
@@ -48,6 +53,7 @@ export default function ProfileSettings() {
   useEffect(() => {
     loadProfileData();
     checkPendingRequests();
+    load2FAStatus();
   }, []);
 
   // Real-time subscription for profile updates
@@ -145,6 +151,92 @@ export default function ProfileSettings() {
       setPendingRequest(data);
     } catch (error) {
       setPendingRequest(null);
+    }
+  };
+
+  const load2FAStatus = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("user_security")
+        .select("is_2fa_enabled")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      setTwoFactorEnabled(data?.is_2fa_enabled || false);
+    } catch (error) {
+      console.error("Error loading 2FA status:", error);
+    }
+  };
+
+  const handle2FAToggle = async (enabled: boolean) => {
+    if (enabled) {
+      // Show 2FA dialog to verify before enabling
+      setEnabling2FA(true);
+      setShow2FADialog(true);
+    } else {
+      // Disable 2FA directly
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { error } = await supabase
+          .from("user_security")
+          .upsert({
+            user_id: user.id,
+            is_2fa_enabled: false,
+          }, {
+            onConflict: 'user_id'
+          });
+
+        if (error) throw error;
+
+        setTwoFactorEnabled(false);
+        toast({
+          title: "2FA Disabled",
+          description: "Two-factor authentication has been disabled.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to disable 2FA",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handle2FAVerified = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from("user_security")
+        .upsert({
+          user_id: user.id,
+          is_2fa_enabled: true,
+          two_fa_method: 'email',
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+
+      setTwoFactorEnabled(true);
+      setEnabling2FA(false);
+      toast({
+        title: "2FA Enabled",
+        description: "Two-factor authentication has been enabled successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to enable 2FA",
+        variant: "destructive",
+      });
     }
   };
 
@@ -497,13 +589,32 @@ export default function ProfileSettings() {
                 Security
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start" disabled>
-                Change Password
-              </Button>
-              <Button variant="outline" className="w-full justify-start" disabled>
-                Two-Factor Authentication
-              </Button>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Add an extra layer of security to your account
+                    </p>
+                  </div>
+                  <Switch
+                    checked={twoFactorEnabled}
+                    onCheckedChange={handle2FAToggle}
+                  />
+                </div>
+                {twoFactorEnabled && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                    <Check className="h-4 w-4" />
+                    <span>2FA is enabled via email</span>
+                  </div>
+                )}
+              </div>
+              <div className="pt-2">
+                <Label className="text-sm text-muted-foreground">
+                  Session timeout: 15 minutes of inactivity
+                </Label>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -514,6 +625,18 @@ export default function ProfileSettings() {
         onClose={() => setShowKYC(false)}
         currentStatus={profile?.kyc_status || "not_submitted"}
         onStatusUpdate={loadProfileData}
+      />
+
+      <TwoFactorDialog
+        open={show2FADialog}
+        onOpenChange={(open) => {
+          setShow2FADialog(open);
+          if (!open && enabling2FA) {
+            setEnabling2FA(false);
+          }
+        }}
+        purpose="settings"
+        onVerified={handle2FAVerified}
       />
     </div>
   );

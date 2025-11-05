@@ -399,6 +399,69 @@ export type Database = {
         }
         Relationships: []
       }
+      user_security: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_2fa_enabled: boolean | null
+          last_verified_at: string | null
+          two_fa_method: string | null
+          two_fa_secret: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_2fa_enabled?: boolean | null
+          last_verified_at?: string | null
+          two_fa_method?: string | null
+          two_fa_secret?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_2fa_enabled?: boolean | null
+          last_verified_at?: string | null
+          two_fa_method?: string | null
+          two_fa_secret?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      verification_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          purpose: string
+          used: boolean | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          purpose: string
+          used?: boolean | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          purpose?: string
+          used?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           available_balance: number
