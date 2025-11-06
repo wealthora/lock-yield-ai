@@ -20,7 +20,8 @@ interface WithdrawalRequest {
   notes: string | null;
   created_at: string;
   profiles: {
-    name: string | null;
+    first_name: string | null;
+    other_names: string | null;
     email: string | null;
   } | null;
 }
@@ -63,7 +64,7 @@ export default function AdminWithdrawals() {
       withdrawalsData.map(async (withdrawal) => {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, email")
+          .select("first_name, other_names, email")
           .eq("user_id", withdrawal.user_id)
           .single();
 

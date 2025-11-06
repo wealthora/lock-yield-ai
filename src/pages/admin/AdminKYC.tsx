@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface KYCProfile {
   id: string;
   user_id: string;
-  name: string | null;
+  first_name: string | null;
+  other_names: string | null;
   email: string | null;
   phone: string | null;
   country: string | null;
@@ -106,7 +107,7 @@ export default function AdminKYC() {
               <TableBody>
                 {profiles.map((profile) => (
                   <TableRow key={profile.id}>
-                    <TableCell className="font-medium">{profile.name || "N/A"}</TableCell>
+                    <TableCell className="font-medium">{profile.first_name && profile.other_names ? `${profile.first_name} ${profile.other_names}` : profile.first_name || "N/A"}</TableCell>
                     <TableCell>{profile.email || "N/A"}</TableCell>
                     <TableCell>{profile.country || "N/A"}</TableCell>
                     <TableCell>
@@ -146,14 +147,14 @@ export default function AdminKYC() {
         <Dialog open={!!selectedProfile} onOpenChange={() => setSelectedProfile(null)}>
           <DialogContent className="max-w-3xl">
             <DialogHeader>
-              <DialogTitle>KYC Documents - {selectedProfile?.name}</DialogTitle>
+              <DialogTitle>KYC Documents - {selectedProfile?.first_name} {selectedProfile?.other_names}</DialogTitle>
             </DialogHeader>
             {selectedProfile && (
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Full Name</Label>
-                    <p className="text-sm font-medium">{selectedProfile.name || "N/A"}</p>
+                    <p className="text-sm font-medium">{selectedProfile.first_name && selectedProfile.other_names ? `${selectedProfile.first_name} ${selectedProfile.other_names}` : selectedProfile.first_name || "N/A"}</p>
                   </div>
                   <div>
                     <Label>Email</Label>

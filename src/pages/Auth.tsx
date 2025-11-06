@@ -46,7 +46,8 @@ export default function Auth() {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("signup-email") as string;
     const password = formData.get("signup-password") as string;
-    const fullName = formData.get("full-name") as string;
+    const firstName = formData.get("first-name") as string;
+    const otherNames = formData.get("other-names") as string;
     const phone = formData.get("phone") as string;
     const country = formData.get("country") as string;
     const dob = formData.get("dob") as string;
@@ -70,7 +71,8 @@ export default function Auth() {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName,
+            first_name: firstName,
+            other_names: otherNames,
             phone,
             country,
             date_of_birth: dob,
@@ -226,15 +228,27 @@ export default function Auth() {
 
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="full-name">Full Name</Label>
-                  <Input
-                    id="full-name"
-                    name="full-name"
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first-name">First Name</Label>
+                    <Input
+                      id="first-name"
+                      name="first-name"
+                      type="text"
+                      placeholder="John"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="other-names">Other Names</Label>
+                    <Input
+                      id="other-names"
+                      name="other-names"
+                      type="text"
+                      placeholder="Doe"
+                      required
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">

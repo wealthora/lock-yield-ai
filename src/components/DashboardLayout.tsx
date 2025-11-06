@@ -116,12 +116,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="p-4 border-b border-border">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={profile?.avatar} alt={profile?.name || "User"} />
-                  <AvatarFallback>{profile?.name?.[0] || "U"}</AvatarFallback>
+                  <AvatarImage src={profile?.avatar} alt={profile?.first_name || "User"} />
+                  <AvatarFallback>{profile?.first_name?.[0] || "U"}</AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
-                    {profile?.name || "User"}
+                    {profile?.first_name || "User"}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {profile?.email}

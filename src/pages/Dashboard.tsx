@@ -18,7 +18,8 @@ import { ActiveInvestments } from "@/components/ActiveInvestments";
 
 interface Profile {
   email: string | null;
-  name: string | null;
+  first_name: string | null;
+  other_names: string | null;
   kyc_status: string;
   avatar?: string | null;
 }
@@ -88,7 +89,8 @@ export default function Dashboard() {
       // Set profile data or use session email as fallback
       setProfile(profileRes.data || {
         email: session?.user?.email || null,
-        name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || null,
+        first_name: session?.user?.user_metadata?.first_name || null,
+        other_names: session?.user?.user_metadata?.other_names || null,
         kyc_status: 'not_started'
       });
       
@@ -135,7 +137,8 @@ export default function Dashboard() {
       // Set defaults on error
       setProfile({
         email: session?.user?.email || null,
-        name: session?.user?.user_metadata?.name || session?.user?.user_metadata?.full_name || null,
+        first_name: session?.user?.user_metadata?.first_name || null,
+        other_names: session?.user?.user_metadata?.other_names || null,
         kyc_status: 'not_started'
       });
       setBalance({
@@ -177,14 +180,14 @@ export default function Dashboard() {
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Avatar className="h-10 w-10 cursor-pointer" onClick={() => navigate("/profile")}>
-              <AvatarImage src={profile?.avatar} alt={profile?.name || "User"} />
+              <AvatarImage src={profile?.avatar} alt={profile?.first_name || "User"} />
               <AvatarFallback>
                 <User className="h-5 w-5" />
               </AvatarFallback>
             </Avatar>
             <div>
               <h1 className="text-2xl font-bold text-primary">Forex AI Trading</h1>
-              <p className="text-sm text-muted-foreground">Welcome, {profile?.name || profile?.email}</p>
+              <p className="text-sm text-muted-foreground">Welcome, {profile?.first_name || profile?.email}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

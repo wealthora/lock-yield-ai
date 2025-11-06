@@ -21,7 +21,8 @@ interface ProfileChangeRequest {
   admin_notes: string | null;
   created_at: string;
   profiles: {
-    name: string;
+    first_name: string;
+    other_names: string;
     email: string;
     phone: string;
     country: string;
@@ -80,14 +81,15 @@ export default function AdminProfileRequests() {
         (requestsData || []).map(async (request) => {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("name, email, phone, country, date_of_birth, avatar")
+            .select("first_name, other_names, email, phone, country, date_of_birth, avatar")
             .eq("user_id", request.user_id)
             .single();
 
           return {
             ...request,
             profiles: profile || {
-              name: '',
+              first_name: '',
+              other_names: '',
               email: '',
               phone: '',
               country: '',

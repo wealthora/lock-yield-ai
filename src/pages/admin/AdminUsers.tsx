@@ -16,7 +16,8 @@ import { toast } from "@/hooks/use-toast";
 interface UserProfile {
   id: string;
   user_id: string;
-  name: string | null;
+  first_name: string | null;
+  other_names: string | null;
   email: string | null;
   phone: string | null;
   country: string | null;
@@ -41,7 +42,8 @@ export default function AdminUsers() {
   useEffect(() => {
     const filtered = users.filter(
       (user) =>
-        user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.other_names?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.country?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -180,7 +182,7 @@ export default function AdminUsers() {
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name || "N/A"}</TableCell>
+                    <TableCell className="font-medium">{user.first_name && user.other_names ? `${user.first_name} ${user.other_names}` : user.first_name || "N/A"}</TableCell>
                     <TableCell>{user.email || "N/A"}</TableCell>
                     <TableCell>{user.country || "N/A"}</TableCell>
                     <TableCell>
@@ -235,7 +237,7 @@ export default function AdminUsers() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Full Name</Label>
-                    <p className="text-sm font-medium">{selectedUser.name || "N/A"}</p>
+                    <p className="text-sm font-medium">{selectedUser.first_name && selectedUser.other_names ? `${selectedUser.first_name} ${selectedUser.other_names}` : selectedUser.first_name || "N/A"}</p>
                   </div>
                   <div>
                     <Label>Email</Label>
@@ -294,7 +296,7 @@ export default function AdminUsers() {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete User</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete <strong>{userToDelete?.name || userToDelete?.email}</strong>? 
+                Are you sure you want to delete <strong>{userToDelete?.first_name && userToDelete?.other_names ? `${userToDelete.first_name} ${userToDelete.other_names}` : userToDelete?.first_name || userToDelete?.email}</strong>? 
                 This will permanently delete their account, profile, wallet, and all associated data. 
                 This action cannot be undone.
               </AlertDialogDescription>

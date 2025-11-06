@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 interface ProfileData {
-  name: string;
+  first_name: string;
+  other_names: string;
   email: string;
   phone: string;
   country: string;
@@ -27,7 +28,8 @@ export default function ProfileView() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestedChanges, setRequestedChanges] = useState({
-    name: "",
+    first_name: "",
+    other_names: "",
     phone: "",
     country: "",
     date_of_birth: "",
@@ -70,7 +72,8 @@ export default function ProfileView() {
 
       if (data) {
         const profileData = {
-          name: data.name || "",
+          first_name: data.first_name || "",
+          other_names: data.other_names || "",
           email: data.email || session?.user?.email || "",
           phone: data.phone || "",
           country: data.country || "",
@@ -79,7 +82,8 @@ export default function ProfileView() {
         };
         setProfile(profileData);
         setRequestedChanges({
-          name: profileData.name,
+          first_name: profileData.first_name,
+          other_names: profileData.other_names,
           phone: profileData.phone,
           country: profileData.country,
           date_of_birth: profileData.date_of_birth,
@@ -163,16 +167,23 @@ export default function ProfileView() {
                 <div className="flex justify-center">
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={profile.avatar} alt="Profile avatar" />
-                    <AvatarFallback>{profile.name?.[0]}</AvatarFallback>
+                    <AvatarFallback>{profile.first_name?.[0]}</AvatarFallback>
                   </Avatar>
                 </div>
               )}
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Full Name</Label>
+                  <Label>First Name</Label>
                   <div className="p-3 bg-muted rounded-md text-foreground">
-                    {profile?.name || "Not set"}
+                    {profile?.first_name || "Not set"}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Other Names</Label>
+                  <div className="p-3 bg-muted rounded-md text-foreground">
+                    {profile?.other_names || "Not set"}
                   </div>
                 </div>
 
@@ -221,10 +232,17 @@ export default function ProfileView() {
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Full Name</Label>
+                      <Label>First Name</Label>
                       <Input
-                        value={requestedChanges.name}
-                        onChange={(e) => setRequestedChanges({ ...requestedChanges, name: e.target.value })}
+                        value={requestedChanges.first_name}
+                        onChange={(e) => setRequestedChanges({ ...requestedChanges, first_name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Other Names</Label>
+                      <Input
+                        value={requestedChanges.other_names}
+                        onChange={(e) => setRequestedChanges({ ...requestedChanges, other_names: e.target.value })}
                       />
                     </div>
                     <div className="space-y-2">

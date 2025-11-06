@@ -19,7 +19,8 @@ interface DepositRequest {
   admin_notes: string | null;
   created_at: string;
   profiles: {
-    name: string | null;
+    first_name: string | null;
+    other_names: string | null;
     email: string | null;
   } | null;
 }
@@ -61,7 +62,7 @@ export default function AdminDeposits() {
       depositsData.map(async (deposit) => {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, email")
+          .select("first_name, other_names, email")
           .eq("user_id", deposit.user_id)
           .single();
 
@@ -182,7 +183,7 @@ export default function AdminDeposits() {
                     <TableCell>
                       <div>
                         <p className="font-medium">
-                          {deposit.profiles?.name || "Unknown"}
+                          {deposit.profiles?.first_name && deposit.profiles?.other_names ? `${deposit.profiles.first_name} ${deposit.profiles.other_names}` : deposit.profiles?.first_name || "Unknown"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {deposit.profiles?.email}

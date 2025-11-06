@@ -23,7 +23,8 @@ const AVATAR_OPTIONS = [
 ];
 
 interface ProfileData {
-  name: string;
+  first_name: string;
+  other_names: string;
   email: string;
   phone: string;
   country: string;
@@ -34,7 +35,8 @@ interface ProfileData {
 export default function Profile() {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<ProfileData>({
-    name: "",
+    first_name: "",
+    other_names: "",
     email: "",
     phone: "",
     country: "",
@@ -80,7 +82,8 @@ export default function Profile() {
 
       if (data) {
         setProfile({
-          name: data.name || "",
+          first_name: data.first_name || "",
+          other_names: data.other_names || "",
           email: data.email || session?.user?.email || "",
           phone: data.phone || "",
           country: data.country || "",
@@ -103,7 +106,8 @@ export default function Profile() {
       const { error } = await supabase
         .from("profiles")
         .update({
-          name: profile.name,
+          first_name: profile.first_name,
+          other_names: profile.other_names,
           phone: profile.phone,
           country: profile.country,
           date_of_birth: profile.date_of_birth || null,
@@ -194,12 +198,22 @@ export default function Profile() {
               {/* Form Fields */}
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="first_name">First Name</Label>
                   <Input
-                    id="name"
-                    value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    placeholder="John Doe"
+                    id="first_name"
+                    value={profile.first_name}
+                    onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
+                    placeholder="John"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="other_names">Other Names</Label>
+                  <Input
+                    id="other_names"
+                    value={profile.other_names}
+                    onChange={(e) => setProfile({ ...profile, other_names: e.target.value })}
+                    placeholder="Doe"
                   />
                 </div>
 

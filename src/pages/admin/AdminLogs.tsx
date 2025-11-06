@@ -15,7 +15,8 @@ interface Activity {
   method: string | null;
   created_at: string;
   profiles: {
-    name: string | null;
+    first_name: string | null;
+    other_names: string | null;
     email: string | null;
   } | null;
 }
@@ -44,7 +45,7 @@ export default function AdminLogs() {
       activitiesData.map(async (activity) => {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, email")
+          .select("first_name, other_names, email")
           .eq("user_id", activity.user_id)
           .single();
 

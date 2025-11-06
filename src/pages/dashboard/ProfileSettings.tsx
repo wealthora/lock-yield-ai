@@ -15,7 +15,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TwoFactorDialog } from "@/components/TwoFactorDialog";
 
 interface ProfileData {
-  name: string;
+  first_name: string;
+  other_names: string;
   email: string;
   phone: string;
   country: string;
@@ -39,7 +40,8 @@ export default function ProfileSettings() {
 
   // Form state for edit request
   const [requestData, setRequestData] = useState<ProfileData>({
-    name: "",
+    first_name: "",
+    other_names: "",
     email: "",
     phone: "",
     country: "",
@@ -111,7 +113,8 @@ export default function ProfileSettings() {
       if (error) throw error;
 
       const profileData = {
-        name: data.name || "",
+        first_name: data.first_name || "",
+        other_names: data.other_names || "",
         email: user.email || "",
         phone: data.phone || "",
         country: data.country || "",
@@ -306,7 +309,8 @@ export default function ProfileSettings() {
       }
 
       const changedFields: any = {};
-      if (requestData.name !== profile?.name) changedFields.name = requestData.name;
+      if (requestData.first_name !== profile?.first_name) changedFields.first_name = requestData.first_name;
+      if (requestData.other_names !== profile?.other_names) changedFields.other_names = requestData.other_names;
       if (requestData.phone !== profile?.phone) changedFields.phone = requestData.phone;
       if (requestData.country !== profile?.country) changedFields.country = requestData.country;
       if (requestData.date_of_birth !== profile?.date_of_birth) changedFields.date_of_birth = requestData.date_of_birth;
@@ -398,11 +402,11 @@ export default function ProfileSettings() {
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={profile?.avatar || undefined} />
                   <AvatarFallback className="text-2xl">
-                    {profile?.name?.charAt(0).toUpperCase() || "U"}
+                    {profile?.first_name?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="text-center">
-                  <p className="font-medium">{profile?.name}</p>
+                  <p className="font-medium">{profile?.first_name} {profile?.other_names}</p>
                   <p className="text-sm text-muted-foreground">{profile?.email}</p>
                 </div>
               </div>
@@ -410,9 +414,16 @@ export default function ProfileSettings() {
               {/* Profile Fields */}
               <div className="grid gap-4">
                 <div className="grid gap-2">
-                  <Label>Full Name</Label>
+                  <Label>First Name</Label>
                   <div className="px-3 py-2 bg-muted rounded-md text-sm">
-                    {profile?.name || "Not provided"}
+                    {profile?.first_name || "Not provided"}
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Other Names</Label>
+                  <div className="px-3 py-2 bg-muted rounded-md text-sm">
+                    {profile?.other_names || "Not provided"}
                   </div>
                 </div>
 
@@ -468,7 +479,7 @@ export default function ProfileSettings() {
                         <Avatar className="h-16 w-16">
                           <AvatarImage src={avatarPreview || profile?.avatar || undefined} />
                           <AvatarFallback>
-                            {requestData.name?.charAt(0).toUpperCase() || "U"}
+                            {requestData.first_name?.charAt(0).toUpperCase() || "U"}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1">
@@ -496,11 +507,20 @@ export default function ProfileSettings() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
+                      <Label htmlFor="first_name">First Name</Label>
                       <Input
-                        id="name"
-                        value={requestData.name}
-                        onChange={(e) => setRequestData({ ...requestData, name: e.target.value })}
+                        id="first_name"
+                        value={requestData.first_name}
+                        onChange={(e) => setRequestData({ ...requestData, first_name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="other_names">Other Names</Label>
+                      <Input
+                        id="other_names"
+                        value={requestData.other_names}
+                        onChange={(e) => setRequestData({ ...requestData, other_names: e.target.value })}
                       />
                     </div>
 

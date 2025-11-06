@@ -22,7 +22,8 @@ interface Transaction {
   notes: string | null;
   created_at: string;
   profiles: {
-    name: string | null;
+    first_name: string | null;
+    other_names: string | null;
     email: string | null;
   } | null;
 }
@@ -64,7 +65,7 @@ export default function AdminTransactions() {
       transactionsData.map(async (transaction) => {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("name, email")
+          .select("first_name, other_names, email")
           .eq("user_id", transaction.user_id)
           .maybeSingle();
 
