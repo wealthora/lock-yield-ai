@@ -116,6 +116,17 @@ export default function AdminProfileRequests() {
 
     setProcessing(true);
     try {
+      // If approving, first update the user's profile with the requested changes
+      if (actionType === 'approve') {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update(selectedRequest.requested_changes)
+          .eq("user_id", selectedRequest.user_id);
+
+        if (profileError) throw profileError;
+      }
+
+      // Then update the request status
       const { error } = await supabase
         .from("profile_change_requests")
         .update({
