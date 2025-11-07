@@ -317,10 +317,12 @@ export default function AdminProfileRequests() {
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={request.profiles.avatar || undefined} />
                               <AvatarFallback>
-                                {request.profiles.name?.charAt(0).toUpperCase() || 'U'}
+                                {request.profiles.first_name?.charAt(0).toUpperCase() || 'U'}
                               </AvatarFallback>
                             </Avatar>
-                            {request.profiles.name}
+                            {request.profiles.first_name && request.profiles.other_names
+                              ? `${request.profiles.first_name} ${request.profiles.other_names}`
+                              : request.profiles.first_name || "Unknown"}
                           </div>
                         </TableCell>
                         <TableCell>{request.profiles.email}</TableCell>
@@ -387,7 +389,9 @@ export default function AdminProfileRequests() {
             <DialogDescription>
               {selectedRequest && (
                 <>
-                  Request from {selectedRequest.profiles.name} on {new Date(selectedRequest.created_at).toLocaleDateString()}
+                  Request from {selectedRequest.profiles.first_name && selectedRequest.profiles.other_names
+                    ? `${selectedRequest.profiles.first_name} ${selectedRequest.profiles.other_names}`
+                    : selectedRequest.profiles.first_name || "Unknown"} on {new Date(selectedRequest.created_at).toLocaleDateString()}
                 </>
               )}
             </DialogDescription>

@@ -98,7 +98,9 @@ export default function AdminLogs() {
                     <TableCell>
                       <div>
                         <p className="font-medium">
-                          {activity.profiles?.name || "Unknown"}
+                          {activity.profiles?.first_name && activity.profiles?.other_names
+                            ? `${activity.profiles.first_name} ${activity.profiles.other_names}`
+                            : activity.profiles?.first_name || "Unknown"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {activity.profiles?.email}

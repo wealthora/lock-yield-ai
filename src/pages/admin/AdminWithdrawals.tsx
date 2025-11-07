@@ -167,7 +167,9 @@ export default function AdminWithdrawals() {
                     <TableCell>
                       <div>
                         <p className="font-medium">
-                          {withdrawal.profiles?.name || "Unknown"}
+                          {withdrawal.profiles?.first_name && withdrawal.profiles?.other_names
+                            ? `${withdrawal.profiles.first_name} ${withdrawal.profiles.other_names}`
+                            : withdrawal.profiles?.first_name || "Unknown"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {withdrawal.profiles?.email}

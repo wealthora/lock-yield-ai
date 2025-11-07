@@ -148,7 +148,9 @@ export default function AdminTransactions() {
             <TableCell>
               <div>
                 <p className="font-medium">
-                  {transaction.profiles?.name || "Unknown"}
+                  {transaction.profiles?.first_name && transaction.profiles?.other_names
+                    ? `${transaction.profiles.first_name} ${transaction.profiles.other_names}`
+                    : transaction.profiles?.first_name || "Unknown"}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {transaction.profiles?.email}
