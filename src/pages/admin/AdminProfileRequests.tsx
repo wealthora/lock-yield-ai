@@ -120,9 +120,18 @@ export default function AdminProfileRequests() {
     try {
       // If approving, first update the user's profile with the requested changes
       if (actionType === 'approve') {
+        // Handle legacy requests that have 'name' field instead of 'first_name' and 'other_names'
+        const changes = { ...selectedRequest.requested_changes };
+        if ('name' in changes) {
+          const nameParts = changes.name.split(' ');
+          changes.first_name = nameParts[0];
+          changes.other_names = nameParts.slice(1).join(' ') || '';
+          delete changes.name;
+        }
+
         const { error: profileError } = await supabase
           .from("profiles")
-          .update(selectedRequest.requested_changes)
+          .update(changes)
           .eq("user_id", selectedRequest.user_id);
 
         if (profileError) throw profileError;
