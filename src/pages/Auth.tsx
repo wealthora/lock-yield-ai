@@ -11,7 +11,6 @@ import { Loader2, Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
-import { sendSignupConfirmationEmail, sendPasswordResetEmail } from "@/lib/emailjs";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -99,10 +98,12 @@ export default function Auth() {
         return;
       }
 
-      // Send confirmation email via EmailJS
+      // Send confirmation email via edge function
       if (data?.user) {
         const confirmationLink = `${window.location.origin}/auth?confirmed=true`;
-        await sendSignupConfirmationEmail(email, firstName, confirmationLink);
+        await supabase.functions.invoke('send-signup-email', {
+          body: { email, firstName, confirmationLink }
+        });
       }
 
       toast({
@@ -198,9 +199,11 @@ export default function Auth() {
 
       if (error) throw error;
 
-      // Send password reset email via EmailJS
+      // Send password reset email via edge function
       const resetLink = `${window.location.origin}/auth?reset=true`;
-      await sendPasswordResetEmail(email, resetLink);
+      await supabase.functions.invoke('send-reset-email', {
+        body: { email, resetLink }
+      });
 
       toast({
         title: "Reset link sent",
