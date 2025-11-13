@@ -2,16 +2,14 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Bot, TrendingUp, Lock, BarChart3 } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bot className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold">FX.ai</span>
+            <span className="text-xl font-bold">Wealthora.ai</span>
           </div>
           <div className="flex items-center gap-4">
             <Link to="/auth">
@@ -116,12 +114,25 @@ const Index = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {[
-              { name: "Conservative", risk: "Low", roi: "8-12%", sharpe: "1.8", color: "primary" },
-              { name: "Balanced", risk: "Medium", roi: "15-22%", sharpe: "1.5", color: "warning" },
-              { name: "Aggressive", risk: "High", roi: "25-35%", sharpe: "1.2", color: "destructive" },
-            ].map((bot) => (
-              <div key={bot.name} className="bg-card p-6 rounded-xl border border-border">
+            {[{
+            name: "Conservative",
+            risk: "Low",
+            roi: "8-12%",
+            sharpe: "1.8",
+            color: "primary"
+          }, {
+            name: "Balanced",
+            risk: "Medium",
+            roi: "15-22%",
+            sharpe: "1.5",
+            color: "warning"
+          }, {
+            name: "Aggressive",
+            risk: "High",
+            roi: "25-35%",
+            sharpe: "1.2",
+            color: "destructive"
+          }].map(bot => <div key={bot.name} className="bg-card p-6 rounded-xl border border-border">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-lg">{bot.name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full bg-${bot.color}/10 text-${bot.color}`}>
@@ -138,8 +149,7 @@ const Index = () => {
                     <span className="font-semibold">{bot.sharpe}</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              </div>)}
           </div>
 
           <p className="text-xs text-muted-foreground text-center mt-8 max-w-3xl mx-auto">
@@ -217,8 +227,6 @@ const Index = () => {
       </footer>
       
       <MarketTicker />
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
