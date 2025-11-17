@@ -183,7 +183,7 @@ const Index = () => {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Bot className="h-6 w-6 text-primary" />
-                <span className="font-bold">FX.ai</span>
+                <span className="font-bold">Wealthora.ai</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered Forex trading platform with institutional-grade security.
@@ -221,7 +221,7 @@ const Index = () => {
           </div>
 
           <div className="border-t border-border mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>© 2025 FX.ai. All rights reserved. This platform does not guarantee returns. Trading carries significant risk.</p>
+            <p>© 2025 Wealthora.ai. All rights reserved. This platform does not guarantee returns. Trading carries significant risk.</p>
           </div>
         </div>
       </footer>
