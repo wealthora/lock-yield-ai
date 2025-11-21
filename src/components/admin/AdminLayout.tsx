@@ -8,7 +8,9 @@ import {
   ScrollText,
   Settings,
   UserCog,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,8 +26,8 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
+import { useTheme } from "@/hooks/useTheme";
 
 const adminNavItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -97,20 +99,32 @@ function AdminSidebar() {
 }
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
+  const { theme, toggleTheme } = useTheme();
+  
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <AdminSidebar />
-        <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b flex items-center px-6 bg-card">
-            <SidebarTrigger />
-            <h1 className="ml-4 text-xl font-semibold">Admin Dashboard</h1>
-          </header>
-          <main className="flex-1 p-6 bg-background">
-            {children}
-          </main>
+    <div className={theme}>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background">
+          <AdminSidebar />
+          <div className="flex-1 flex flex-col">
+            <header className="h-16 border-b flex items-center px-6 bg-card">
+              <SidebarTrigger />
+              <h1 className="ml-4 text-xl font-semibold">Admin Dashboard</h1>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleTheme}
+                className="ml-auto transition-transform hover:scale-110"
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+            </header>
+            <main className="flex-1 p-6 bg-background">
+              {children}
+            </main>
+          </div>
         </div>
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </div>
   );
 }
