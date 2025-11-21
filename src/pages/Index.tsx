@@ -3,7 +3,28 @@ import { ArrowRight, Shield, Bot, TrendingUp, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
 import logo from "@/assets/wealthora-logo.png";
+import { useEffect } from "react";
+
 const Index = () => {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
@@ -24,28 +45,28 @@ const Index = () => {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-hero opacity-10 animate-gradient"></div>
         <div className="container mx-auto px-4 py-24 relative">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium animate-fade-in shimmer-effect">
               <Shield className="h-4 w-4" />
               Regulated & Secure Platform
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
               AI-Powered Forex Trading
               <span className="block text-primary mt-2">Built for Everyone</span>
             </h1>
             
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
               Lock your funds, allocate to our advanced AI trading bots, and earn competitive returns. 
               Professional-grade trading automation made accessible.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
               <Link to="/auth">
-                <Button size="lg" className="gap-2">
-                  Start Trading <ArrowRight className="h-4 w-4" />
+                <Button size="lg" className="gap-2 hover-glow group">
+                  Start Trading <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link to="/dashboard">
@@ -65,11 +86,11 @@ const Index = () => {
       {/* Features Grid */}
       <section className="py-24 bg-muted/30">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-16">How It Works</h2>
+          <h2 className="text-3xl font-bold text-center mb-16 scroll-reveal">How It Works</h2>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover:shadow-lg transition-all">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group">
+              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
                 <Lock className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Lock Your Funds</h3>
@@ -78,8 +99,8 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover:shadow-lg transition-all">
-              <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{ transitionDelay: '0.1s' }}>
+              <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
                 <Bot className="h-6 w-6 text-accent" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Allocate to AI Bots</h3>
@@ -88,8 +109,8 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover:shadow-lg transition-all">
-              <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{ transitionDelay: '0.2s' }}>
+              <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
               <h3 className="text-xl font-semibold mb-3">Earn Returns</h3>
@@ -104,7 +125,7 @@ const Index = () => {
       {/* Bot Performance Preview */}
       <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
+          <div className="max-w-4xl mx-auto text-center mb-16 scroll-reveal">
             <h2 className="text-3xl font-bold mb-4">AI Trading Bots</h2>
             <p className="text-muted-foreground">
               Choose from multiple strategies, each with transparent historical performance and risk metrics
@@ -130,7 +151,7 @@ const Index = () => {
             roi: "25-35%",
             sharpe: "1.2",
             color: "destructive"
-          }].map(bot => <div key={bot.name} className="bg-card p-6 rounded-xl border border-border">
+          }].map(bot => <div key={bot.name} className="bg-card p-6 rounded-xl border border-border hover-lift scroll-reveal">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-lg">{bot.name}</h3>
                   <span className={`text-xs px-2 py-1 rounded-full bg-${bot.color}/10 text-${bot.color}`}>
@@ -158,16 +179,16 @@ const Index = () => {
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-hero relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent animate-gradient"></div>
         <div className="container mx-auto px-4 relative">
-          <div className="max-w-3xl mx-auto text-center text-primary-foreground space-y-6">
+          <div className="max-w-3xl mx-auto text-center text-primary-foreground space-y-6 scroll-reveal">
             <h2 className="text-4xl font-bold">Ready to Start Trading?</h2>
             <p className="text-lg opacity-90">
               Complete KYC verification in minutes and start allocating to AI-powered trading strategies today.
             </p>
             <Link to="/auth">
-              <Button size="lg" variant="secondary" className="gap-2">
-                Create Account <ArrowRight className="h-4 w-4" />
+              <Button size="lg" variant="secondary" className="gap-2 hover-glow group">
+                Create Account <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
           </div>
