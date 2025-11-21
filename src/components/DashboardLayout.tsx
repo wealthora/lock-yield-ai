@@ -87,7 +87,7 @@ export function DashboardLayout({
         {/* Mobile Header */}
         <header className="lg:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Wealthora ai" className="h-8 w-auto" />
+            <img src={logo} alt="Wealthora ai" className="w-64 h-auto max-h-[80px]" />
           </div>
           <div className="flex items-center gap-2">
             <Button 
@@ -110,7 +110,7 @@ export function DashboardLayout({
             <div className="flex flex-col h-full">
               {/* Logo - Desktop Only */}
               <div className="hidden lg:flex items-center justify-between p-4 border-b border-border">
-                <img src={logo} alt="Wealthora ai" className="h-10 w-auto" />
+                <img src={logo} alt="Wealthora ai" className="w-64 h-auto max-h-[80px]" />
                 <Button 
                   variant="ghost" 
                   size="icon"

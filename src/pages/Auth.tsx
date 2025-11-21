@@ -233,7 +233,7 @@ export default function Auth() {
             <img 
               src={logo} 
               alt="Wealthora ai" 
-              className="h-16 w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-105" 
+              className="w-[700px] h-auto max-h-[250px] drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-105" 
             />
           </div>
           
