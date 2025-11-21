@@ -7,9 +7,12 @@ import {
   FileCheck,
   ScrollText,
   Settings,
-  UserCog
+  UserCog,
+  LogOut
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -36,6 +39,13 @@ const adminNavItems = [
 ];
 
 function AdminSidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   return (
     <Sidebar className="w-64" collapsible="icon">
       <SidebarContent>
@@ -70,6 +80,17 @@ function AdminSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <div className="mt-auto p-4 border-t">
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            <span>Logout</span>
+          </Button>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
