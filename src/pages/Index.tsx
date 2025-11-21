@@ -33,7 +33,7 @@ const Index = () => {
             <img 
               src={logo} 
               alt="Wealthora ai" 
-              className="w-80 h-auto max-h-[100px] drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" 
+              className="h-[40px] w-auto drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" 
             />
           </div>
           <div className="flex items-center gap-4">
@@ -208,7 +208,7 @@ const Index = () => {
                 <img 
                   src={logo} 
                   alt="Wealthora ai" 
-                  className="w-48 h-auto max-h-[60px] drop-shadow-md dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
+                  className="h-[35px] w-auto drop-shadow-md dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
                 />
               </div>
               <p className="text-sm text-muted-foreground">
