@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, CreditCard, Gift, TrendingUp, HelpCircle, Settings, LogOut, Menu, X, DollarSign } from "lucide-react";
+import { LayoutDashboard, CreditCard, Gift, TrendingUp, HelpCircle, Settings, LogOut, Menu, X, DollarSign, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
+import { useTheme } from "@/hooks/useTheme";
 import logo from "@/assets/wealthora-logo.png";
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -51,6 +52,7 @@ export function DashboardLayout({
   const location = useLocation();
   const [profile, setProfile] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   // Auto-logout on inactivity
   useInactivityLogout();
@@ -80,63 +82,83 @@ export function DashboardLayout({
     }
     return location.pathname.startsWith(path);
   };
-  return <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
-      <header className="lg:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="Wealthora ai" className="h-8 w-auto" />
+  return <div className={theme}>
+      <div className="min-h-screen bg-background">
+        {/* Mobile Header */}
+        <header className="lg:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+          <div className="flex items-center gap-2">
+            <img src={logo} alt="Wealthora ai" className="h-8 w-auto" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={toggleTheme}
+              className="transition-transform hover:scale-110"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+              {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </header>
+
+        <div className="flex min-h-screen">
+          {/* Sidebar - Desktop & Mobile Overlay */}
+          <aside className={cn("fixed lg:sticky top-0 left-0 h-screen bg-card border-r border-border z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
+            <div className="flex flex-col h-full">
+              {/* Logo - Desktop Only */}
+              <div className="hidden lg:flex items-center justify-between p-4 border-b border-border">
+                <img src={logo} alt="Wealthora ai" className="h-10 w-auto" />
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="transition-transform hover:scale-110"
+                >
+                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+              </div>
+
+              {/* Profile Section */}
+              
+
+              {/* Navigation */}
+              <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+                {navItems.map(item => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return <button key={item.href} onClick={() => {
+                  navigate(item.href);
+                  setIsSidebarOpen(false);
+                }} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors", active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+                      <Icon className="h-4 w-4 shrink-0" />
+                      <span>{item.title}</span>
+                    </button>;
+              })}
+              </nav>
+
+              {/* Logout */}
+              <div className="p-3 border-t border-border">
+                <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
+                  <LogOut className="h-4 w-4 mr-3" />
+                  Log Out
+                </Button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Mobile Overlay */}
+          {isSidebarOpen && <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
+
+          {/* Main Content */}
+          <main className="flex-1 w-full lg:w-auto">
+            <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+              {children}
+            </div>
+          </main>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-          {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-      </header>
-
-      <div className="flex min-h-screen">
-        {/* Sidebar - Desktop & Mobile Overlay */}
-        <aside className={cn("fixed lg:sticky top-0 left-0 h-screen bg-card border-r border-border z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
-          <div className="flex flex-col h-full">
-            {/* Logo - Desktop Only */}
-            <div className="hidden lg:flex items-center gap-2 p-4 border-b border-border">
-              <img src={logo} alt="Wealthora ai" className="h-10 w-auto" />
-            </div>
-
-            {/* Profile Section */}
-            
-
-            {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-              {navItems.map(item => {
-              const Icon = item.icon;
-              const active = isActive(item.href);
-              return <button key={item.href} onClick={() => {
-                navigate(item.href);
-                setIsSidebarOpen(false);
-              }} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors", active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{item.title}</span>
-                  </button>;
-            })}
-            </nav>
-
-            {/* Logout */}
-            <div className="p-3 border-t border-border">
-              <Button variant="ghost" className="w-full justify-start" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-3" />
-                Log Out
-              </Button>
-            </div>
-          </div>
-        </aside>
-
-        {/* Mobile Overlay */}
-        {isSidebarOpen && <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden" onClick={() => setIsSidebarOpen(false)} />}
-
-        {/* Main Content */}
-        <main className="flex-1 w-full lg:w-auto">
-          <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
-            {children}
-          </div>
-        </main>
       </div>
     </div>;
 }

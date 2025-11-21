@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Bot, TrendingUp, Lock, Sun, Moon } from "lucide-react";
+import { ArrowRight, Shield, Bot, TrendingUp, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
 import logo from "@/assets/wealthora-logo.png";
 import { useEffect } from "react";
-import { useTheme } from "@/hooks/useTheme";
 
 const Index = () => {
-  const { theme, toggleTheme } = useTheme();
-  
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -40,19 +37,6 @@ const Index = () => {
             />
           </div>
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={toggleTheme}
-              className="transition-transform hover:scale-110"
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </Button>
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>
