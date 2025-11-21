@@ -230,7 +230,11 @@ export default function Auth() {
       <Card className="w-full max-w-md border-primary/20 shadow-glow">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <img src={logo} alt="Wealthora ai" className="h-16 w-auto" />
+            <img 
+              src={logo} 
+              alt="Wealthora ai" 
+              className="h-16 w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300 hover:scale-105" 
+            />
           </div>
           
           <CardDescription>

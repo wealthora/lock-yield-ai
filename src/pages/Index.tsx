@@ -33,7 +33,11 @@ const Index = () => {
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="Wealthora ai" className="h-10 w-auto" />
+            <img 
+              src={logo} 
+              alt="Wealthora ai" 
+              className="h-10 w-auto drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" 
+            />
           </div>
           <div className="flex items-center gap-4">
             <Button 
@@ -217,7 +221,11 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src={logo} alt="Wealthora ai" className="h-8 w-auto" />
+                <img 
+                  src={logo} 
+                  alt="Wealthora ai" 
+                  className="h-8 w-auto drop-shadow-md dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
+                />
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered Forex trading platform with institutional-grade security.
