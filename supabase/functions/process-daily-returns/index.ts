@@ -82,8 +82,20 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Update accumulated returns
+      // Update accumulated returns for this investment
       const newAccumulatedReturns = Number(inv.accumulated_returns || 0) + dailyReturn;
+
+      // Calculate user's total cumulative returns across all bots
+      const { data: previousReturns } = await supabase
+        .from('bot_returns')
+        .select('daily_return')
+        .eq('user_id', inv.user_id);
+      
+      const totalPreviousReturns = (previousReturns || []).reduce(
+        (sum, r) => sum + Number(r.daily_return), 
+        0
+      );
+      const newCumulativeReturn = totalPreviousReturns + dailyReturn;
 
       // Insert bot_returns record
       const { error: insertError } = await supabase
@@ -94,7 +106,7 @@ Deno.serve(async (req) => {
           allocation_id: inv.id,
           date: today,
           daily_return: dailyReturn,
-          cumulative_return: newAccumulatedReturns,
+          cumulative_return: newCumulativeReturn,
         });
 
       if (insertError) {
