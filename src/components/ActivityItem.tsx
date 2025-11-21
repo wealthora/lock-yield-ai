@@ -20,7 +20,7 @@ export const ActivityItem = ({ activityType, description, amount, method, status
         return <ArrowUpRight className="h-4 w-4 text-red-500" />;
       case "allocation":
         return <Bot className="h-4 w-4 text-blue-500" />;
-      case "returns":
+      case "investment_completed":
         return <TrendingUp className="h-4 w-4 text-emerald-500" />;
       case "kyc_update":
         return <Shield className="h-4 w-4 text-purple-500" />;

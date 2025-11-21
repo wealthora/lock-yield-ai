@@ -29,25 +29,25 @@ export const RecentActivity = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const filters: any = {
-        user_id: user.id,
-      };
-
-      if (activityType !== "all") {
-        filters.activity_type = activityType;
-      }
-
-      if (status !== "all") {
-        filters.status = status;
-      }
-
       let query = supabase
         .from("activities")
         .select("*")
-        .match(filters)
+        .eq("user_id", user.id)
+        .neq("activity_type", "bot_return") // Exclude daily returns
         .order("created_at", { ascending: false })
         .limit(50);
 
+      // Apply activity type filter
+      if (activityType !== "all") {
+        query = query.eq("activity_type", activityType);
+      }
+
+      // Apply status filter
+      if (status !== "all") {
+        query = query.eq("status", status);
+      }
+
+      // Apply date range filters
       if (dateRange?.from) {
         query = query.gte("created_at", dateRange.from.toISOString());
       }
