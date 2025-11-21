@@ -116,6 +116,7 @@ export default function AdminDeposits() {
       description: `Deposit approved: $${deposit.amount} via ${deposit.method}`,
       amount: deposit.amount,
       method: deposit.method,
+      status: "completed",
     });
 
     toast({ title: "Deposit approved successfully" });

@@ -100,6 +100,7 @@ export default function AdminWithdrawals() {
       description: `Withdrawal approved: $${withdrawal.amount} via ${withdrawal.method}`,
       amount: withdrawal.amount,
       method: withdrawal.method,
+      status: "completed",
     });
 
     toast({ title: "Withdrawal approved successfully" });
