@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
+import logo from "@/assets/wealthora-logo.png";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -80,10 +81,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Mobile Header */}
       <header className="lg:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
-            FA
-          </div>
-          <span className="font-semibold">Forex AI Trading</span>
+          <img src={logo} alt="Wealthora ai" className="h-8 w-auto" />
         </div>
         <Button
           variant="ghost"
@@ -106,10 +104,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex flex-col h-full">
             {/* Logo - Desktop Only */}
             <div className="hidden lg:flex items-center gap-2 p-4 border-b border-border">
-              <div className="h-10 w-10 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                FA
-              </div>
-              <span className="font-semibold">Forex AI Trading</span>
+              <img src={logo} alt="Wealthora ai" className="h-10 w-auto" />
             </div>
 
             {/* Profile Section */}

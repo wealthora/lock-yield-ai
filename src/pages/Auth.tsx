@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
+import logo from "@/assets/wealthora-logo.png";
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -229,9 +230,9 @@ export default function Auth() {
       <Card className="w-full max-w-md border-primary/20 shadow-glow">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <Shield className="h-12 w-12 text-primary" />
+            <img src={logo} alt="Wealthora ai" className="h-16 w-auto" />
           </div>
-          <CardTitle className="text-2xl font-bold">Forex AI Trading</CardTitle>
+          <CardTitle className="text-2xl font-bold">Wealthora ai</CardTitle>
           <CardDescription>
             Secure access to your AI-powered trading platform
           </CardDescription>
