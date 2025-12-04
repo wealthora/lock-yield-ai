@@ -6,68 +6,57 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-
 interface Balance {
   available_balance: number;
   locked_balance: number;
   returns_balance: number;
 }
-
 export default function DashboardHome() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [profile, setProfile] = useState<any>(null);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     loadData();
 
     // Set up real-time subscription for balance updates
-    const channel = supabase
-      .channel("wallet_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "wallets",
-        },
-        () => {
-          console.log("Wallet updated - reloading data");
-          loadData();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel("wallet_changes").on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "wallets"
+    }, () => {
+      console.log("Wallet updated - reloading data");
+      loadData();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: {
+        user
+      }
+    } = await supabase.auth.getUser();
     if (!user) return;
-
-    const [balanceRes, profileRes] = await Promise.all([
-      supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-    ]);
-
-    setBalance(balanceRes.data || { available_balance: 0, locked_balance: 0, returns_balance: 0 });
+    const [balanceRes, profileRes] = await Promise.all([supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(), supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()]);
+    setBalance(balanceRes.data || {
+      available_balance: 0,
+      locked_balance: 0,
+      returns_balance: 0
+    });
     setProfile(profileRes.data);
   };
-
   const referralLink = `${window.location.origin}/auth?ref=${profile?.id || ""}`;
-
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast({
       title: "Copied!",
-      description: "Referral link copied to clipboard",
+      description: "Referral link copied to clipboard"
     });
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">Welcome back to your trading hub</p>
@@ -85,9 +74,7 @@ export default function DashboardHome() {
                 ${((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toFixed(2)}
               </div>
             </div>
-            <Button variant="outline" size="sm">
-              Restore
-            </Button>
+            
           </div>
         </CardHeader>
       </Card>
@@ -227,17 +214,12 @@ export default function DashboardHome() {
           </div>
 
           <div className="flex gap-2">
-            <Input
-              readOnly
-              value={referralLink}
-              className="font-mono text-sm"
-            />
+            <Input readOnly value={referralLink} className="font-mono text-sm" />
             <Button onClick={copyReferralLink} size="icon" variant="outline">
               <Copy className="h-4 w-4" />
             </Button>
           </div>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
