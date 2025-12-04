@@ -92,7 +92,7 @@ export default function DailyReturns() {
   return <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Daily Returns</h1>
+          <h1 className="text-3xl font-bold text-foreground">Daily Returns</h1>
           <p className="text-muted-foreground mt-1">Track your bot performance over time</p>
         </div>
         
