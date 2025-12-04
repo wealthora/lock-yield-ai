@@ -59,7 +59,7 @@ export default function DashboardHome() {
   return <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Welcome back to your trading hub</p>
+        <p className="text-muted-foreground mt-1">Welcome back to your trading hub, {profile?.first_name || 'User'}</p>
       </div>
 
       {/* Account Info Card */}
