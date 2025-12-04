@@ -325,6 +325,54 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          deposit_amount: number
+          id: string
+          referred_id: string
+          referrer_id: string
+          reward_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          deposit_amount: number
+          id?: string
+          referred_id: string
+          referrer_id: string
+          reward_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          deposit_amount?: number
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_amount?: number
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referred_id: string
+          referrer_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referred_id: string
+          referrer_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           allocation_id: string | null

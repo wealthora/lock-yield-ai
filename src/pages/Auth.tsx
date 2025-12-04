@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,8 @@ export default function Auth() {
   const [signupPassword, setSignupPassword] = useState("");
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [searchParams] = useSearchParams();
+  const referrerId = searchParams.get("ref");
   const navigate = useNavigate();
   const {
     toast
@@ -114,6 +116,14 @@ export default function Auth() {
             confirmationLink
           }
         });
+
+        // Save referral relationship if ref param exists
+        if (referrerId && referrerId !== data.user.id) {
+          await supabase.from("referrals").insert({
+            referrer_id: referrerId,
+            referred_id: data.user.id
+          });
+        }
       }
       toast({
         title: "Success!",
