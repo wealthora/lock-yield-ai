@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="flex-1 flex flex-col">
             <header className="h-16 border-b flex items-center px-6 bg-card">
               <SidebarTrigger />
-              <h1 className="ml-4 text-xl font-semibold">Admin Dashboard</h1>
+              <h1 className="ml-4 text-xl font-semibold text-foreground">Admin Dashboard</h1>
               <Button 
                 variant="ghost" 
                 size="icon"

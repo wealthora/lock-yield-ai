@@ -57,7 +57,7 @@ const Index = () => {
               Regulated & Secure Platform
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
               AI-Powered Forex Trading
               <span className="block text-primary mt-2">Built for Everyone</span>
             </h1>
