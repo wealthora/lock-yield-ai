@@ -13,7 +13,7 @@ export default function Finances() {
   const [aiBotsModalOpen, setAIBotsModalOpen] = useState(false);
   return <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Finances</h1>
+        <h1 className="text-3xl font-bold text-foreground">Finances</h1>
         <p className="text-muted-foreground mt-1">Manage your deposits, withdrawals, and investments</p>
       </div>
 

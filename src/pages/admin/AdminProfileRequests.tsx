@@ -255,7 +255,7 @@ export default function AdminProfileRequests() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Profile Change Requests</h1>
+          <h1 className="text-3xl font-bold text-foreground">Profile Change Requests</h1>
           <p className="text-muted-foreground">Review and manage user profile update requests</p>
         </div>
 

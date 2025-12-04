@@ -373,7 +373,7 @@ export default function ProfileSettings() {
   return (
     <div className="container max-w-5xl mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Profile Settings</h1>
+        <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
         <p className="text-muted-foreground">Manage your personal information and security</p>
       </div>
 
