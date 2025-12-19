@@ -94,14 +94,17 @@ export default function AdminWithdrawals() {
       return;
     }
 
-    await supabase.from("activities").insert({
-      user_id: withdrawal.user_id,
-      activity_type: "withdrawal",
-      description: `Withdrawal approved: $${withdrawal.amount} via ${withdrawal.method}`,
-      amount: withdrawal.amount,
-      method: withdrawal.method,
-      status: "completed",
-    });
+    // Update existing pending activity to completed
+    await supabase
+      .from("activities")
+      .update({ 
+        status: "completed",
+        description: `Withdrawal approved: $${withdrawal.amount} via ${withdrawal.method}`
+      })
+      .eq("user_id", withdrawal.user_id)
+      .eq("activity_type", "withdrawal")
+      .eq("amount", withdrawal.amount)
+      .eq("status", "pending");
 
     toast({ title: "Withdrawal approved successfully" });
     fetchWithdrawals();
@@ -119,10 +122,23 @@ export default function AdminWithdrawals() {
 
     if (error) {
       toast({ title: "Error declining withdrawal", variant: "destructive" });
-    } else {
-      toast({ title: "Withdrawal declined" });
-      fetchWithdrawals();
+      return;
     }
+
+    // Update existing pending activity to rejected
+    await supabase
+      .from("activities")
+      .update({ 
+        status: "rejected",
+        description: `Withdrawal rejected: $${withdrawal.amount} via ${withdrawal.method}`
+      })
+      .eq("user_id", withdrawal.user_id)
+      .eq("activity_type", "withdrawal")
+      .eq("amount", withdrawal.amount)
+      .eq("status", "pending");
+
+    toast({ title: "Withdrawal declined" });
+    fetchWithdrawals();
   };
 
   if (isLoading) {
