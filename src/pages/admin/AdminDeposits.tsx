@@ -110,14 +110,17 @@ export default function AdminDeposits() {
       return;
     }
 
-    await supabase.from("activities").insert({
-      user_id: deposit.user_id,
-      activity_type: "deposit",
-      description: `Deposit approved: $${deposit.amount} via ${deposit.method}`,
-      amount: deposit.amount,
-      method: deposit.method,
-      status: "completed",
-    });
+    // Update existing pending activity to completed
+    await supabase
+      .from("activities")
+      .update({ 
+        status: "completed",
+        description: `Deposit approved: $${deposit.amount} via ${deposit.method}`
+      })
+      .eq("user_id", deposit.user_id)
+      .eq("activity_type", "deposit")
+      .eq("amount", deposit.amount)
+      .eq("status", "pending");
 
     toast({ title: "Deposit approved successfully" });
     fetchDeposits();
@@ -135,10 +138,23 @@ export default function AdminDeposits() {
 
     if (error) {
       toast({ title: "Error declining deposit", variant: "destructive" });
-    } else {
-      toast({ title: "Deposit declined" });
-      fetchDeposits();
+      return;
     }
+
+    // Update existing pending activity to declined
+    await supabase
+      .from("activities")
+      .update({ 
+        status: "declined",
+        description: `Deposit declined: $${deposit.amount} via ${deposit.method}`
+      })
+      .eq("user_id", deposit.user_id)
+      .eq("activity_type", "deposit")
+      .eq("amount", deposit.amount)
+      .eq("status", "pending");
+
+    toast({ title: "Deposit declined" });
+    fetchDeposits();
   };
 
   if (isLoading) {
