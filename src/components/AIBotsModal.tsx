@@ -136,6 +136,7 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsM
         activity_type: "bot_allocation",
         description: `Allocated $${investAmount} to ${selectedBot.name}`,
         amount: investAmount,
+        status: "approved",
       });
 
       toast({
