@@ -101,16 +101,29 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
         screenshotUrl = publicUrl;
       }
 
+      const methodName = depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption;
+      const depositAmount = parseFloat(amount);
+
       const { error } = await supabase.from("deposit_requests").insert({
         user_id: user.id,
-        amount: parseFloat(amount),
-        method: depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption,
+        amount: depositAmount,
+        method: methodName,
         status: "pending",
         screenshot_url: screenshotUrl,
         transaction_reference: transactionRef || null,
       });
 
       if (error) throw error;
+
+      // Log pending activity for user visibility
+      await supabase.from("activities").insert({
+        user_id: user.id,
+        activity_type: "deposit",
+        description: `Deposit request of $${depositAmount} via ${methodName}`,
+        amount: depositAmount,
+        method: methodName,
+        status: "pending",
+      });
 
       toast({
         title: "Deposit Request Submitted",

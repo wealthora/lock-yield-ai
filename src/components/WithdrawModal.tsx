@@ -119,6 +119,16 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
         status: "pending",
       });
 
+      // Log pending activity for user visibility
+      await supabase.from("activities").insert({
+        user_id: user.id,
+        activity_type: "withdrawal",
+        description: `Withdrawal request of $${requestedAmount} via ${methodName}`,
+        amount: requestedAmount,
+        method: methodName || "",
+        status: "pending",
+      });
+
       setShowConfirmation(true);
     } catch (error) {
       console.error("Error submitting withdrawal:", error);
