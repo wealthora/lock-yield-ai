@@ -104,18 +104,18 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       const methodName = depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption;
       const depositAmount = parseFloat(amount);
 
-      const { error } = await supabase.from("deposit_requests").insert({
+      const { data: depositData, error } = await supabase.from("deposit_requests").insert({
         user_id: user.id,
         amount: depositAmount,
         method: methodName,
         status: "pending",
         screenshot_url: screenshotUrl,
         transaction_reference: transactionRef || null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
 
-      // Log pending activity for user visibility
+      // Log pending activity for user visibility with request_id in metadata
       await supabase.from("activities").insert({
         user_id: user.id,
         activity_type: "deposit",
@@ -123,6 +123,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
         amount: depositAmount,
         method: methodName,
         status: "pending",
+        metadata: { request_id: depositData.id },
       });
 
       toast({

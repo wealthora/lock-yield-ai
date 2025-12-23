@@ -110,7 +110,7 @@ export default function AdminDeposits() {
       return;
     }
 
-    // Update existing pending activity to completed
+    // Update existing pending activity to completed using request_id in metadata
     await supabase
       .from("activities")
       .update({ 
@@ -119,8 +119,8 @@ export default function AdminDeposits() {
       })
       .eq("user_id", deposit.user_id)
       .eq("activity_type", "deposit")
-      .eq("amount", deposit.amount)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .contains("metadata", { request_id: deposit.id });
 
     toast({ title: "Deposit approved successfully" });
     fetchDeposits();
@@ -141,7 +141,7 @@ export default function AdminDeposits() {
       return;
     }
 
-    // Update existing pending activity to declined
+    // Update existing pending activity to declined using request_id in metadata
     await supabase
       .from("activities")
       .update({ 
@@ -150,8 +150,8 @@ export default function AdminDeposits() {
       })
       .eq("user_id", deposit.user_id)
       .eq("activity_type", "deposit")
-      .eq("amount", deposit.amount)
-      .eq("status", "pending");
+      .eq("status", "pending")
+      .contains("metadata", { request_id: deposit.id });
 
     toast({ title: "Deposit declined" });
     fetchDeposits();

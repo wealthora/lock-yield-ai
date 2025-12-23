@@ -109,17 +109,18 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
         ? `${formData.mpesaNumber} (${formData.mpesaName})`
         : formData.address;
 
-      // Create transaction record (pending status, no balance deduction yet)
-      await supabase.from("transactions").insert({
+      // Create withdrawal request record
+      const { data: withdrawalData, error: withdrawalError } = await supabase.from("withdrawal_requests").insert({
         user_id: user.id,
-        type: "withdrawal",
         amount: requestedAmount,
         method: methodName || "",
         wallet_address: walletAddress,
         status: "pending",
-      });
+      }).select('id').single();
 
-      // Log pending activity for user visibility
+      if (withdrawalError) throw withdrawalError;
+
+      // Log pending activity for user visibility with request_id in metadata
       await supabase.from("activities").insert({
         user_id: user.id,
         activity_type: "withdrawal",
@@ -127,6 +128,7 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
         amount: requestedAmount,
         method: methodName || "",
         status: "pending",
+        metadata: { request_id: withdrawalData.id },
       });
 
       setShowConfirmation(true);
