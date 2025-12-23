@@ -14,11 +14,12 @@ interface WithdrawalRequest {
   id: string;
   user_id: string;
   amount: number;
-  method: string | null;
+  method: string;
   wallet_address: string | null;
   status: string;
-  notes: string | null;
+  admin_notes: string | null;
   created_at: string;
+  updated_at: string | null;
   profiles: {
     first_name: string | null;
     other_names: string | null;
@@ -38,7 +39,7 @@ export default function AdminWithdrawals() {
       .channel("withdrawal-changes")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "transactions", filter: "type=eq.withdrawal" },
+        { event: "*", schema: "public", table: "withdrawal_requests" },
         () => fetchWithdrawals()
       )
       .subscribe();
@@ -50,9 +51,8 @@ export default function AdminWithdrawals() {
 
   const fetchWithdrawals = async () => {
     const { data: withdrawalsData, error } = await supabase
-      .from("transactions")
+      .from("withdrawal_requests")
       .select("*")
-      .eq("type", "withdrawal")
       .order("created_at", { ascending: false });
 
     if (error || !withdrawalsData) {
@@ -79,19 +79,32 @@ export default function AdminWithdrawals() {
   };
 
   const handleApprove = async (withdrawal: WithdrawalRequest) => {
-    // Update the transaction status to approved (trigger will handle balance deduction)
+    // Update the withdrawal_requests status to approved
     const { error: updateError } = await supabase
-      .from("transactions")
+      .from("withdrawal_requests")
       .update({
         status: "approved",
-        notes: notes[withdrawal.id] || null,
+        admin_notes: notes[withdrawal.id] || null,
       })
-      .eq("id", withdrawal.id)
-      .eq("type", "withdrawal");
+      .eq("id", withdrawal.id);
 
     if (updateError) {
       toast({ title: "Error approving withdrawal", variant: "destructive" });
       return;
+    }
+
+    // Deduct from user's available balance
+    const { data: wallet } = await supabase
+      .from("wallets")
+      .select("available_balance")
+      .eq("user_id", withdrawal.user_id)
+      .single();
+
+    if (wallet) {
+      await supabase
+        .from("wallets")
+        .update({ available_balance: wallet.available_balance - withdrawal.amount })
+        .eq("user_id", withdrawal.user_id);
     }
 
     // Update existing pending activity to completed using request_id in metadata
@@ -112,13 +125,12 @@ export default function AdminWithdrawals() {
 
   const handleDecline = async (withdrawal: WithdrawalRequest) => {
     const { error } = await supabase
-      .from("transactions")
+      .from("withdrawal_requests")
       .update({
-        status: "rejected",
-        notes: notes[withdrawal.id] || null,
+        status: "declined",
+        admin_notes: notes[withdrawal.id] || null,
       })
-      .eq("id", withdrawal.id)
-      .eq("type", "withdrawal");
+      .eq("id", withdrawal.id);
 
     if (error) {
       toast({ title: "Error declining withdrawal", variant: "destructive" });
@@ -229,7 +241,7 @@ export default function AdminWithdrawals() {
                           className="min-h-[60px]"
                         />
                        ) : (
-                        <p className="text-sm">{withdrawal.notes || "—"}</p>
+                        <p className="text-sm">{withdrawal.admin_notes || "—"}</p>
                       )}
                     </TableCell>
                     <TableCell>
