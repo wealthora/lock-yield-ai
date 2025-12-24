@@ -10,7 +10,9 @@ import {
   UserCog,
   LogOut,
   Sun,
-  Moon
+  Moon,
+  Bot,
+  PiggyBank
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +36,8 @@ const adminNavItems = [
   { title: "Users", url: "/admin/users", icon: Users },
   { title: "Deposits", url: "/admin/deposits", icon: Wallet },
   { title: "Withdrawals", url: "/admin/withdrawals", icon: TrendingUp },
+  { title: "Bot Allocations", url: "/admin/bot-allocations", icon: Bot },
+  { title: "Bot Returns", url: "/admin/bot-returns", icon: PiggyBank },
   { title: "KYC Verification", url: "/admin/kyc", icon: FileCheck },
   { title: "Profile Requests", url: "/admin/profile-requests", icon: UserCog },
   { title: "System Logs", url: "/admin/logs", icon: ScrollText },
