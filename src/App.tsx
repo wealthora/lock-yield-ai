@@ -17,6 +17,9 @@ import HelpCenter from "./pages/dashboard/HelpCenter";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminDeposits from "./pages/admin/AdminDeposits";
+import AdminWithdrawals from "./pages/admin/AdminWithdrawals";
+import AdminBotAllocations from "./pages/admin/AdminBotAllocations";
+import AdminBotReturns from "./pages/admin/AdminBotReturns";
 import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminKYC from "./pages/admin/AdminKYC";
 import AdminLogs from "./pages/admin/AdminLogs";
@@ -43,12 +46,14 @@ const App = () => (
           <Route path="/dashboard/profile" element={<DashboardLayout><ProfileSettings /></DashboardLayout>} />
           <Route path="/dashboard/help" element={<DashboardLayout><HelpCenter /></DashboardLayout>} />
           
-          {/* Admin Routes */}
+{/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/deposits" element={<AdminDeposits />} />
+          <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+          <Route path="/admin/bot-allocations" element={<AdminBotAllocations />} />
+          <Route path="/admin/bot-returns" element={<AdminBotReturns />} />
           <Route path="/admin/transactions" element={<AdminTransactions />} />
-          <Route path="/admin/withdrawals" element={<AdminTransactions />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/profile-requests" element={<AdminProfileRequests />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
