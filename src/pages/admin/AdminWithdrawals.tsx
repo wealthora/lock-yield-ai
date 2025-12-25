@@ -108,7 +108,7 @@ export default function AdminWithdrawals() {
     }
 
     // Update existing pending activity to completed using request_id in metadata
-    await supabase
+    const { error: activityError } = await supabase
       .from("activities")
       .update({ 
         status: "completed",
@@ -117,7 +117,11 @@ export default function AdminWithdrawals() {
       .eq("user_id", withdrawal.user_id)
       .eq("activity_type", "withdrawal")
       .eq("status", "pending")
-      .contains("metadata", { request_id: withdrawal.id });
+      .filter("metadata->>request_id", "eq", withdrawal.id);
+
+    if (activityError) {
+      console.error("Error updating activity:", activityError);
+    }
 
     toast({ title: "Withdrawal approved successfully" });
     fetchWithdrawals();
@@ -138,7 +142,7 @@ export default function AdminWithdrawals() {
     }
 
     // Update existing pending activity to rejected using request_id in metadata
-    await supabase
+    const { error: activityError } = await supabase
       .from("activities")
       .update({ 
         status: "rejected",
@@ -147,7 +151,11 @@ export default function AdminWithdrawals() {
       .eq("user_id", withdrawal.user_id)
       .eq("activity_type", "withdrawal")
       .eq("status", "pending")
-      .contains("metadata", { request_id: withdrawal.id });
+      .filter("metadata->>request_id", "eq", withdrawal.id);
+
+    if (activityError) {
+      console.error("Error updating activity:", activityError);
+    }
 
     toast({ title: "Withdrawal declined" });
     fetchWithdrawals();
