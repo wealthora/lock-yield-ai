@@ -111,19 +111,34 @@ export default function AdminDeposits() {
     }
 
     // Update existing pending activity to completed using request_id in metadata
-    const { error: activityError } = await supabase
+    const { data: pendingActivities } = await supabase
       .from("activities")
-      .update({ 
-        status: "completed",
-        description: `Deposit approved: $${deposit.amount} via ${deposit.method}`
-      })
+      .select("id")
       .eq("user_id", deposit.user_id)
       .eq("activity_type", "deposit")
-      .eq("status", "pending")
-      .filter("metadata->>request_id", "eq", deposit.id);
+      .eq("status", "pending");
 
-    if (activityError) {
-      console.error("Error updating activity:", activityError);
+    // Find the activity that matches this deposit's request_id
+    if (pendingActivities) {
+      for (const activity of pendingActivities) {
+        const { data: activityData } = await supabase
+          .from("activities")
+          .select("metadata")
+          .eq("id", activity.id)
+          .single();
+        
+        const metadata = activityData?.metadata as { request_id?: string } | null;
+        if (metadata?.request_id === deposit.id) {
+          await supabase
+            .from("activities")
+            .update({ 
+              status: "completed",
+              description: `Deposit approved: $${deposit.amount} via ${deposit.method}`
+            })
+            .eq("id", activity.id);
+          break;
+        }
+      }
     }
 
     toast({ title: "Deposit approved successfully" });
@@ -146,19 +161,34 @@ export default function AdminDeposits() {
     }
 
     // Update existing pending activity to declined using request_id in metadata
-    const { error: activityError } = await supabase
+    const { data: pendingActivities } = await supabase
       .from("activities")
-      .update({ 
-        status: "declined",
-        description: `Deposit declined: $${deposit.amount} via ${deposit.method}`
-      })
+      .select("id")
       .eq("user_id", deposit.user_id)
       .eq("activity_type", "deposit")
-      .eq("status", "pending")
-      .filter("metadata->>request_id", "eq", deposit.id);
+      .eq("status", "pending");
 
-    if (activityError) {
-      console.error("Error updating activity:", activityError);
+    // Find the activity that matches this deposit's request_id
+    if (pendingActivities) {
+      for (const activity of pendingActivities) {
+        const { data: activityData } = await supabase
+          .from("activities")
+          .select("metadata")
+          .eq("id", activity.id)
+          .single();
+        
+        const metadata = activityData?.metadata as { request_id?: string } | null;
+        if (metadata?.request_id === deposit.id) {
+          await supabase
+            .from("activities")
+            .update({ 
+              status: "declined",
+              description: `Deposit declined: $${deposit.amount} via ${deposit.method}`
+            })
+            .eq("id", activity.id);
+          break;
+        }
+      }
     }
 
     toast({ title: "Deposit declined" });

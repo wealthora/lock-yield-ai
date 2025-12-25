@@ -108,19 +108,34 @@ export default function AdminWithdrawals() {
     }
 
     // Update existing pending activity to completed using request_id in metadata
-    const { error: activityError } = await supabase
+    const { data: pendingActivities } = await supabase
       .from("activities")
-      .update({ 
-        status: "completed",
-        description: `Withdrawal approved: $${withdrawal.amount} via ${withdrawal.method}`
-      })
+      .select("id")
       .eq("user_id", withdrawal.user_id)
       .eq("activity_type", "withdrawal")
-      .eq("status", "pending")
-      .filter("metadata->>request_id", "eq", withdrawal.id);
+      .eq("status", "pending");
 
-    if (activityError) {
-      console.error("Error updating activity:", activityError);
+    // Find the activity that matches this withdrawal's request_id
+    if (pendingActivities) {
+      for (const activity of pendingActivities) {
+        const { data: activityData } = await supabase
+          .from("activities")
+          .select("metadata")
+          .eq("id", activity.id)
+          .single();
+        
+        const metadata = activityData?.metadata as { request_id?: string } | null;
+        if (metadata?.request_id === withdrawal.id) {
+          await supabase
+            .from("activities")
+            .update({ 
+              status: "completed",
+              description: `Withdrawal approved: $${withdrawal.amount} via ${withdrawal.method}`
+            })
+            .eq("id", activity.id);
+          break;
+        }
+      }
     }
 
     toast({ title: "Withdrawal approved successfully" });
@@ -142,19 +157,34 @@ export default function AdminWithdrawals() {
     }
 
     // Update existing pending activity to rejected using request_id in metadata
-    const { error: activityError } = await supabase
+    const { data: pendingActivities } = await supabase
       .from("activities")
-      .update({ 
-        status: "rejected",
-        description: `Withdrawal rejected: $${withdrawal.amount} via ${withdrawal.method}`
-      })
+      .select("id")
       .eq("user_id", withdrawal.user_id)
       .eq("activity_type", "withdrawal")
-      .eq("status", "pending")
-      .filter("metadata->>request_id", "eq", withdrawal.id);
+      .eq("status", "pending");
 
-    if (activityError) {
-      console.error("Error updating activity:", activityError);
+    // Find the activity that matches this withdrawal's request_id
+    if (pendingActivities) {
+      for (const activity of pendingActivities) {
+        const { data: activityData } = await supabase
+          .from("activities")
+          .select("metadata")
+          .eq("id", activity.id)
+          .single();
+        
+        const metadata = activityData?.metadata as { request_id?: string } | null;
+        if (metadata?.request_id === withdrawal.id) {
+          await supabase
+            .from("activities")
+            .update({ 
+              status: "rejected",
+              description: `Withdrawal rejected: $${withdrawal.amount} via ${withdrawal.method}`
+            })
+            .eq("id", activity.id);
+          break;
+        }
+      }
     }
 
     toast({ title: "Withdrawal declined" });
