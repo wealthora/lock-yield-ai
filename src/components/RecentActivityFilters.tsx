@@ -57,7 +57,6 @@ export const RecentActivityFilters = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="declined">Declined</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
