@@ -71,7 +71,7 @@ export default function DashboardHome() {
 
     const [balanceRes, profileRes] = await Promise.all([
       supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
     ]);
 
     setBalance(
