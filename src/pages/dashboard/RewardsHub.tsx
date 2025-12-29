@@ -1,8 +1,34 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Gift, Trophy, Star, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function RewardsHub() {
+  const [totalReferrals, setTotalReferrals] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReferralData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [referralsRes, rewardsRes] = await Promise.all([
+        supabase.from("referrals").select("id").eq("referrer_id", user.id),
+        supabase.from("referral_rewards").select("reward_amount").eq("referrer_id", user.id),
+      ]);
+
+      setTotalReferrals(referralsRes.data?.length || 0);
+      setTotalEarnings(
+        rewardsRes.data?.reduce((sum, r) => sum + (r.reward_amount || 0), 0) || 0
+      );
+      setLoading(false);
+    };
+
+    fetchReferralData();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -67,11 +93,13 @@ export default function RewardsHub() {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                 <span className="text-sm">Total Referrals</span>
-                <span className="font-semibold">0</span>
+                <span className="font-semibold">{loading ? "..." : totalReferrals}</span>
               </div>
               <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                 <span className="text-sm">Earned from Referrals</span>
-                <span className="font-semibold text-primary">$0.00</span>
+                <span className="font-semibold text-primary">
+                  {loading ? "..." : `$${totalEarnings.toFixed(2)}`}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -115,7 +143,7 @@ export default function RewardsHub() {
             <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
               <span className="text-xs font-bold text-primary">2</span>
             </div>
-            <p>Refer friends and earn 30% of their trading spread</p>
+            <p>Refer friends and earn 10% of their first deposit</p>
           </div>
           <div className="flex items-start gap-3">
             <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
