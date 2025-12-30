@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,36 +16,58 @@ serve(async (req) => {
 
     console.log('Sending password reset email to:', email);
 
-    const EMAILJS_PRIVATE_KEY = Deno.env.get('EMAILJS_PRIVATE_KEY');
-    const SERVICE_ID = 'service_t1xrjeb';
-    const TEMPLATE_ID = 'template_qm1e5fu';
-    const PUBLIC_KEY = 'jKYyvu6fVyLHqnuJ-';
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (!RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
 
-    // Send email via EmailJS API
-    const emailResponse = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        service_id: SERVICE_ID,
-        template_id: TEMPLATE_ID,
-        user_id: PUBLIC_KEY,
-        accessToken: EMAILJS_PRIVATE_KEY,
-        template_params: {
-          to_email: email,
-          reset_link: resetLink,
-        },
+        from: 'Wealthora <onboarding@resend.dev>',
+        to: [email],
+        subject: 'Reset Your Password',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #333; text-align: center;">Password Reset Request</h1>
+            <p style="color: #666; font-size: 16px;">
+              You requested to reset your password. Click the button below to set a new password:
+            </p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${resetLink}" 
+                 style="background-color: #10b981; color: white; padding: 14px 28px; 
+                        text-decoration: none; border-radius: 8px; font-weight: bold;
+                        display: inline-block;">
+                Reset Password
+              </a>
+            </div>
+            <p style="color: #999; font-size: 14px;">
+              If you didn't request this, you can safely ignore this email.
+            </p>
+            <p style="color: #999; font-size: 14px;">
+              This link will expire in 1 hour.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+            <p style="color: #999; font-size: 12px; text-align: center;">
+              © ${new Date().getFullYear()} Wealthora. All rights reserved.
+            </p>
+          </div>
+        `,
       }),
     });
 
     if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      console.error('EmailJS API error:', errorText);
-      throw new Error(`EmailJS API error: ${errorText}`);
+      const errorData = await emailResponse.text();
+      console.error('Resend API error:', errorData);
+      throw new Error(`Resend API error: ${errorData}`);
     }
 
-    console.log('Reset email sent successfully to:', email);
+    const result = await emailResponse.json();
+    console.log('Reset email sent successfully:', result);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Email sent successfully' }),
