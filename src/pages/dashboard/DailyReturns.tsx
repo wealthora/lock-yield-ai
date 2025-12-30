@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { RefreshCw, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ReturnsChart } from "@/components/dashboard/ReturnsChart";
 interface BotReturn {
   id: string;
   bot_id: string;
@@ -78,9 +77,10 @@ export default function DailyReturns() {
   }, []);
 
   // Prepare chart data (last 7 days)
-  const chartData = returns.slice(0, 7).reverse().map(r => ({
-    date: format(new Date(r.date), "MMM dd"),
-    return: Number(r.daily_return)
+  const chartData = returns.slice(0, 7).map(r => ({
+    date: r.date,
+    dailyReturn: Number(r.daily_return),
+    cumulativeReturn: Number(r.cumulative_return),
   }));
   const totalReturns = returns.reduce((sum, r) => sum + Number(r.daily_return), 0);
   const avgDailyReturn = returns.length > 0 ? totalReturns / returns.length : 0;
@@ -133,32 +133,22 @@ export default function DailyReturns() {
         </Card>
       </div>
 
-      {returns.length > 0 && <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+      {returns.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <TrendingUp className="h-5 w-5 text-primary" />
-              7-Day Return Trend
+              7-Day Performance
             </CardTitle>
+            <CardDescription>
+              Cumulative returns over the last 7 trading days
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="date" className="text-xs" />
-                <YAxis className="text-xs" />
-                <Tooltip contentStyle={{
-              backgroundColor: "hsl(var(--card))",
-              border: "1px solid hsl(var(--border))",
-              borderRadius: "8px"
-            }} formatter={(value: number) => [`$${value.toFixed(2)}`, "Return"]} />
-                <Line type="monotone" dataKey="return" stroke="hsl(var(--primary))" strokeWidth={2} dot={{
-              fill: "hsl(var(--primary))",
-              r: 4
-            }} />
-              </LineChart>
-            </ResponsiveContainer>
+          <CardContent className="pt-2">
+            <ReturnsChart data={chartData} />
           </CardContent>
-        </Card>}
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
