@@ -11,6 +11,7 @@ import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
+import { sendPasswordResetEmail } from "@/lib/emailjs";
 import logo from "@/assets/wealthora-logo.png";
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -211,14 +212,10 @@ export default function Auth() {
       });
       if (error) throw error;
 
-      // Send password reset email via edge function
+      // Send password reset email via EmailJS (browser-based)
       const resetLink = `${window.location.origin}/auth?reset=true`;
-      await supabase.functions.invoke('send-reset-email', {
-        body: {
-          email,
-          resetLink
-        }
-      });
+      await sendPasswordResetEmail(email, resetLink);
+      
       toast({
         title: "Reset link sent",
         description: "Check your email for the password reset link."
