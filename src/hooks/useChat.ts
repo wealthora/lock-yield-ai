@@ -153,19 +153,40 @@ export function useChat(sessionId?: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
+    // Optimistic update - add message immediately
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: ChatMessage = {
+      id: tempId,
+      session_id: sessionId,
+      sender_id: user.id,
+      sender_role: senderRole,
+      content: content.trim(),
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
+    
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('chat_messages')
         .insert({
           session_id: sessionId,
           sender_id: user.id,
           sender_role: senderRole,
           content: content.trim(),
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+      
+      // Replace temp message with real one
+      setMessages((prev) => prev.map((m) => m.id === tempId ? (data as ChatMessage) : m));
     } catch (error: any) {
       console.error('Error sending message:', error);
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       toast({
         title: 'Error',
         description: 'Failed to send message',
