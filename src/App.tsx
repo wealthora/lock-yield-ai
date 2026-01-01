@@ -24,6 +24,7 @@ import AdminTransactions from "./pages/admin/AdminTransactions";
 import AdminKYC from "./pages/admin/AdminKYC";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminProfileRequests from "./pages/admin/AdminProfileRequests";
+import AdminChat from "./pages/admin/AdminChat";
 
 const queryClient = new QueryClient();
 
@@ -46,7 +47,7 @@ const App = () => (
           <Route path="/dashboard/profile" element={<DashboardLayout><ProfileSettings /></DashboardLayout>} />
           <Route path="/dashboard/help" element={<DashboardLayout><HelpCenter /></DashboardLayout>} />
           
-{/* Admin Routes */}
+          {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/deposits" element={<AdminDeposits />} />
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/admin/transactions" element={<AdminTransactions />} />
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/profile-requests" element={<AdminProfileRequests />} />
+          <Route path="/admin/chat" element={<AdminChat />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
