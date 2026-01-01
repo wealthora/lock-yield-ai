@@ -12,7 +12,8 @@ import {
   Sun,
   Moon,
   Bot,
-  PiggyBank
+  PiggyBank,
+  MessageCircle
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,7 @@ const adminNavItems = [
   { title: "Bot Returns", url: "/admin/bot-returns", icon: PiggyBank },
   { title: "KYC Verification", url: "/admin/kyc", icon: FileCheck },
   { title: "Profile Requests", url: "/admin/profile-requests", icon: UserCog },
+  { title: "Support Chat", url: "/admin/chat", icon: MessageCircle },
   { title: "System Logs", url: "/admin/logs", icon: ScrollText },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];

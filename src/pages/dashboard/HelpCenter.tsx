@@ -1,9 +1,42 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageCircle, Mail, Phone, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ChatWidget } from "@/components/chat/ChatWidget";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function HelpCenter() {
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatSessionId, setChatSessionId] = useState<string | null>(null);
+
+  // Check for existing active session on mount
+  useEffect(() => {
+    const checkExistingSession = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: existingSession } = await supabase
+        .from('chat_sessions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingSession) {
+        setChatSessionId(existingSession.id);
+      }
+    };
+
+    checkExistingSession();
+  }, []);
+
+  const handleStartChat = () => {
+    setChatOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -12,7 +45,7 @@ export default function HelpCenter() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-primary/20 hover:border-primary/40 transition-colors cursor-pointer">
+        <Card className="border-primary/20 hover:border-primary/40 transition-colors cursor-pointer" onClick={handleStartChat}>
           <CardHeader>
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
               <MessageCircle className="h-5 w-5 text-primary" />
@@ -21,7 +54,7 @@ export default function HelpCenter() {
             <CardDescription>Chat with our support team</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button className="w-full">Start Chat</Button>
+            <Button className="w-full" onClick={(e) => { e.stopPropagation(); handleStartChat(); }}>Start Chat</Button>
           </CardContent>
         </Card>
 
@@ -115,12 +148,19 @@ export default function HelpCenter() {
           <p className="text-sm text-muted-foreground mb-4">
             If you can't find the answer to your question in our FAQ, don't hesitate to reach out to our support team. We're here to help you succeed!
           </p>
-          <Button className="w-full md:w-auto">
+          <Button className="w-full md:w-auto" onClick={handleStartChat}>
             <MessageCircle className="mr-2 h-4 w-4" />
             Contact Support
           </Button>
         </CardContent>
       </Card>
+
+      <ChatWidget
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        sessionId={chatSessionId}
+        onSessionCreated={(id) => setChatSessionId(id)}
+      />
     </div>
   );
 }
