@@ -111,19 +111,8 @@ export function DashboardLayout({
           <aside className={cn("fixed lg:sticky top-0 left-0 h-screen bg-card border-r border-border z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
             <div className="flex flex-col h-full">
               {/* Logo - Desktop Only */}
-              <div className="hidden lg:flex items-center justify-between p-4 border-b border-border">
+              <div className="hidden lg:flex items-center p-4 border-b border-border">
                 <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
-                <div className="flex items-center gap-1">
-                  <NotificationBell />
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={toggleTheme}
-                    className="transition-transform hover:scale-110"
-                  >
-                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                  </Button>
-                </div>
               </div>
 
               {/* Profile Section */}
@@ -159,6 +148,18 @@ export function DashboardLayout({
 
           {/* Main Content */}
           <main className="flex-1 w-full lg:w-auto">
+            {/* Desktop Header with Notification Bell and Theme Toggle */}
+            <div className="hidden lg:flex items-center justify-end gap-2 px-6 py-4 border-b border-border bg-card">
+              <NotificationBell />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleTheme}
+                className="transition-transform hover:scale-110"
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+            </div>
             <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
               {children}
             </div>
