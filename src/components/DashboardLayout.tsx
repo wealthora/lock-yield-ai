@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { useTheme } from "@/hooks/useTheme";
+import { NotificationBell } from "@/components/NotificationBell";
 import logo from "@/assets/wealthora-logo.png";
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -90,6 +91,7 @@ export function DashboardLayout({
             <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
           </div>
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <Button 
               variant="ghost" 
               size="icon"
@@ -111,14 +113,17 @@ export function DashboardLayout({
               {/* Logo - Desktop Only */}
               <div className="hidden lg:flex items-center justify-between p-4 border-b border-border">
                 <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  onClick={toggleTheme}
-                  className="transition-transform hover:scale-110"
-                >
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-                </Button>
+                <div className="flex items-center gap-1">
+                  <NotificationBell />
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={toggleTheme}
+                    className="transition-transform hover:scale-110"
+                  >
+                    {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  </Button>
+                </div>
               </div>
 
               {/* Profile Section */}

@@ -13,7 +13,8 @@ import {
   Moon,
   Bot,
   PiggyBank,
-  MessageCircle
+  MessageCircle,
+  Megaphone
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useTheme } from "@/hooks/useTheme";
+import { AdminNotificationBell } from "@/components/admin/AdminNotificationBell";
 
 const adminNavItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
@@ -42,6 +44,7 @@ const adminNavItems = [
   { title: "KYC Verification", url: "/admin/kyc", icon: FileCheck },
   { title: "Profile Requests", url: "/admin/profile-requests", icon: UserCog },
   { title: "Support Chat", url: "/admin/chat", icon: MessageCircle },
+  { title: "Broadcast", url: "/admin/broadcast", icon: Megaphone },
   { title: "System Logs", url: "/admin/logs", icon: ScrollText },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
@@ -116,14 +119,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             <header className="h-16 border-b flex items-center px-6 bg-card">
               <SidebarTrigger />
               <h1 className="ml-4 text-xl font-semibold text-foreground">Admin Dashboard</h1>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={toggleTheme}
-                className="ml-auto transition-transform hover:scale-110"
-              >
-                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+              <div className="ml-auto flex items-center gap-2">
+                <AdminNotificationBell />
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={toggleTheme}
+                  className="transition-transform hover:scale-110"
+                >
+                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                </Button>
+              </div>
             </header>
             <main className="flex-1 p-6 bg-background">
               {children}

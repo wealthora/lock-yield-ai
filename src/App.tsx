@@ -25,6 +25,7 @@ import AdminKYC from "./pages/admin/AdminKYC";
 import AdminLogs from "./pages/admin/AdminLogs";
 import AdminProfileRequests from "./pages/admin/AdminProfileRequests";
 import AdminChat from "./pages/admin/AdminChat";
+import AdminBroadcast from "./pages/admin/AdminBroadcast";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/admin/kyc" element={<AdminKYC />} />
           <Route path="/admin/profile-requests" element={<AdminProfileRequests />} />
           <Route path="/admin/chat" element={<AdminChat />} />
+          <Route path="/admin/broadcast" element={<AdminBroadcast />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
