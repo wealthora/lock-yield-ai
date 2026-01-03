@@ -52,38 +52,59 @@ export type Database = {
       }
       ai_bots: {
         Row: {
+          auto_reinvest_enabled: boolean | null
           created_at: string
           daily_return_rate: number
           description: string | null
+          duration_days: number | null
+          early_withdrawal_allowed: boolean | null
+          early_withdrawal_penalty: number | null
           id: string
           is_active: boolean | null
+          max_investment: number | null
           minimum_investment: number
           name: string
           risk_level: string | null
+          roi_period: string | null
+          status: string | null
           strategy: string | null
           updated_at: string
         }
         Insert: {
+          auto_reinvest_enabled?: boolean | null
           created_at?: string
           daily_return_rate: number
           description?: string | null
+          duration_days?: number | null
+          early_withdrawal_allowed?: boolean | null
+          early_withdrawal_penalty?: number | null
           id?: string
           is_active?: boolean | null
+          max_investment?: number | null
           minimum_investment?: number
           name: string
           risk_level?: string | null
+          roi_period?: string | null
+          status?: string | null
           strategy?: string | null
           updated_at?: string
         }
         Update: {
+          auto_reinvest_enabled?: boolean | null
           created_at?: string
           daily_return_rate?: number
           description?: string | null
+          duration_days?: number | null
+          early_withdrawal_allowed?: boolean | null
+          early_withdrawal_penalty?: number | null
           id?: string
           is_active?: boolean | null
+          max_investment?: number | null
           minimum_investment?: number
           name?: string
           risk_level?: string | null
+          roi_period?: string | null
+          status?: string | null
           strategy?: string | null
           updated_at?: string
         }
@@ -299,6 +320,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      investment_plan_logs: {
+        Row: {
+          action: string
+          changed_by: string
+          created_at: string
+          field_changed: string | null
+          id: string
+          metadata: Json | null
+          new_value: string | null
+          old_value: string | null
+          plan_id: string
+        }
+        Insert: {
+          action: string
+          changed_by: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          plan_id: string
+        }
+        Update: {
+          action?: string
+          changed_by?: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_plan_logs_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "ai_bots"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -736,6 +801,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      plan_change_action:
+        | "create"
+        | "update"
+        | "archive"
+        | "activate"
+        | "delete"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -864,6 +935,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      plan_change_action: ["create", "update", "archive", "activate", "delete"],
     },
   },
 } as const
