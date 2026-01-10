@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { LayoutDashboard, CreditCard, Gift, TrendingUp, HelpCircle, Settings, LogOut, Menu, X, DollarSign, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { useTheme } from "@/hooks/useTheme";
 import { NotificationBell } from "@/components/NotificationBell";
+import { UserAvatar } from "@/components/AvatarSelector";
 import logo from "@/assets/wealthora-logo.png";
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -59,7 +59,27 @@ export function DashboardLayout({
   useInactivityLogout();
   useEffect(() => {
     loadProfile();
+    
+    // Subscribe to profile changes for real-time avatar updates
+    const channel = supabase
+      .channel('sidebar-profile-changes')
+      .on('postgres_changes', 
+        { 
+          event: 'UPDATE', 
+          schema: 'public', 
+          table: 'profiles',
+        },
+        () => {
+          loadProfile();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+  
   const loadProfile = async () => {
     const {
       data: {
@@ -69,7 +89,7 @@ export function DashboardLayout({
     if (user) {
       const {
         data
-      } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      } = await supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle();
       setProfile(data);
     }
   };
@@ -110,12 +130,18 @@ export function DashboardLayout({
           {/* Sidebar - Desktop & Mobile Overlay */}
           <aside className={cn("fixed lg:sticky top-0 left-0 h-screen bg-card border-r border-border z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
             <div className="flex flex-col h-full">
-              {/* Logo - Desktop Only */}
-              <div className="hidden lg:flex items-center p-4 border-b border-border">
-                <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
+              {/* Logo with Avatar */}
+              <div className="flex items-center gap-3 p-4 border-b border-border">
+                <UserAvatar 
+                  src={profile?.avatar} 
+                  fallback={profile?.first_name || "U"} 
+                  size="sm"
+                />
+                <div className="hidden lg:flex items-center">
+                  <img src={logo} alt="Wealthora ai" className="h-[32px] w-auto" />
+                </div>
               </div>
 
-              {/* Profile Section */}
               
 
               {/* Navigation */}

@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Shield, Clock, Upload, AlertCircle, Check } from "lucide-react";
+import { Edit, Shield, Clock, Check } from "lucide-react";
 import { KYCModal } from "@/components/KYCModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TwoFactorDialog } from "@/components/TwoFactorDialog";
+import { AvatarSelector, UserAvatar, DEFAULT_AVATAR } from "@/components/AvatarSelector";
 
 interface ProfileData {
   first_name: string;
@@ -36,7 +36,8 @@ export default function ProfileSettings() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [show2FADialog, setShow2FADialog] = useState(false);
   const [enabling2FA, setEnabling2FA] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [savingAvatar, setSavingAvatar] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(DEFAULT_AVATAR);
 
   // Form state for edit request
   const [requestData, setRequestData] = useState<ProfileData>({
@@ -49,14 +50,19 @@ export default function ProfileSettings() {
     avatar: null,
     kyc_status: "",
   });
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfileData();
     checkPendingRequests();
     load2FAStatus();
   }, []);
+
+  // Initialize selected avatar when profile loads
+  useEffect(() => {
+    if (profile?.avatar) {
+      setSelectedAvatar(profile.avatar);
+    }
+  }, [profile?.avatar]);
 
   // Real-time subscription for profile updates
   useEffect(() => {
@@ -243,57 +249,39 @@ export default function ProfileSettings() {
     }
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleAvatarSelect = async (avatar: string) => {
+    setSelectedAvatar(avatar);
+    setSavingAvatar(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ avatar, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      setProfile((prev: ProfileData | null) => prev ? { ...prev, avatar } : prev);
+      
       toast({
-        title: "Invalid File",
-        description: "Please select an image file (JPG, PNG, WEBP)",
+        title: "Avatar Updated",
+        description: "Your profile avatar has been saved.",
+      });
+    } catch (error: any) {
+      console.error("Error saving avatar:", error);
+      // Revert to previous avatar on error
+      setSelectedAvatar(profile?.avatar || DEFAULT_AVATAR);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save avatar",
         variant: "destructive",
       });
-      return;
+    } finally {
+      setSavingAvatar(false);
     }
-
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "File Too Large",
-        description: "Avatar image must be less than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setAvatarFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setAvatarPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const uploadAvatar = async (userId: string): Promise<string | null> => {
-    if (!avatarFile) return null;
-
-    const fileExt = avatarFile.name.split('.').pop();
-    const fileName = `${userId}/${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('avatars')
-      .upload(fileName, avatarFile, {
-        upsert: true,
-      });
-
-    if (uploadError) throw uploadError;
-
-    const { data } = supabase.storage
-      .from('avatars')
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
   };
 
   const handleRequestChange = async () => {
@@ -302,19 +290,12 @@ export default function ProfileSettings() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload avatar if changed
-      let avatarUrl = requestData.avatar;
-      if (avatarFile) {
-        avatarUrl = await uploadAvatar(user.id);
-      }
-
       const changedFields: any = {};
       if (requestData.first_name !== profile?.first_name) changedFields.first_name = requestData.first_name;
       if (requestData.other_names !== profile?.other_names) changedFields.other_names = requestData.other_names;
       if (requestData.phone !== profile?.phone) changedFields.phone = requestData.phone;
       if (requestData.country !== profile?.country) changedFields.country = requestData.country;
       if (requestData.date_of_birth !== profile?.date_of_birth) changedFields.date_of_birth = requestData.date_of_birth;
-      if (avatarUrl !== profile?.avatar) changedFields.avatar = avatarUrl;
 
       if (Object.keys(changedFields).length === 0) {
         toast({
@@ -338,8 +319,6 @@ export default function ProfileSettings() {
       });
 
       setDialogOpen(false);
-      setAvatarFile(null);
-      setAvatarPreview(null);
       checkPendingRequests();
     } catch (error: any) {
       console.error("Error submitting request:", error);
@@ -399,15 +378,26 @@ export default function ProfileSettings() {
             <CardContent className="space-y-6">
               {/* Avatar Section */}
               <div className="flex flex-col items-center space-y-4 pb-6 border-b">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={profile?.avatar || undefined} />
-                  <AvatarFallback className="text-2xl">
-                    {profile?.first_name?.charAt(0).toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
+                <UserAvatar 
+                  src={selectedAvatar} 
+                  fallback={profile?.first_name || "U"} 
+                  size="xl"
+                />
                 <div className="text-center">
                   <p className="font-medium">{profile?.first_name} {profile?.other_names}</p>
                   <p className="text-sm text-muted-foreground">{profile?.email}</p>
+                </div>
+                
+                {/* Avatar Selection */}
+                <div className="w-full pt-4">
+                  <AvatarSelector
+                    selectedAvatar={selectedAvatar}
+                    onSelect={handleAvatarSelect}
+                    disabled={savingAvatar}
+                  />
+                  {savingAvatar && (
+                    <p className="text-sm text-muted-foreground text-center mt-2">Saving...</p>
+                  )}
                 </div>
               </div>
 
@@ -472,39 +462,6 @@ export default function ProfileSettings() {
                   </DialogHeader>
 
                   <div className="space-y-4 py-4">
-                    {/* Avatar Upload */}
-                    <div className="space-y-2">
-                      <Label>Profile Photo</Label>
-                      <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16">
-                          <AvatarImage src={avatarPreview || profile?.avatar || undefined} />
-                          <AvatarFallback>
-                            {requestData.first_name?.charAt(0).toUpperCase() || "U"}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarChange}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fileInputRef.current?.click()}
-                          >
-                            <Upload className="mr-2 h-4 w-4" />
-                            Upload New Photo
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            JPG, PNG or WEBP (Max 5MB)
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="first_name">First Name</Label>
@@ -559,8 +516,6 @@ export default function ProfileSettings() {
                       variant="outline"
                       onClick={() => {
                         setDialogOpen(false);
-                        setAvatarFile(null);
-                        setAvatarPreview(null);
                       }}
                       disabled={submitting}
                     >
