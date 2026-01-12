@@ -1,9 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <circle cx="50" cy="50" r="48" fill="#FFEBEE"/>
-  <circle cx="50" cy="38" r="18" fill="#EF5350"/>
-  <path d="M50 60c-20 0-36 12-36 27v5h72v-5c0-15-16-27-36-27z" fill="#EF5350"/>
-  <circle cx="50" cy="38" r="14" fill="#FFCDD2"/>
-  <ellipse cx="44" cy="36" rx="2" ry="2.5" fill="#B71C1C"/>
-  <ellipse cx="56" cy="36" rx="2" ry="2.5" fill="#B71C1C"/>
-  <path d="M46 44c2 2 6 2 8 0" stroke="#B71C1C" stroke-width="1.5" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF3C7"/>
+      <stop offset="100%" style="stop-color:#FDE68A"/>
+    </linearGradient>
+    <linearGradient id="skin5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE4C4"/>
+      <stop offset="100%" style="stop-color:#E8C9A4"/>
+    </linearGradient>
+    <linearGradient id="hair5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#A3A3A3"/>
+      <stop offset="100%" style="stop-color:#737373"/>
+    </linearGradient>
+    <linearGradient id="shirt5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E40AF"/>
+      <stop offset="100%" style="stop-color:#1E3A8A"/>
+    </linearGradient>
+    <filter id="shadow5" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="url(#bg5)"/>
+  <!-- Shirt/Body -->
+  <path d="M50 62c-22 0-38 14-38 28v6h76v-6c0-14-16-28-38-28z" fill="url(#shirt5)" filter="url(#shadow5)"/>
+  <!-- Tie -->
+  <path d="M50 62l-4 8 4 16 4-16-4-8z" fill="#DC2626"/>
+  <path d="M46 62h8l-1 3h-6l-1-3z" fill="#B91C1C"/>
+  <!-- Neck -->
+  <rect x="42" y="54" width="16" height="12" rx="2" fill="url(#skin5)"/>
+  <!-- Face -->
+  <ellipse cx="50" cy="42" rx="22" ry="24" fill="url(#skin5)" filter="url(#shadow5)"/>
+  <!-- Gray short hair -->
+  <path d="M28 38c0-14 10-24 22-24s22 10 22 24c0 3-0.5 5-1 7-1-8-6-14-21-14s-20 6-21 14c-0.5-2-1-4-1-7z" fill="url(#hair5)"/>
+  <!-- Ears -->
+  <ellipse cx="28" cy="44" rx="4" ry="5" fill="url(#skin5)"/>
+  <ellipse cx="72" cy="44" rx="4" ry="5" fill="url(#skin5)"/>
+  <!-- Eyebrows (thicker, distinguished) -->
+  <path d="M34 34c3-2 8-2 10 0" stroke="#525252" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <path d="M56 34c2-2 7-2 10 0" stroke="#525252" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <!-- Eyes -->
+  <ellipse cx="40" cy="42" rx="5" ry="4" fill="white"/>
+  <ellipse cx="60" cy="42" rx="5" ry="4" fill="white"/>
+  <ellipse cx="41" cy="42" rx="2.5" ry="2.5" fill="#1E3A5F"/>
+  <ellipse cx="61" cy="42" rx="2.5" ry="2.5" fill="#1E3A5F"/>
+  <circle cx="42" cy="41" r="0.8" fill="white"/>
+  <circle cx="62" cy="41" r="0.8" fill="white"/>
+  <!-- Crow's feet wrinkles -->
+  <path d="M30 40l-2-1M30 42l-2 0M30 44l-2 1" stroke="#C4A484" stroke-width="0.8" stroke-linecap="round"/>
+  <path d="M70 40l2-1M70 42l2 0M70 44l2 1" stroke="#C4A484" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- Nose -->
+  <path d="M50 42v7c0 2-3 3-3 3" stroke="#C4A484" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  <!-- Confident smile -->
+  <path d="M42 54c3 3 13 3 16 0" stroke="#A08060" stroke-width="2" stroke-linecap="round" fill="none"/>
 </svg>
