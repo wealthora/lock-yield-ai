@@ -49,25 +49,33 @@ export function AvatarSelector({
               disabled={disabled}
               onClick={() => onSelect(avatar)}
               className={cn(
-                "relative p-1 rounded-full transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                "group relative p-1.5 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                 isSelected 
-                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                  : "hover:ring-2 hover:ring-muted-foreground/30",
+                  ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg shadow-primary/25" 
+                  : "hover:ring-2 hover:ring-primary/40 hover:shadow-md hover:scale-105",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
             >
-              <Avatar className="h-12 w-12 sm:h-14 sm:w-14">
-                <AvatarImage 
-                  src={avatar} 
-                  alt={`Avatar option ${index + 1}`}
-                  className="object-cover"
-                />
-                <AvatarFallback>
-                  <User className="h-6 w-6 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
+              <div className={cn(
+                "relative rounded-full overflow-hidden transition-transform duration-300",
+                isSelected && "scale-105"
+              )}>
+                <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
+                  <AvatarImage 
+                    src={avatar} 
+                    alt={`Avatar option ${index + 1}`}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-muted">
+                    <User className="h-6 w-6 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                {isSelected && (
+                  <div className="absolute inset-0 rounded-full ring-2 ring-primary ring-inset animate-pulse" style={{ animationDuration: '2s' }} />
+                )}
+              </div>
               {isSelected && (
-                <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                <div className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 shadow-lg shadow-primary/30 animate-scale-in">
                   <Check className="h-3 w-3" />
                 </div>
               )}
