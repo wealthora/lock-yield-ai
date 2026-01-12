@@ -7,13 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 interface Balance {
   available_balance: number;
   locked_balance: number;
   returns_balance: number;
 }
-
 interface ReferredUser {
   id: string;
   referred_id: string;
@@ -24,124 +22,97 @@ interface ReferredUser {
   };
   reward?: number;
 }
-
 export default function DashboardHome() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [profile, setProfile] = useState<any>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [referralStats, setReferralStats] = useState({
     totalReferred: 0,
-    totalEarned: 0,
+    totalEarned: 0
   });
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     loadData();
 
     // Set up real-time subscription for balance updates
-    const channel = supabase
-      .channel("wallet_changes")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "wallets",
-        },
-        () => {
-          console.log("Wallet updated - reloading data");
-          loadData();
-        }
-      )
-      .subscribe();
-
+    const channel = supabase.channel("wallet_changes").on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "wallets"
+    }, () => {
+      console.log("Wallet updated - reloading data");
+      loadData();
+    }).subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, []);
-
   const loadData = async () => {
     const {
-      data: { user },
+      data: {
+        user
+      }
     } = await supabase.auth.getUser();
     if (!user) return;
-
     setUserId(user.id);
-
-    const [balanceRes, profileRes] = await Promise.all([
-      supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
-      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-    ]);
-
-    setBalance(
-      balanceRes.data || {
-        available_balance: 0,
-        locked_balance: 0,
-        returns_balance: 0,
-      }
-    );
+    const [balanceRes, profileRes] = await Promise.all([supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(), supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle()]);
+    setBalance(balanceRes.data || {
+      available_balance: 0,
+      locked_balance: 0,
+      returns_balance: 0
+    });
     setProfile(profileRes.data);
 
     // Load referral data
     await loadReferralData(user.id);
   };
-
   const loadReferralData = async (currentUserId: string) => {
     // Get all referrals where current user is the referrer
-    const { data: referrals } = await supabase
-      .from("referrals")
-      .select("id, referred_id, created_at")
-      .eq("referrer_id", currentUserId);
+    const {
+      data: referrals
+    } = await supabase.from("referrals").select("id, referred_id, created_at").eq("referrer_id", currentUserId);
 
     // Get total rewards earned
-    const { data: rewards } = await supabase
-      .from("referral_rewards")
-      .select("reward_amount, referred_id")
-      .eq("referrer_id", currentUserId);
-
+    const {
+      data: rewards
+    } = await supabase.from("referral_rewards").select("reward_amount, referred_id").eq("referrer_id", currentUserId);
     const totalEarned = rewards?.reduce((sum, r) => sum + Number(r.reward_amount), 0) || 0;
-
     setReferralStats({
       totalReferred: referrals?.length || 0,
-      totalEarned,
+      totalEarned
     });
 
     // Get profile info for each referred user
     if (referrals && referrals.length > 0) {
-      const referredUserIds = referrals.map((r) => r.referred_id);
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, first_name, other_names")
-        .in("id", referredUserIds);
+      const referredUserIds = referrals.map(r => r.referred_id);
+      const {
+        data: profiles
+      } = await supabase.from("profiles").select("id, first_name, other_names").in("id", referredUserIds);
 
       // Map rewards to referred users
-      const rewardsMap = new Map(rewards?.map((r) => [r.referred_id, Number(r.reward_amount)]));
-
-      const usersWithProfiles: ReferredUser[] = referrals.map((r) => ({
+      const rewardsMap = new Map(rewards?.map(r => [r.referred_id, Number(r.reward_amount)]));
+      const usersWithProfiles: ReferredUser[] = referrals.map(r => ({
         ...r,
-        profile: profiles?.find((p) => p.id === r.referred_id),
-        reward: rewardsMap.get(r.referred_id) || 0,
+        profile: profiles?.find(p => p.id === r.referred_id),
+        reward: rewardsMap.get(r.referred_id) || 0
       }));
-
       setReferredUsers(usersWithProfiles);
     } else {
       setReferredUsers([]);
     }
   };
-
   const referralLink = `${window.location.origin}/auth?ref=${userId || ""}`;
-
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referralLink);
     toast({
       title: "Copied!",
-      description: "Referral link copied to clipboard",
+      description: "Referral link copied to clipboard"
     });
   };
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
@@ -159,10 +130,7 @@ export default function DashboardHome() {
               </CardTitle>
               <div className="text-3xl font-bold mt-1">
                 $
-                {(
-                  (balance?.available_balance || 0) +
-                  (balance?.locked_balance || 0)
-                ).toFixed(2)}
+                {((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toFixed(2)}
               </div>
             </div>
           </div>
@@ -218,11 +186,7 @@ export default function DashboardHome() {
           <CardContent>
             <div className="text-2xl font-bold">
               $
-              {(
-                (balance?.available_balance || 0) +
-                (balance?.locked_balance || 0) +
-                (balance?.returns_balance || 0)
-              ).toFixed(2)}
+              {((balance?.available_balance || 0) + (balance?.locked_balance || 0) + (balance?.returns_balance || 0)).toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">All assets combined</p>
           </CardContent>
@@ -258,19 +222,7 @@ export default function DashboardHome() {
 
       {/* Bonus Promotion */}
       <Card className="border-warning/20 bg-gradient-to-r from-warning/5 to-warning/10">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-full bg-warning/20 flex items-center justify-center shrink-0">
-              <Gift className="h-5 w-5 text-warning" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-semibold">100% Bonus on your next deposit</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                and up to 60% on each one after that
-              </p>
-            </div>
-          </div>
-        </CardContent>
+        
       </Card>
 
       {/* Referral Section */}
@@ -318,8 +270,7 @@ export default function DashboardHome() {
           </div>
 
           {/* Referred Users Table */}
-          {referredUsers.length > 0 && (
-            <div className="mt-6">
+          {referredUsers.length > 0 && <div className="mt-6">
               <h4 className="font-semibold mb-3">Your Referrals</h4>
               <div className="rounded-md border">
                 <Table>
@@ -331,34 +282,24 @@ export default function DashboardHome() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {referredUsers.map((user) => (
-                      <TableRow key={user.id}>
+                    {referredUsers.map(user => <TableRow key={user.id}>
                         <TableCell className="font-medium">
-                          {user.profile
-                            ? `${user.profile.first_name} ${user.profile.other_names}`
-                            : "Unknown User"}
+                          {user.profile ? `${user.profile.first_name} ${user.profile.other_names}` : "Unknown User"}
                         </TableCell>
                         <TableCell>
                           {new Date(user.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
-                          {user.reward ? (
-                            <span className="text-primary font-medium">
+                          {user.reward ? <span className="text-primary font-medium">
                               ${user.reward.toFixed(2)}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">Pending</span>
-                          )}
+                            </span> : <span className="text-muted-foreground">Pending</span>}
                         </TableCell>
-                      </TableRow>
-                    ))}
+                      </TableRow>)}
                   </TableBody>
                 </Table>
               </div>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
