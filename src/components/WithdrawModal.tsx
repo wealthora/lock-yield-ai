@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Bitcoin, CircleDollarSign, Smartphone, ArrowLeft, CheckCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Bitcoin, CircleDollarSign, Smartphone, ArrowLeft, CheckCircle, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const withdrawOptions = [
     symbol: "BTC",
     description: "Withdraw to Bitcoin wallet",
     icon: Bitcoin,
+    comingSoon: false,
   },
   {
     id: "usdt",
@@ -28,6 +30,7 @@ const withdrawOptions = [
     symbol: "USDT",
     description: "Withdraw to USDT wallet",
     icon: CircleDollarSign,
+    comingSoon: false,
   },
   {
     id: "mpesa",
@@ -35,6 +38,7 @@ const withdrawOptions = [
     symbol: "M-Pesa",
     description: "Transfer to mobile money",
     icon: Smartphone,
+    comingSoon: true,
   },
 ];
 
@@ -188,22 +192,35 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
               <div className="space-y-3 mt-4">
                 {withdrawOptions.map((option) => {
                   const Icon = option.icon;
+                  const isDisabled = option.comingSoon;
                   return (
                     <Card
                       key={option.id}
-                      className="cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:scale-[1.02]"
-                      onClick={() => handleOptionClick(option.id)}
+                      className={
+                        isDisabled
+                          ? "opacity-60 cursor-not-allowed border-dashed"
+                          : "cursor-pointer transition-all hover:shadow-md hover:border-primary/50 hover:scale-[1.02]"
+                      }
+                      onClick={() => !isDisabled && handleOptionClick(option.id)}
                     >
                       <CardContent className="flex items-center gap-4 p-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                          <Icon className="h-6 w-6 text-primary" />
+                        <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${isDisabled ? "bg-muted" : "bg-primary/10"}`}>
+                          <Icon className={`h-6 w-6 ${isDisabled ? "text-muted-foreground" : "text-primary"}`} />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold text-base">
-                            {option.name} ({option.symbol})
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className={`font-semibold text-base ${isDisabled ? "text-muted-foreground" : ""}`}>
+                              {option.name} ({option.symbol})
+                            </h3>
+                            {isDisabled && (
+                              <Badge variant="secondary" className="text-xs gap-1">
+                                <Clock className="h-3 w-3" />
+                                Coming Soon
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
-                            {option.description}
+                            {isDisabled ? "This payment method will be available soon" : option.description}
                           </p>
                         </div>
                       </CardContent>
