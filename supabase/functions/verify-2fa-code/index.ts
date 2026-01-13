@@ -26,19 +26,17 @@ serve(async (req) => {
       );
     }
 
-    // Create Supabase client with user's auth token
-    const supabaseClient = createClient(
+    // Extract the JWT token
+    const token = authHeader.replace('Bearer ', '');
+
+    // Use service role to verify the user and perform operations
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get the authenticated user
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Get the user from the JWT token
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
     if (userError) {
       console.error('Auth error:', userError.message);
@@ -52,7 +50,7 @@ serve(async (req) => {
     }
 
     if (!user) {
-      console.error('No user found in session');
+      console.error('No user found in token');
       return new Response(
         JSON.stringify({ error: 'User not found. Please log in again.', verified: false }),
         { 
@@ -97,12 +95,6 @@ serve(async (req) => {
         }
       );
     }
-
-    // Use service role key to bypass RLS
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
 
     // Find the verification code
     const { data: verificationData, error: fetchError } = await supabaseAdmin
