@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 
 const corsHeaders = {
@@ -7,31 +7,95 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ error: 'Authorization header is required', verified: false }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Create Supabase client with user's auth token
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
+    // Get the authenticated user
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     
-    if (userError || !user) {
-      throw new Error('Unauthorized');
+    if (userError) {
+      console.error('Auth error:', userError.message);
+      return new Response(
+        JSON.stringify({ error: 'Authentication failed', verified: false }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    const { code, purpose } = await req.json();
+    if (!user) {
+      console.error('No user found in session');
+      return new Response(
+        JSON.stringify({ error: 'User not found. Please log in again.', verified: false }),
+        { 
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
-    if (!code || !purpose) {
-      throw new Error('Code and purpose are required');
+    // Parse request body
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request body', verified: false }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    const { code, purpose } = body;
+
+    if (!code) {
+      return new Response(
+        JSON.stringify({ error: 'Verification code is required', verified: false }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    if (!purpose) {
+      return new Response(
+        JSON.stringify({ error: 'Purpose is required', verified: false }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     // Use service role key to bypass RLS
@@ -54,14 +118,27 @@ serve(async (req) => {
       .maybeSingle();
 
     if (fetchError) {
-      console.error('Error fetching code:', fetchError);
-      throw fetchError;
+      console.error('Error fetching verification code:', fetchError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify code', verified: false }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     if (!verificationData) {
+      console.log(`Invalid or expired code attempt for user ${user.id}`);
       return new Response(
-        JSON.stringify({ verified: false, message: 'Invalid or expired code' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          verified: false, 
+          message: 'Invalid or expired verification code. Please request a new code.' 
+        }),
+        { 
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
       );
     }
 
@@ -72,12 +149,12 @@ serve(async (req) => {
       .eq('id', verificationData.id);
 
     if (updateError) {
-      console.error('Error updating code:', updateError);
-      throw updateError;
+      console.error('Error marking code as used:', updateError);
+      // Continue anyway since the code was valid
     }
 
     // Update last verified timestamp in user_security
-    const { error: securityError } = await supabaseClient
+    const { error: securityError } = await supabaseAdmin
       .from('user_security')
       .upsert({
         user_id: user.id,
@@ -88,19 +165,31 @@ serve(async (req) => {
 
     if (securityError) {
       console.error('Error updating security record:', securityError);
+      // Continue anyway since verification was successful
     }
 
+    console.log(`2FA verification successful for user ${user.id}, purpose: ${purpose}`);
+
     return new Response(
-      JSON.stringify({ verified: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        verified: true,
+        message: 'Verification successful'
+      }),
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     );
 
   } catch (error: any) {
-    console.error('Error:', error);
+    console.error('Unexpected error in verify-2fa-code:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'An unexpected error occurred. Please try again.',
+        verified: false 
+      }),
       { 
-        status: 400,
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );

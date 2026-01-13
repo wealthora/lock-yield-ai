@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.send-reset-email]
 verify_jwt = false
+
+[functions.send-2fa-code]
+verify_jwt = false
+
+[functions.verify-2fa-code]
+verify_jwt = false
+
+[functions.delete-user]
+verify_jwt = false
