@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.delete-user]
 verify_jwt = false
+
+[functions.send-transaction-email]
+verify_jwt = false
