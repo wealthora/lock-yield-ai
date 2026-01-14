@@ -76,6 +76,26 @@ export default function AdminDeposits() {
     setDeposits(depositsWithProfiles);
   };
 
+  const sendTransactionEmail = async (
+    userId: string,
+    type: "deposit" | "withdrawal",
+    action: "approved" | "declined",
+    amount: number,
+    method: string,
+    adminNotes?: string
+  ) => {
+    try {
+      const { error } = await supabase.functions.invoke("send-transaction-email", {
+        body: { user_id: userId, type, action, amount, method, admin_notes: adminNotes },
+      });
+      if (error) {
+        console.error("Error sending transaction email:", error);
+      }
+    } catch (err) {
+      console.error("Failed to send transaction email:", err);
+    }
+  };
+
   const handleApprove = async (deposit: DepositRequest) => {
     const { error: updateError } = await supabase
       .from("deposit_requests")
@@ -141,6 +161,16 @@ export default function AdminDeposits() {
       }
     }
 
+    // Send email notification to user
+    await sendTransactionEmail(
+      deposit.user_id,
+      "deposit",
+      "approved",
+      deposit.amount,
+      deposit.method,
+      notes[deposit.id]
+    );
+
     toast({ title: "Deposit approved successfully" });
     fetchDeposits();
   };
@@ -190,6 +220,16 @@ export default function AdminDeposits() {
         }
       }
     }
+
+    // Send email notification to user
+    await sendTransactionEmail(
+      deposit.user_id,
+      "deposit",
+      "declined",
+      deposit.amount,
+      deposit.method,
+      notes[deposit.id]
+    );
 
     toast({ title: "Deposit declined" });
     fetchDeposits();

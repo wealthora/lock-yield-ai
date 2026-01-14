@@ -122,19 +122,34 @@ export default function AdminProfileRequests() {
       if (actionType === 'approve') {
         // Handle legacy requests that have 'name' field instead of 'first_name' and 'other_names'
         const changes = { ...selectedRequest.requested_changes };
+        
+        // Remove any fields that don't exist in the profiles table
+        const validFields = ['first_name', 'other_names', 'email', 'phone', 'country', 'date_of_birth', 'avatar'];
+        
+        // Handle legacy 'name' field by converting to first_name and other_names
         if ('name' in changes) {
-          const nameParts = changes.name.split(' ');
+          const nameParts = String(changes.name).split(' ');
           changes.first_name = nameParts[0];
           changes.other_names = nameParts.slice(1).join(' ') || '';
           delete changes.name;
         }
+        
+        // Filter out invalid fields
+        const filteredChanges: Record<string, any> = {};
+        for (const [key, value] of Object.entries(changes)) {
+          if (validFields.includes(key)) {
+            filteredChanges[key] = value;
+          }
+        }
 
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update(changes)
-          .eq("user_id", selectedRequest.user_id);
+        if (Object.keys(filteredChanges).length > 0) {
+          const { error: profileError } = await supabase
+            .from("profiles")
+            .update(filteredChanges)
+            .eq("user_id", selectedRequest.user_id);
 
-        if (profileError) throw profileError;
+          if (profileError) throw profileError;
+        }
       }
 
       // Then update the request status

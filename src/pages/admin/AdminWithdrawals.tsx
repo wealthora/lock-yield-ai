@@ -78,6 +78,26 @@ export default function AdminWithdrawals() {
     setWithdrawals(withdrawalsWithProfiles);
   };
 
+  const sendTransactionEmail = async (
+    userId: string,
+    type: "deposit" | "withdrawal",
+    action: "approved" | "declined",
+    amount: number,
+    method: string,
+    adminNotes?: string
+  ) => {
+    try {
+      const { error } = await supabase.functions.invoke("send-transaction-email", {
+        body: { user_id: userId, type, action, amount, method, admin_notes: adminNotes },
+      });
+      if (error) {
+        console.error("Error sending transaction email:", error);
+      }
+    } catch (err) {
+      console.error("Failed to send transaction email:", err);
+    }
+  };
+
   const handleApprove = async (withdrawal: WithdrawalRequest) => {
     // Update the withdrawal_requests status to approved
     const { error: updateError } = await supabase
@@ -138,6 +158,16 @@ export default function AdminWithdrawals() {
       }
     }
 
+    // Send email notification to user
+    await sendTransactionEmail(
+      withdrawal.user_id,
+      "withdrawal",
+      "approved",
+      withdrawal.amount,
+      withdrawal.method,
+      notes[withdrawal.id]
+    );
+
     toast({ title: "Withdrawal approved successfully" });
     fetchWithdrawals();
   };
@@ -186,6 +216,16 @@ export default function AdminWithdrawals() {
         }
       }
     }
+
+    // Send email notification to user
+    await sendTransactionEmail(
+      withdrawal.user_id,
+      "withdrawal",
+      "declined",
+      withdrawal.amount,
+      withdrawal.method,
+      notes[withdrawal.id]
+    );
 
     toast({ title: "Withdrawal declined" });
     fetchWithdrawals();
