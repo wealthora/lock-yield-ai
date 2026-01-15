@@ -101,7 +101,6 @@ const handler = async (req: Request): Promise<Response> => {
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <tr>
           <td style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
-            <img src="https://wealthoraai.lovable.app/wealthora-logo.png" alt="WealthoraUK" style="width: 120px; height: auto; margin-bottom: 16px;">
             <h1 style="color: #ffd700; margin: 0; font-size: 28px; font-weight: bold;">WealthoraUK</h1>
             <p style="color: #94a3b8; margin: 10px 0 0 0; font-size: 14px;">Your Trusted Investment Partner</p>
           </td>

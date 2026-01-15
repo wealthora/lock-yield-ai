@@ -166,7 +166,6 @@ serve(async (req) => {
       <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px;">
         <div style="max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
           <div style="padding: 40px 32px; text-align: center;">
-            <img src="https://wealthoraai.lovable.app/wealthora-logo.png" alt="WealthoraUK" style="width: 100px; height: auto; margin-bottom: 20px;">
             <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center;">
               <span style="font-size: 28px;">🔐</span>
             </div>
