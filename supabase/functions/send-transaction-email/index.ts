@@ -72,7 +72,13 @@ const handler = async (req: Request): Promise<Response> => {
     const statusBgColor = isApproved ? "#dcfce7" : "#fee2e2";
     const statusIcon = isApproved ? "✓" : "✗";
 
-    const emailSubject = `${typeCapitalized} Request ${actionCapitalized} - WealthOra`;
+    // Dynamic subject lines based on type and action
+    let emailSubject: string;
+    if (type === "deposit") {
+      emailSubject = isApproved ? "Deposit Confirmation-Wealthora" : "Deposit Declined-Wealthora";
+    } else {
+      emailSubject = isApproved ? "Withdrawal Approved-Wealthora" : "Withdrawal Declined-Wealthora";
+    }
 
     const emailHtml = `
     <!DOCTYPE html>

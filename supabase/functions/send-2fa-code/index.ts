@@ -135,20 +135,20 @@ serve(async (req) => {
     }
 
     // Determine email subject based on purpose
-    let subject = 'Your Verification Code';
+    let subject = 'Verification Code-Wealthora';
     let purposeText = 'complete your request';
     
     switch (purpose) {
       case 'login':
-        subject = 'Login Verification Code';
+        subject = 'Login Verification-Wealthora';
         purposeText = 'log in to your account';
         break;
       case 'withdrawal':
-        subject = 'Withdrawal Verification Code';
+        subject = 'Withdrawal Verification-Wealthora';
         purposeText = 'authorize your withdrawal';
         break;
       case 'settings':
-        subject = 'Security Settings Verification Code';
+        subject = 'Security Verification-Wealthora';
         purposeText = 'update your security settings';
         break;
     }
@@ -202,7 +202,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Wealthora Security <onboarding@resend.dev>',
+        from: 'Wealthora <onboarding@resend.dev>',
         to: [userEmail],
         subject: subject,
         html: emailHtml,
