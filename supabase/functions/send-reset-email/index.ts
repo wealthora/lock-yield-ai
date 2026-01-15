@@ -33,9 +33,6 @@ serve(async (req) => {
         subject: 'Reset Your Wealthora Password',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 16px;">
-            <div style="text-align: center; margin-bottom: 20px;">
-              <img src="https://wealthoraai.lovable.app/wealthora-logo.png" alt="WealthoraUK" style="width: 100px; height: auto;">
-            </div>
             <h1 style="color: #ffd700; text-align: center;">Password Reset Request</h1>
             <p style="color: #94a3b8; font-size: 16px;">
               You requested to reset your password. Click the button below to set a new password:
