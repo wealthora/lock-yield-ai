@@ -80,6 +80,15 @@ const handler = async (req: Request): Promise<Response> => {
       emailSubject = isApproved ? "Withdrawal Approved-Wealthora" : "Withdrawal Declined-Wealthora";
     }
 
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+
     const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -92,7 +101,7 @@ const handler = async (req: Request): Promise<Response> => {
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
         <tr>
           <td style="background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
-            <h1 style="color: #ffd700; margin: 0; font-size: 28px; font-weight: bold;">WealthOra</h1>
+            <h1 style="color: #ffd700; margin: 0; font-size: 28px; font-weight: bold;">WealthoraUK</h1>
             <p style="color: #94a3b8; margin: 10px 0 0 0; font-size: 14px;">Your Trusted Investment Partner</p>
           </td>
         </tr>
@@ -116,6 +125,10 @@ const handler = async (req: Request): Promise<Response> => {
             <div style="background-color: #f1f5f9; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
               <h3 style="color: #1e293b; margin: 0 0 15px 0; font-size: 16px;">Transaction Details</h3>
               <table style="width: 100%;">
+                <tr>
+                  <td style="color: #64748b; padding: 8px 0;">Date:</td>
+                  <td style="color: #1e293b; font-weight: 600; text-align: right;">${currentDate}</td>
+                </tr>
                 <tr>
                   <td style="color: #64748b; padding: 8px 0;">Type:</td>
                   <td style="color: #1e293b; font-weight: 600; text-align: right;">${typeCapitalized}</td>
@@ -164,7 +177,7 @@ const handler = async (req: Request): Promise<Response> => {
         <tr>
           <td style="padding: 20px; text-align: center;">
             <p style="color: #94a3b8; font-size: 12px; margin: 0;">
-              © 2025 WealthOra. All rights reserved.<br>
+              © ${new Date().getFullYear()} WealthoraUK. All rights reserved.<br>
               This is an automated message. Please do not reply directly to this email.
             </p>
           </td>
