@@ -7,24 +7,36 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, KeyRound, ShieldCheck } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
-import { sendPasswordResetEmail } from "@/lib/emailjs";
 import logo from "@/assets/wealthora-logo.png";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+
+// Password reset flow states
+type ResetStep = 'email' | 'verify' | 'newPassword' | 'success';
+
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [signupPassword, setSignupPassword] = useState("");
   const [showSigninPassword, setShowSigninPassword] = useState(false);
   const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [searchParams] = useSearchParams();
   const referrerId = searchParams.get("ref");
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+
+  // Password reset states
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [resetStep, setResetStep] = useState<ResetStep>('email');
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetCode, setResetCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [maskedEmail, setMaskedEmail] = useState("");
+  const [resending, setResending] = useState(false);
   useEffect(() => {
     // Check for existing session
     supabase.auth.getSession().then(({
@@ -193,33 +205,43 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = () => {
     const email = (document.getElementById("signin-email") as HTMLInputElement)?.value;
-    if (!email) {
+    if (email) {
+      setResetEmail(email);
+    }
+    setShowPasswordReset(true);
+    setResetStep('email');
+  };
+
+  const handleSendResetCode = async () => {
+    if (!resetEmail) {
       toast({
         variant: "destructive",
         title: "Email required",
-        description: "Please enter your email address first."
+        description: "Please enter your email address."
       });
       return;
     }
+
     setIsLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`
+      const { data, error } = await supabase.functions.invoke('send-password-reset-code', {
+        body: { email: resetEmail }
       });
+
       if (error) throw error;
 
-      // Send password reset email via EmailJS (browser-based)
-      const resetLink = `${window.location.origin}/auth?reset=true`;
-      await sendPasswordResetEmail(email, resetLink);
-      
-      toast({
-        title: "Reset link sent",
-        description: "Check your email for the password reset link."
-      });
+      if (data?.success) {
+        setMaskedEmail(data.email || resetEmail.replace(/(.{2})(.*)(@.*)/, '$1***$3'));
+        setResetStep('verify');
+        toast({
+          title: "Code Sent",
+          description: "A verification code has been sent to your email."
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send code');
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -230,10 +252,300 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  const handleResendCode = async () => {
+    setResending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-password-reset-code', {
+        body: { email: resetEmail }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setResetCode("");
+        toast({
+          title: "New Code Sent",
+          description: "A new verification code has been sent to your email."
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to resend code');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (resetCode.length !== 6) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Code",
+        description: "Please enter the 6-digit verification code."
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-password-reset', {
+        body: { email: resetEmail, code: resetCode }
+      });
+
+      if (error) throw error;
+
+      if (data?.verified) {
+        setResetStep('newPassword');
+        toast({
+          title: "Code Verified",
+          description: "Please enter your new password."
+        });
+      } else {
+        throw new Error(data?.error || 'Invalid verification code');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    const passwordValidation = validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      toast({
+        variant: "destructive",
+        title: "Weak Password",
+        description: passwordValidation.errors[0]
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-password-reset', {
+        body: { email: resetEmail, code: resetCode, newPassword }
+      });
+
+      if (error) throw error;
+
+      if (data?.passwordUpdated) {
+        setResetStep('success');
+        toast({
+          title: "Password Updated",
+          description: "Your password has been reset successfully."
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to reset password');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setShowPasswordReset(false);
+    setResetStep('email');
+    setResetEmail("");
+    setResetCode("");
+    setNewPassword("");
+    setMaskedEmail("");
+  };
   if (session) {
     return null;
   }
-  return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+
+  // Password Reset Flow UI
+  if (showPasswordReset) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+        <Card className="w-full max-w-md border-primary/20 shadow-glow">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src={logo} 
+                alt="Wealthora ai" 
+                className="h-[80px] w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300" 
+              />
+            </div>
+            <CardTitle className="text-2xl">
+              {resetStep === 'email' && 'Reset Password'}
+              {resetStep === 'verify' && 'Enter Verification Code'}
+              {resetStep === 'newPassword' && 'Create New Password'}
+              {resetStep === 'success' && 'Password Reset Complete'}
+            </CardTitle>
+            <CardDescription>
+              {resetStep === 'email' && 'Enter your email to receive a verification code'}
+              {resetStep === 'verify' && `Enter the 6-digit code sent to ${maskedEmail}`}
+              {resetStep === 'newPassword' && 'Choose a strong password for your account'}
+              {resetStep === 'success' && 'You can now sign in with your new password'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {resetStep === 'email' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">
+                    <Mail className="h-4 w-4 inline mr-2" />
+                    Email Address
+                  </Label>
+                  <Input 
+                    id="reset-email" 
+                    type="email" 
+                    placeholder="you@example.com" 
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required 
+                  />
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleSendResetCode} 
+                  disabled={isLoading || !resetEmail}
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+                  ) : (
+                    <><KeyRound className="mr-2 h-4 w-4" /> Send Verification Code</>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {resetStep === 'verify' && (
+              <>
+                <div className="flex justify-center py-4">
+                  <InputOTP 
+                    maxLength={6} 
+                    value={resetCode} 
+                    onChange={(value) => setResetCode(value)}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  Code expires in 10 minutes
+                </p>
+                <Button 
+                  className="w-full" 
+                  onClick={handleVerifyCode} 
+                  disabled={isLoading || resetCode.length !== 6}
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
+                  ) : (
+                    <><ShieldCheck className="mr-2 h-4 w-4" /> Verify Code</>
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-sm" 
+                  onClick={handleResendCode}
+                  disabled={resending}
+                >
+                  {resending ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
+                  ) : (
+                    "Didn't receive the code? Resend"
+                  )}
+                </Button>
+              </>
+            )}
+
+            {resetStep === 'newPassword' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">
+                    <Lock className="h-4 w-4 inline mr-2" />
+                    New Password
+                  </Label>
+                  <div className="relative">
+                    <Input 
+                      id="new-password" 
+                      type={showNewPassword ? "text" : "password"} 
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required 
+                      className="pr-10"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowNewPassword(!showNewPassword)} 
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {newPassword && <PasswordStrengthIndicator password={newPassword} />}
+                </div>
+                <Button 
+                  className="w-full" 
+                  onClick={handleResetPassword} 
+                  disabled={isLoading || !newPassword}
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</>
+                  ) : (
+                    <><Lock className="mr-2 h-4 w-4" /> Reset Password</>
+                  )}
+                </Button>
+              </>
+            )}
+
+            {resetStep === 'success' && (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+                  <ShieldCheck className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-muted-foreground">
+                  Your password has been successfully reset. You can now sign in with your new password.
+                </p>
+                <Button className="w-full" onClick={handleBackToLogin}>
+                  Sign In
+                </Button>
+              </div>
+            )}
+
+            {resetStep !== 'success' && (
+              <Button 
+                variant="ghost" 
+                className="w-full" 
+                onClick={handleBackToLogin}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign In
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md border-primary/20 shadow-glow">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
@@ -342,5 +654,6 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 }
