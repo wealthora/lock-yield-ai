@@ -9,6 +9,7 @@ import { Bitcoin, CircleDollarSign, Smartphone, ArrowLeft, CheckCircle, Clock } 
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { TwoFactorDialog } from "./TwoFactorDialog";
 
 interface WithdrawModalProps {
   open: boolean;
@@ -45,6 +46,13 @@ const withdrawOptions = [
 export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [show2FADialog, setShow2FADialog] = useState(false);
+  const [pendingWithdrawal, setPendingWithdrawal] = useState<{
+    userId: string;
+    amount: number;
+    methodName: string;
+    walletAddress: string;
+  } | null>(null);
   const [formData, setFormData] = useState({
     address: "",
     amount: "",
@@ -113,12 +121,34 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
         ? `${formData.mpesaNumber} (${formData.mpesaName})`
         : formData.address;
 
-      // Create withdrawal request record
-      const { data: withdrawalData, error: withdrawalError } = await supabase.from("withdrawal_requests").insert({
-        user_id: user.id,
+      // Store pending withdrawal data and show 2FA dialog
+      setPendingWithdrawal({
+        userId: user.id,
         amount: requestedAmount,
-        method: methodName || "",
-        wallet_address: walletAddress,
+        methodName: methodName || "",
+        walletAddress,
+      });
+      setShow2FADialog(true);
+    } catch (error) {
+      console.error("Error validating withdrawal:", error);
+      toast({
+        title: "Error",
+        description: "Failed to validate withdrawal request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVerified = async () => {
+    if (!pendingWithdrawal) return;
+
+    try {
+      // Create withdrawal request record after 2FA verification
+      const { data: withdrawalData, error: withdrawalError } = await supabase.from("withdrawal_requests").insert({
+        user_id: pendingWithdrawal.userId,
+        amount: pendingWithdrawal.amount,
+        method: pendingWithdrawal.methodName,
+        wallet_address: pendingWithdrawal.walletAddress,
         status: "pending",
       }).select('id').single();
 
@@ -126,15 +156,16 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
 
       // Log pending activity for user visibility with request_id in metadata
       await supabase.from("activities").insert({
-        user_id: user.id,
+        user_id: pendingWithdrawal.userId,
         activity_type: "withdrawal",
-        description: `Withdrawal request of $${requestedAmount} via ${methodName}`,
-        amount: requestedAmount,
-        method: methodName || "",
+        description: `Withdrawal request of $${pendingWithdrawal.amount} via ${pendingWithdrawal.methodName}`,
+        amount: pendingWithdrawal.amount,
+        method: pendingWithdrawal.methodName,
         status: "pending",
         metadata: { request_id: withdrawalData.id },
       });
 
+      setPendingWithdrawal(null);
       setShowConfirmation(true);
     } catch (error) {
       console.error("Error submitting withdrawal:", error);
@@ -149,6 +180,8 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
   const handleClose = () => {
     setSelectedOption(null);
     setShowConfirmation(false);
+    setShow2FADialog(false);
+    setPendingWithdrawal(null);
     setFormData({ address: "", amount: "", mpesaNumber: "", mpesaName: "" });
     onOpenChange(false);
   };
@@ -319,6 +352,19 @@ export function WithdrawModal({ open, onOpenChange }: WithdrawModalProps) {
           )}
         </AnimatePresence>
       </DialogContent>
+
+      {/* 2FA Verification Dialog for Withdrawal */}
+      <TwoFactorDialog
+        open={show2FADialog}
+        onOpenChange={(open) => {
+          setShow2FADialog(open);
+          if (!open) {
+            setPendingWithdrawal(null);
+          }
+        }}
+        purpose="withdrawal"
+        onVerified={handleVerified}
+      />
     </Dialog>
   );
 }
