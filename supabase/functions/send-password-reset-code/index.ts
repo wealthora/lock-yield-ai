@@ -134,7 +134,7 @@ serve(async (req) => {
           
           <div style="background: rgba(0,0,0,0.2); padding: 20px 32px; text-align: center;">
             <p style="color: #64748b; font-size: 11px; margin: 0;">
-              © ${new Date().getFullYear()} Wealthora. All rights reserved.<br>
+              © ${new Date().getFullYear()} WealthoraUK. All rights reserved.<br>
               This is an automated security email.
             </p>
           </div>
@@ -150,7 +150,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Wealthora <onboarding@resend.dev>',
+        from: 'WealthoraUK <onboarding@resend.dev>',
         to: [email],
         subject: 'Reset Your Wealthora Password',
         html: emailHtml,
