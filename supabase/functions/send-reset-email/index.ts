@@ -28,7 +28,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Wealthora <onboarding@resend.dev>',
+        from: 'WealthoraUK <onboarding@resend.dev>',
         to: [email],
         subject: 'Reset Your Wealthora Password',
         html: `
@@ -53,7 +53,7 @@ serve(async (req) => {
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
             <p style="color: #999; font-size: 12px; text-align: center;">
-              © ${new Date().getFullYear()} Wealthora. All rights reserved.
+              © ${new Date().getFullYear()} WealthoraUK. All rights reserved.
             </p>
           </div>
         `,

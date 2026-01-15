@@ -191,7 +191,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Authorization": `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: "WealthOra <onboarding@resend.dev>",
+        from: "WealthoraUK <onboarding@resend.dev>",
         to: [userEmail],
         subject: emailSubject,
         html: emailHtml,
