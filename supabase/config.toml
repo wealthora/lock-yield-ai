@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.send-transaction-email]
 verify_jwt = false
+
+[functions.send-password-reset-code]
+verify_jwt = false
+
+[functions.verify-password-reset]
+verify_jwt = false
