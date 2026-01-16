@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, KeyRound, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, KeyRound, ShieldCheck, UserPlus } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
@@ -16,6 +16,19 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 
 // Password reset flow states
 type ResetStep = 'email' | 'verify' | 'newPassword' | 'success';
+
+// Signup flow states
+type SignupStep = 'form' | 'verify' | 'success';
+
+interface SignupFormData {
+  email: string;
+  password: string;
+  firstName: string;
+  otherNames: string;
+  phone: string;
+  country: string;
+  dob: string;
+}
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +50,14 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState("");
   const [maskedEmail, setMaskedEmail] = useState("");
   const [resending, setResending] = useState(false);
+
+  // Signup verification states
+  const [signupStep, setSignupStep] = useState<SignupStep>('form');
+  const [signupFormData, setSignupFormData] = useState<SignupFormData | null>(null);
+  const [signupVerificationCode, setSignupVerificationCode] = useState("");
+  const [signupMaskedEmail, setSignupMaskedEmail] = useState("");
+  const [resendingSignup, setResendingSignup] = useState(false);
+
   useEffect(() => {
     // Check for existing session
     supabase.auth.getSession().then(({
@@ -63,9 +84,172 @@ export default function Auth() {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handleSendSignupCode = async (formData: SignupFormData) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-signup-verification-code', {
+        body: { email: formData.email, firstName: formData.firstName }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setSignupFormData(formData);
+        setSignupMaskedEmail(data.email || formData.email.replace(/(.{2})(.*)(@.*)/, '$1***$3'));
+        setSignupStep('verify');
+        toast({
+          title: "Verification Code Sent",
+          description: "Please check your email for the verification code."
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to send verification code');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendSignupCode = async () => {
+    if (!signupFormData) return;
+    
+    setResendingSignup(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-signup-verification-code', {
+        body: { email: signupFormData.email, firstName: signupFormData.firstName }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        setSignupVerificationCode("");
+        toast({
+          title: "New Code Sent",
+          description: "A new verification code has been sent to your email."
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to resend code');
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setResendingSignup(false);
+    }
+  };
+
+  const handleVerifySignupCode = async () => {
+    if (signupVerificationCode.length !== 6 || !signupFormData) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Code",
+        description: "Please enter the 6-digit verification code."
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-signup-code', {
+        body: { email: signupFormData.email, code: signupVerificationCode }
+      });
+
+      if (verifyError) throw verifyError;
+
+      if (!verifyData?.verified) {
+        throw new Error(verifyData?.error || 'Invalid verification code');
+      }
+
+      // Code verified, now create the account
+      const {
+        data,
+        error
+      } = await supabase.auth.signUp({
+        email: signupFormData.email,
+        password: signupFormData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+          data: {
+            first_name: signupFormData.firstName,
+            other_names: signupFormData.otherNames,
+            phone: signupFormData.phone,
+            country: signupFormData.country,
+            date_of_birth: signupFormData.dob
+          }
+        }
+      });
+
+      if (error) {
+        if (error.message.includes('fetch')) {
+          throw new Error('Unable to connect to authentication service. Please check your Cloud configuration.');
+        }
+        throw error;
+      }
+
+      if (data?.user?.identities?.length === 0) {
+        toast({
+          variant: "destructive",
+          title: "Account already exists",
+          description: "This email is already registered. Please sign in instead."
+        });
+        handleBackToSignup();
+        return;
+      }
+
+      // Save referral relationship if ref param exists
+      if (data?.user && referrerId && referrerId !== data.user.id) {
+        await supabase.from("referrals").insert({
+          referrer_id: referrerId,
+          referred_id: data.user.id
+        });
+      }
+
+      // Send welcome email via edge function
+      if (data?.user) {
+        const confirmationLink = `${window.location.origin}/auth?confirmed=true`;
+        await supabase.functions.invoke('send-signup-email', {
+          body: {
+            email: signupFormData.email,
+            firstName: signupFormData.firstName,
+            confirmationLink
+          }
+        });
+      }
+
+      setSignupStep('success');
+      toast({
+        title: "Account Created!",
+        description: "Your account has been created successfully."
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToSignup = () => {
+    setSignupStep('form');
+    setSignupFormData(null);
+    setSignupVerificationCode("");
+    setSignupMaskedEmail("");
+  };
+
   const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
     const formData = new FormData(e.currentTarget);
     const email = formData.get("signup-email") as string;
     const password = formData.get("signup-password") as string;
@@ -83,75 +267,21 @@ export default function Auth() {
         title: "Weak Password",
         description: passwordValidation.errors[0]
       });
-      setIsLoading(false);
       return;
     }
-    try {
-      const {
-        data,
-        error
-      } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            first_name: firstName,
-            other_names: otherNames,
-            phone,
-            country,
-            date_of_birth: dob
-          }
-        }
-      });
-      if (error) {
-        if (error.message.includes('fetch')) {
-          throw new Error('Unable to connect to authentication service. Please check your Cloud configuration.');
-        }
-        throw error;
-      }
-      if (data?.user?.identities?.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Account already exists",
-          description: "This email is already registered. Please sign in instead."
-        });
-        return;
-      }
 
-      // Send confirmation email via edge function
-      if (data?.user) {
-        const confirmationLink = `${window.location.origin}/auth?confirmed=true`;
-        await supabase.functions.invoke('send-signup-email', {
-          body: {
-            email,
-            firstName,
-            confirmationLink
-          }
-        });
-
-        // Save referral relationship if ref param exists
-        if (referrerId && referrerId !== data.user.id) {
-          await supabase.from("referrals").insert({
-            referrer_id: referrerId,
-            referred_id: data.user.id
-          });
-        }
-      }
-      toast({
-        title: "Success!",
-        description: "Please check your email to verify your account."
-      });
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Send verification code instead of creating account immediately
+    await handleSendSignupCode({
+      email,
+      password,
+      firstName,
+      otherNames,
+      phone,
+      country,
+      dob
+    });
   };
+
   const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
@@ -205,6 +335,7 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
   const handleForgotPassword = () => {
     const email = (document.getElementById("signin-email") as HTMLInputElement)?.value;
     if (email) {
@@ -367,8 +498,105 @@ export default function Auth() {
     setNewPassword("");
     setMaskedEmail("");
   };
+
   if (session) {
     return null;
+  }
+
+  // Signup Verification Flow UI
+  if (signupStep !== 'form') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+        <Card className="w-full max-w-md border-primary/20 shadow-glow">
+          <CardHeader className="space-y-1 text-center">
+            <div className="flex justify-center mb-4">
+              <img 
+                src={logo} 
+                alt="Wealthora ai" 
+                className="h-[80px] w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300" 
+              />
+            </div>
+            <CardTitle className="text-2xl">
+              {signupStep === 'verify' && 'Verify Your Email'}
+              {signupStep === 'success' && 'Account Created!'}
+            </CardTitle>
+            <CardDescription>
+              {signupStep === 'verify' && `Enter the 6-digit code sent to ${signupMaskedEmail}`}
+              {signupStep === 'success' && 'You can now sign in to your account'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {signupStep === 'verify' && (
+              <>
+                <div className="flex justify-center py-4">
+                  <InputOTP 
+                    maxLength={6} 
+                    value={signupVerificationCode} 
+                    onChange={(value) => setSignupVerificationCode(value)}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <p className="text-xs text-center text-muted-foreground">
+                  Code expires in 10 minutes
+                </p>
+                <Button 
+                  className="w-full" 
+                  onClick={handleVerifySignupCode} 
+                  disabled={isLoading || signupVerificationCode.length !== 6}
+                >
+                  {isLoading ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
+                  ) : (
+                    <><UserPlus className="mr-2 h-4 w-4" /> Verify & Create Account</>
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-sm" 
+                  onClick={handleResendSignupCode}
+                  disabled={resendingSignup}
+                >
+                  {resendingSignup ? (
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
+                  ) : (
+                    "Didn't receive the code? Resend"
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  className="w-full" 
+                  onClick={handleBackToSignup}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign Up
+                </Button>
+              </>
+            )}
+
+            {signupStep === 'success' && (
+              <div className="text-center space-y-4">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
+                  <ShieldCheck className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-muted-foreground">
+                  Your account has been created successfully. You can now sign in with your credentials.
+                </p>
+                <Button className="w-full" onClick={handleBackToSignup}>
+                  Sign In
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   // Password Reset Flow UI

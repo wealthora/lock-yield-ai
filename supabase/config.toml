@@ -26,3 +26,9 @@ verify_jwt = false
 
 [functions.verify-password-reset]
 verify_jwt = false
+
+[functions.send-signup-verification-code]
+verify_jwt = false
+
+[functions.verify-signup-code]
+verify_jwt = false
