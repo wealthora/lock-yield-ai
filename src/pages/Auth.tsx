@@ -222,12 +222,10 @@ export default function Auth() {
 
       // Send welcome email via edge function
       if (data?.user) {
-        const confirmationLink = `${window.location.origin}/auth?confirmed=true`;
-        await supabase.functions.invoke('send-signup-email', {
+        await supabase.functions.invoke('send-welcome-email', {
           body: {
             email: signupFormData.email,
-            firstName: signupFormData.firstName,
-            confirmationLink
+            firstName: signupFormData.firstName
           }
         });
       }
