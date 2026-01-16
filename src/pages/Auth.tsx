@@ -13,6 +13,9 @@ import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicato
 import { validatePassword } from "@/lib/passwordValidation";
 import logo from "@/assets/wealthora-logo.png";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { CountrySelector } from "@/components/CountrySelector";
+import { PhoneInput } from "@/components/PhoneInput";
+import { Country } from "@/lib/countries";
 
 // Password reset flow states
 type ResetStep = 'email' | 'verify' | 'newPassword' | 'success';
@@ -57,6 +60,10 @@ export default function Auth() {
   const [signupVerificationCode, setSignupVerificationCode] = useState("");
   const [signupMaskedEmail, setSignupMaskedEmail] = useState("");
   const [resendingSignup, setResendingSignup] = useState(false);
+
+  // Country and phone state for signup
+  const [selectedCountry, setSelectedCountry] = useState<Country | undefined>();
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   useEffect(() => {
     // Check for existing session
@@ -255,9 +262,27 @@ export default function Auth() {
     const password = formData.get("signup-password") as string;
     const firstName = formData.get("first-name") as string;
     const otherNames = formData.get("other-names") as string;
-    const phone = formData.get("phone") as string;
-    const country = formData.get("country") as string;
     const dob = formData.get("dob") as string;
+
+    // Validate country selection
+    if (!selectedCountry) {
+      toast({
+        variant: "destructive",
+        title: "Country Required",
+        description: "Please select your country."
+      });
+      return;
+    }
+
+    // Validate phone number
+    if (!phoneNumber.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Phone Required",
+        description: "Please enter your phone number."
+      });
+      return;
+    }
 
     // Validate password
     const passwordValidation = validatePassword(password);
@@ -276,8 +301,8 @@ export default function Auth() {
       password,
       firstName,
       otherNames,
-      phone,
-      country,
+      phone: phoneNumber,
+      country: selectedCountry.name,
       dob
     });
   };
@@ -846,12 +871,32 @@ export default function Auth() {
                   <Input id="signup-email" name="signup-email" type="email" placeholder="you@example.com" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" name="phone" type="tel" placeholder="+1 (555) 000-0000" required />
+                  <Label htmlFor="country">Country</Label>
+                  <CountrySelector
+                    value={selectedCountry?.code}
+                    onSelect={(country) => {
+                      setSelectedCountry(country);
+                      // Reset phone number when country changes to avoid stale dial codes
+                      if (selectedCountry && selectedCountry.dialCode !== country.dialCode) {
+                        setPhoneNumber(country.dialCode + " ");
+                      } else if (!phoneNumber) {
+                        setPhoneNumber(country.dialCode + " ");
+                      }
+                    }}
+                    placeholder="Select your country"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country</Label>
-                  <Input id="country" name="country" type="text" placeholder="United States" required />
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <PhoneInput
+                    id="phone"
+                    name="phone"
+                    country={selectedCountry}
+                    value={phoneNumber}
+                    onChange={(fullNumber) => setPhoneNumber(fullNumber)}
+                    placeholder="Enter phone number"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="dob">Date of Birth</Label>
