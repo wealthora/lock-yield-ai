@@ -30,6 +30,55 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Rate limiting: Check how many codes were sent in the last minute
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { data: recentCodes, error: rateCheckError } = await supabaseAdmin
+      .from('verification_codes')
+      .select('id, created_at')
+      .eq('user_id', email)
+      .eq('purpose', 'password_reset')
+      .gte('created_at', oneMinuteAgo);
+
+    if (rateCheckError) {
+      console.error('Rate limit check error:', rateCheckError);
+    }
+
+    // Allow max 2 codes per minute
+    if (recentCodes && recentCodes.length >= 2) {
+      console.log('Rate limit exceeded for:', email);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many requests. Please wait a moment before requesting another code.',
+          retryAfter: 60
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check hourly limit: max 5 codes per hour
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: hourlyCodes, error: hourlyCheckError } = await supabaseAdmin
+      .from('verification_codes')
+      .select('id')
+      .eq('user_id', email)
+      .eq('purpose', 'password_reset')
+      .gte('created_at', oneHourAgo);
+
+    if (hourlyCheckError) {
+      console.error('Hourly rate limit check error:', hourlyCheckError);
+    }
+
+    if (hourlyCodes && hourlyCodes.length >= 5) {
+      console.log('Hourly rate limit exceeded for:', email);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Too many verification attempts. Please try again in an hour.',
+          retryAfter: 3600
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if user exists in auth.users via profiles table
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
