@@ -94,12 +94,12 @@ serve(async (req) => {
       .eq('purpose', 'signup_verification')
       .eq('used', false);
 
-    // Store the new code using email column (not user_id which requires UUID)
+    // Store the new code using email column (user_id is null for signup)
     const { error: insertError } = await supabaseAdmin
       .from('verification_codes')
       .insert({
         email: email,
-        user_id: '00000000-0000-0000-0000-000000000000', // Placeholder UUID for signup (user doesn't exist yet)
+        user_id: null, // NULL for signup verification (user doesn't exist yet)
         code,
         purpose: 'signup_verification',
         expires_at: expiresAt,

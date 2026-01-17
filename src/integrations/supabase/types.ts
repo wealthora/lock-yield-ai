@@ -687,7 +687,7 @@ export type Database = {
           id: string
           purpose: string
           used: boolean | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           code: string
@@ -697,7 +697,7 @@ export type Database = {
           id?: string
           purpose: string
           used?: boolean | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           code?: string
@@ -707,7 +707,7 @@ export type Database = {
           id?: string
           purpose?: string
           used?: boolean | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
