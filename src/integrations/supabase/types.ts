@@ -682,6 +682,7 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
+          email: string | null
           expires_at: string
           id: string
           purpose: string
@@ -691,6 +692,7 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string | null
+          email?: string | null
           expires_at: string
           id?: string
           purpose: string
@@ -700,6 +702,7 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string | null
+          email?: string | null
           expires_at?: string
           id?: string
           purpose?: string

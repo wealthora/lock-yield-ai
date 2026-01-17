@@ -30,11 +30,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find the verification code
+    // Find the verification code using email column
     const { data: verificationCode, error: findError } = await supabaseAdmin
       .from('verification_codes')
       .select('*')
-      .eq('user_id', email) // Using email as user_id for unregistered users
+      .eq('email', email)
       .eq('code', code)
       .eq('purpose', 'signup_verification')
       .eq('used', false)
