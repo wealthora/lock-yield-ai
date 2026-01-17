@@ -176,59 +176,44 @@ export default function Auth() {
         throw new Error(verifyData?.error || 'Invalid verification code');
       }
 
-      // Code verified, now create the account
-      const {
-        data,
-        error
-      } = await supabase.auth.signUp({
-        email: signupFormData.email,
-        password: signupFormData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            first_name: signupFormData.firstName,
-            other_names: signupFormData.otherNames,
-            phone: signupFormData.phone,
-            country: signupFormData.country,
-            date_of_birth: signupFormData.dob
-          }
+      // Code verified, now create the account using admin API (email pre-confirmed)
+      const { data: createData, error: createError } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: signupFormData.email,
+          password: signupFormData.password,
+          firstName: signupFormData.firstName,
+          otherNames: signupFormData.otherNames,
+          phone: signupFormData.phone,
+          country: signupFormData.country,
+          dateOfBirth: signupFormData.dob,
+          referrerId: referrerId
         }
       });
 
-      if (error) {
-        if (error.message.includes('fetch')) {
-          throw new Error('Unable to connect to authentication service. Please check your Cloud configuration.');
+      if (createError) {
+        throw new Error(createError.message || 'Failed to create account');
+      }
+
+      if (createData?.error) {
+        if (createData.error.includes('already registered')) {
+          toast({
+            variant: "destructive",
+            title: "Account already exists",
+            description: "This email is already registered. Please sign in instead."
+          });
+          handleBackToSignup();
+          return;
         }
-        throw error;
-      }
-
-      if (data?.user?.identities?.length === 0) {
-        toast({
-          variant: "destructive",
-          title: "Account already exists",
-          description: "This email is already registered. Please sign in instead."
-        });
-        handleBackToSignup();
-        return;
-      }
-
-      // Save referral relationship if ref param exists
-      if (data?.user && referrerId && referrerId !== data.user.id) {
-        await supabase.from("referrals").insert({
-          referrer_id: referrerId,
-          referred_id: data.user.id
-        });
+        throw new Error(createData.error);
       }
 
       // Send welcome email via edge function
-      if (data?.user) {
-        await supabase.functions.invoke('send-welcome-email', {
-          body: {
-            email: signupFormData.email,
-            firstName: signupFormData.firstName
-          }
-        });
-      }
+      await supabase.functions.invoke('send-welcome-email', {
+        body: {
+          email: signupFormData.email,
+          firstName: signupFormData.firstName
+        }
+      });
 
       setSignupStep('success');
       toast({
