@@ -30,12 +30,12 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Rate limiting: Check how many codes were sent in the last minute
+    // Rate limiting: Check how many codes were sent in the last minute (using email column)
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
     const { data: recentCodes, error: rateCheckError } = await supabaseAdmin
       .from('verification_codes')
       .select('id, created_at')
-      .eq('user_id', email)
+      .eq('email', email)
       .eq('purpose', 'signup_verification')
       .gte('created_at', oneMinuteAgo);
 
@@ -60,7 +60,7 @@ serve(async (req) => {
     const { data: hourlyCodesCodes, error: hourlyCheckError } = await supabaseAdmin
       .from('verification_codes')
       .select('id')
-      .eq('user_id', email)
+      .eq('email', email)
       .eq('purpose', 'signup_verification')
       .gte('created_at', oneHourAgo);
 
@@ -90,15 +90,16 @@ serve(async (req) => {
     await supabaseAdmin
       .from('verification_codes')
       .update({ used: true })
-      .eq('user_id', email) // Using email as user_id for unregistered users
+      .eq('email', email)
       .eq('purpose', 'signup_verification')
       .eq('used', false);
 
-    // Store the new code
+    // Store the new code using email column (not user_id which requires UUID)
     const { error: insertError } = await supabaseAdmin
       .from('verification_codes')
       .insert({
-        user_id: email, // Using email as user_id for unregistered users
+        email: email,
+        user_id: '00000000-0000-0000-0000-000000000000', // Placeholder UUID for signup (user doesn't exist yet)
         code,
         purpose: 'signup_verification',
         expires_at: expiresAt,
