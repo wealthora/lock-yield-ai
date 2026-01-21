@@ -4,37 +4,28 @@ import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
 import logo from "@/assets/wealthora-logo.png";
 import { useEffect } from "react";
-
 const Index = () => {
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('revealed');
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+        }
+      });
+    }, {
+      threshold: 0.1
+    });
+    document.querySelectorAll('.scroll-reveal').forEach(el => {
       observer.observe(el);
     });
-
     return () => observer.disconnect();
   }, []);
-
   return <div className="min-h-screen bg-background">
       {/* Navigation */}
       <nav className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img 
-              src={logo} 
-              alt="Wealthora ai" 
-              className="h-[40px] w-auto drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" 
-            />
+            <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" />
           </div>
           <div className="flex items-center gap-4">
             <Link to="/auth">
@@ -57,17 +48,26 @@ const Index = () => {
               Regulated & Secure Platform
             </div>
             
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground animate-fade-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+            <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground animate-fade-up" style={{
+            animationDelay: '0.1s',
+            animationFillMode: 'both'
+          }}>
               AI-Powered Forex Trading
               <span className="block text-primary mt-2">Built for Everyone</span>
             </h1>
             
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto animate-fade-up" style={{
+            animationDelay: '0.2s',
+            animationFillMode: 'both'
+          }}>
               Lock your funds, allocate to our advanced AI trading bots, and earn competitive returns. 
               Professional-grade trading automation made accessible.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-up" style={{ animationDelay: '0.3s', animationFillMode: 'both' }}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-up" style={{
+            animationDelay: '0.3s',
+            animationFillMode: 'both'
+          }}>
               <Link to="/auth">
                 <Button size="lg" className="gap-2 hover-glow group">
                   Start Trading <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -103,7 +103,9 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{ transitionDelay: '0.1s' }}>
+            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{
+            transitionDelay: '0.1s'
+          }}>
               <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
                 <Bot className="h-6 w-6 text-accent" />
               </div>
@@ -113,7 +115,9 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{ transitionDelay: '0.2s' }}>
+            <div className="bg-card p-8 rounded-2xl border border-border shadow-md hover-lift scroll-reveal group" style={{
+            transitionDelay: '0.2s'
+          }}>
               <div className="h-12 w-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 transition-transform group-hover:scale-110 group-hover:rotate-3">
                 <TrendingUp className="h-6 w-6 text-accent" />
               </div>
@@ -205,11 +209,7 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img 
-                  src={logo} 
-                  alt="Wealthora ai" 
-                  className="h-[35px] w-auto drop-shadow-md dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" 
-                />
+                <img src={logo} alt="Wealthora ai" className="h-[35px] w-auto drop-shadow-md dark:drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered Forex trading platform with institutional-grade security.
@@ -247,7 +247,7 @@ const Index = () => {
           </div>
 
           <div className="border-t border-border mt-12 pt-8 text-center text-sm text-muted-foreground">
-            <p>© 2025 Wealthora.ai. All rights reserved. This platform does not guarantee returns. Trading carries significant risk.</p>
+            <p>© 2026 Wealthora.ai. All rights reserved. This platform does not guarantee returns. Trading carries significant risk.</p>
           </div>
         </div>
       </footer>
