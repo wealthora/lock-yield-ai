@@ -440,10 +440,13 @@ export type Database = {
           id_back_url: string | null
           id_front_url: string | null
           id_number: string | null
+          kyc_rejection_reason: string | null
           kyc_status: string | null
           kyc_submitted_at: string | null
           other_names: string | null
           phone: string | null
+          proof_of_identity_url: string | null
+          proof_of_residence_url: string | null
           selfie_url: string | null
           updated_at: string
           user_id: string
@@ -459,10 +462,13 @@ export type Database = {
           id_back_url?: string | null
           id_front_url?: string | null
           id_number?: string | null
+          kyc_rejection_reason?: string | null
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           other_names?: string | null
           phone?: string | null
+          proof_of_identity_url?: string | null
+          proof_of_residence_url?: string | null
           selfie_url?: string | null
           updated_at?: string
           user_id: string
@@ -478,10 +484,13 @@ export type Database = {
           id_back_url?: string | null
           id_front_url?: string | null
           id_number?: string | null
+          kyc_rejection_reason?: string | null
           kyc_status?: string | null
           kyc_submitted_at?: string | null
           other_names?: string | null
           phone?: string | null
+          proof_of_identity_url?: string | null
+          proof_of_residence_url?: string | null
           selfie_url?: string | null
           updated_at?: string
           user_id?: string

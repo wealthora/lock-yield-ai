@@ -23,6 +23,7 @@ interface ProfileData {
   date_of_birth: string;
   avatar: string | null;
   kyc_status: string;
+  kyc_rejection_reason: string | null;
 }
 
 export default function ProfileSettings() {
@@ -49,6 +50,7 @@ export default function ProfileSettings() {
     date_of_birth: "",
     avatar: null,
     kyc_status: "",
+    kyc_rejection_reason: null,
   });
 
   useEffect(() => {
@@ -127,6 +129,7 @@ export default function ProfileSettings() {
         date_of_birth: data.date_of_birth || "",
         avatar: data.avatar || null,
         kyc_status: data.kyc_status || "not_submitted",
+        kyc_rejection_reason: data.kyc_rejection_reason || null,
       };
 
       setProfile(profileData);
@@ -599,6 +602,7 @@ export default function ProfileSettings() {
         isOpen={showKYC} 
         onClose={() => setShowKYC(false)}
         currentStatus={profile?.kyc_status || "not_submitted"}
+        rejectionReason={profile?.kyc_rejection_reason}
         onStatusUpdate={loadProfileData}
       />
 
