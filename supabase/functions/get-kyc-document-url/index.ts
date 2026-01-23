@@ -25,7 +25,7 @@ serve(async (req) => {
       );
     }
 
-    // Create client with user's token to get their ID
+    // Create client with user's token to verify they're authenticated
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -38,73 +38,62 @@ serve(async (req) => {
       );
     }
 
-    // Parse multipart form data
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const documentType = formData.get("documentType") as string;
-
-    if (!file || !documentType) {
-      return new Response(
-        JSON.stringify({ error: "Missing file or documentType" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate file size (1MB max)
-    if (file.size > 1048576) {
-      return new Response(
-        JSON.stringify({ error: "File size must be less than 1MB" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Validate file type based on document type
-    const identityFormats = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
-    const residenceFormats = [...identityFormats, "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
-    
-    const allowedFormats = documentType === "proof-of-identity" ? identityFormats : residenceFormats;
-    
-    if (!allowedFormats.includes(file.type)) {
-      return new Response(
-        JSON.stringify({ error: `Invalid file type: ${file.type}` }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Create admin client for storage operations
+    // Create admin client to check roles
     const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Generate file path
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${documentType}-${Date.now()}.${fileExt}`;
+    // Check if user is admin
+    const { data: roleData, error: roleError } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .single();
 
-    // Convert file to ArrayBuffer for upload
-    const arrayBuffer = await file.arrayBuffer();
-
-    // Upload using service role (bypasses RLS and bucket metadata checks)
-    const { error: uploadError } = await adminClient.storage
-      .from("kyc-documents")
-      .upload(fileName, arrayBuffer, {
-        contentType: file.type,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
+    if (roleError || !roleData) {
       return new Response(
-        JSON.stringify({ error: uploadError.message }),
+        JSON.stringify({ error: "Access denied. Admin role required." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse request body for path
+    const { path } = await req.json();
+    
+    if (!path) {
+      return new Response(
+        JSON.stringify({ error: "Missing path parameter" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate that path is for kyc-documents bucket
+    if (!path.startsWith("kyc-documents/")) {
+      return new Response(
+        JSON.stringify({ error: "Invalid path. Must be a KYC document." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Extract file path without bucket name prefix
+    const filePath = path.replace("kyc-documents/", "");
+
+    // Generate signed URL using service role (bypasses RLS)
+    const { data: signedData, error: signedError } = await adminClient.storage
+      .from("kyc-documents")
+      .createSignedUrl(filePath, 60 * 60); // 1 hour expiry for viewing
+
+    if (signedError) {
+      console.error("Signed URL error:", signedError);
+      return new Response(
+        JSON.stringify({ error: signedError.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Return the storage path (admins will generate signed URLs on-demand)
-    // Store the path in the format: kyc-documents/{user_id}/{document-type}-{timestamp}.{ext}
-    const storagePath = `kyc-documents/${fileName}`;
-
     return new Response(
       JSON.stringify({ 
         success: true, 
-        path: storagePath
+        signedUrl: signedData?.signedUrl
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

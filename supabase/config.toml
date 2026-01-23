@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.upload-kyc-document]
 verify_jwt = false
+
+[functions.get-kyc-document-url]
+verify_jwt = false

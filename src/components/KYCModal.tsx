@@ -120,7 +120,8 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
       throw new Error(result.error || "Upload failed");
     }
 
-    return result.url;
+    // Return the storage path (not a public URL - admin will fetch signed URLs)
+    return result.path;
   };
 
   const handleSubmit = async () => {
@@ -162,16 +163,16 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload documents
-      const identityUrl = await uploadFile(proofOfIdentity, "proof-of-identity");
-      const residenceUrl = await uploadFile(proofOfResidence, "proof-of-residence");
+      // Upload documents - returns storage paths (not URLs)
+      const identityPath = await uploadFile(proofOfIdentity, "proof-of-identity");
+      const residencePath = await uploadFile(proofOfResidence, "proof-of-residence");
 
-      // Update profile with KYC data
+      // Update profile with KYC data (store paths, not URLs)
       const { error } = await supabase
         .from("profiles")
         .update({
-          proof_of_identity_url: identityUrl,
-          proof_of_residence_url: residenceUrl,
+          proof_of_identity_url: identityPath,
+          proof_of_residence_url: residencePath,
           kyc_status: "pending",
           kyc_rejection_reason: null,
           kyc_submitted_at: new Date().toISOString(),
