@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.create-user]
 verify_jwt = false
+
+[functions.upload-kyc-document]
+verify_jwt = false
