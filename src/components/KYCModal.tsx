@@ -95,24 +95,32 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     }
   };
 
-  const uploadFile = async (file: File, path: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error("Not authenticated");
+  const uploadFile = async (file: File, documentType: string) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error("Not authenticated");
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${path}-${Date.now()}.${fileExt}`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("documentType", documentType);
 
-    const { error: uploadError } = await supabase.storage
-      .from('kyc-documents')
-      .upload(fileName, file, { upsert: true });
+    const response = await fetch(
+      `https://rjbdcucejlsegbgqmoao.supabase.co/functions/v1/upload-kyc-document`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: formData,
+      }
+    );
 
-    if (uploadError) throw uploadError;
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(result.error || "Upload failed");
+    }
 
-    const { data } = supabase.storage
-      .from('kyc-documents')
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
+    return result.url;
   };
 
   const handleSubmit = async () => {
