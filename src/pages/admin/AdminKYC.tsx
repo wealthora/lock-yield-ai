@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminCheck } from "@/hooks/useAdminCheck";
 import AdminLayout from "@/components/admin/AdminLayout";
@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, CheckCircle, XCircle, FileText, Image, ExternalLink } from "lucide-react";
+import { Eye, CheckCircle, XCircle, FileText, Image, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -36,6 +36,8 @@ export default function AdminKYC() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
+  const [documentUrls, setDocumentUrls] = useState<{ identity?: string; residence?: string }>({});
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   useEffect(() => {
     fetchKYCProfiles();
@@ -53,6 +55,63 @@ export default function AdminKYC() {
     } else {
       setProfiles(data || []);
     }
+  };
+
+  const fetchSignedUrl = useCallback(async (path: string | null): Promise<string | null> => {
+    if (!path) return null;
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return null;
+
+      const response = await fetch(
+        `https://rjbdcucejlsegbgqmoao.supabase.co/functions/v1/get-kyc-document-url`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ path }),
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to get signed URL:", error);
+        return null;
+      }
+
+      const result = await response.json();
+      return result.signedUrl;
+    } catch (error) {
+      console.error("Error fetching signed URL:", error);
+      return null;
+    }
+  }, []);
+
+  const loadDocumentUrls = useCallback(async (profile: KYCProfile) => {
+    setLoadingDocuments(true);
+    setDocumentUrls({});
+    
+    try {
+      const [identityUrl, residenceUrl] = await Promise.all([
+        fetchSignedUrl(profile.proof_of_identity_url),
+        fetchSignedUrl(profile.proof_of_residence_url),
+      ]);
+      
+      setDocumentUrls({
+        identity: identityUrl || undefined,
+        residence: residenceUrl || undefined,
+      });
+    } finally {
+      setLoadingDocuments(false);
+    }
+  }, [fetchSignedUrl]);
+
+  const handleViewProfile = async (profile: KYCProfile) => {
+    setSelectedProfile(profile);
+    await loadDocumentUrls(profile);
   };
 
   const approveKYC = async (profileId: string) => {
@@ -123,8 +182,8 @@ export default function AdminKYC() {
     return "document";
   };
 
-  const renderDocumentPreview = (url: string | null, label: string) => {
-    if (!url) {
+  const renderDocumentPreview = (url: string | undefined, storagePath: string | null, label: string) => {
+    if (!storagePath) {
       return (
         <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
           <FileText className="w-8 h-8 text-muted-foreground mb-2" />
@@ -133,7 +192,24 @@ export default function AdminKYC() {
       );
     }
 
-    const fileType = getFileType(url);
+    if (loadingDocuments) {
+      return (
+        <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
+          <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading document...</p>
+        </div>
+      );
+    }
+
+    if (!url) {
+      return (
+        <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
+          <FileText className="w-8 h-8 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground">Failed to load document</p>
+        </div>
+      );
+    }
+    const fileType = getFileType(storagePath);
 
     return (
       <div className="space-y-2">
@@ -235,7 +311,7 @@ export default function AdminKYC() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setSelectedProfile(profile)}
+                          onClick={() => handleViewProfile(profile)}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -325,7 +401,7 @@ export default function AdminKYC() {
                         Proof of Identity
                       </Label>
                       <p className="text-xs text-muted-foreground">ID Card or Driving License</p>
-                      {renderDocumentPreview(selectedProfile.proof_of_identity_url, "Proof of Identity")}
+                      {renderDocumentPreview(documentUrls.identity, selectedProfile.proof_of_identity_url, "Proof of Identity")}
                     </div>
                     <div className="space-y-2">
                       <Label className="flex items-center gap-2">
@@ -333,7 +409,7 @@ export default function AdminKYC() {
                         Proof of Residence
                       </Label>
                       <p className="text-xs text-muted-foreground">Utility Bill or Official Document</p>
-                      {renderDocumentPreview(selectedProfile.proof_of_residence_url, "Proof of Residence")}
+                      {renderDocumentPreview(documentUrls.residence, selectedProfile.proof_of_residence_url, "Proof of Residence")}
                     </div>
                   </div>
                 </div>
