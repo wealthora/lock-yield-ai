@@ -22,7 +22,8 @@ interface KYCProfile {
   phone: string | null;
   country: string | null;
   date_of_birth: string | null;
-  proof_of_identity_url: string | null;
+  id_front_url: string | null;
+  id_back_url: string | null;
   proof_of_residence_url: string | null;
   kyc_status: string | null;
   kyc_submitted_at: string | null;
@@ -36,7 +37,7 @@ export default function AdminKYC() {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
-  const [documentUrls, setDocumentUrls] = useState<{ identity?: string; residence?: string }>({});
+  const [documentUrls, setDocumentUrls] = useState<{ idFront?: string; idBack?: string; residence?: string }>({});
   const [loadingDocuments, setLoadingDocuments] = useState(false);
 
   useEffect(() => {
@@ -46,7 +47,7 @@ export default function AdminKYC() {
   const fetchKYCProfiles = async () => {
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, user_id, first_name, other_names, email, phone, country, date_of_birth, proof_of_identity_url, proof_of_residence_url, kyc_status, kyc_submitted_at, kyc_rejection_reason")
+      .select("id, user_id, first_name, other_names, email, phone, country, date_of_birth, id_front_url, id_back_url, proof_of_residence_url, kyc_status, kyc_submitted_at, kyc_rejection_reason")
       .not("kyc_status", "is", null)
       .order("kyc_submitted_at", { ascending: false });
 
@@ -95,13 +96,15 @@ export default function AdminKYC() {
     setDocumentUrls({});
     
     try {
-      const [identityUrl, residenceUrl] = await Promise.all([
-        fetchSignedUrl(profile.proof_of_identity_url),
+      const [idFrontUrl, idBackUrl, residenceUrl] = await Promise.all([
+        fetchSignedUrl(profile.id_front_url),
+        fetchSignedUrl(profile.id_back_url),
         fetchSignedUrl(profile.proof_of_residence_url),
       ]);
       
       setDocumentUrls({
-        identity: identityUrl || undefined,
+        idFront: idFrontUrl || undefined,
+        idBack: idBackUrl || undefined,
         residence: residenceUrl || undefined,
       });
     } finally {
@@ -185,27 +188,27 @@ export default function AdminKYC() {
   const renderDocumentPreview = (url: string | undefined, storagePath: string | null, label: string) => {
     if (!storagePath) {
       return (
-        <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
-          <FileText className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">Not uploaded</p>
+        <div className="flex flex-col items-center justify-center h-32 border rounded-lg bg-muted/30">
+          <FileText className="w-6 h-6 text-muted-foreground mb-2" />
+          <p className="text-xs text-muted-foreground">Not uploaded</p>
         </div>
       );
     }
 
     if (loadingDocuments) {
       return (
-        <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
-          <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
-          <p className="text-sm text-muted-foreground">Loading document...</p>
+        <div className="flex flex-col items-center justify-center h-32 border rounded-lg bg-muted/30">
+          <Loader2 className="w-6 h-6 text-muted-foreground mb-2 animate-spin" />
+          <p className="text-xs text-muted-foreground">Loading...</p>
         </div>
       );
     }
 
     if (!url) {
       return (
-        <div className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30">
-          <FileText className="w-8 h-8 text-muted-foreground mb-2" />
-          <p className="text-sm text-muted-foreground">Failed to load document</p>
+        <div className="flex flex-col items-center justify-center h-32 border rounded-lg bg-muted/30">
+          <FileText className="w-6 h-6 text-muted-foreground mb-2" />
+          <p className="text-xs text-muted-foreground">Failed to load</p>
         </div>
       );
     }
@@ -218,7 +221,7 @@ export default function AdminKYC() {
             <img
               src={url}
               alt={label}
-              className="w-full h-40 object-cover rounded-lg border hover:opacity-90 transition-opacity"
+              className="w-full h-32 object-cover rounded-lg border hover:opacity-90 transition-opacity"
             />
           </a>
         ) : (
@@ -226,11 +229,11 @@ export default function AdminKYC() {
             href={url} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center h-40 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+            className="flex flex-col items-center justify-center h-32 border rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
           >
-            <FileText className="w-8 h-8 text-primary mb-2" />
-            <p className="text-sm text-primary font-medium">View Document</p>
-            <ExternalLink className="w-4 h-4 text-muted-foreground mt-1" />
+            <FileText className="w-6 h-6 text-primary mb-2" />
+            <p className="text-xs text-primary font-medium">View Document</p>
+            <ExternalLink className="w-3 h-3 text-muted-foreground mt-1" />
           </a>
         )}
       </div>
@@ -394,21 +397,33 @@ export default function AdminKYC() {
                 {/* Documents */}
                 <div className="space-y-4">
                   <h3 className="font-semibold text-lg">Uploaded Documents</h3>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Image className="w-4 h-4" />
-                        Proof of Identity
-                      </Label>
-                      <p className="text-xs text-muted-foreground">ID Card or Driving License</p>
-                      {renderDocumentPreview(documentUrls.identity, selectedProfile.proof_of_identity_url, "Proof of Identity")}
+                  
+                  {/* ID Documents */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Image className="w-4 h-4" />
+                      Proof of Identity (ID Card / Driving License)
+                    </Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Front Side</p>
+                        {renderDocumentPreview(documentUrls.idFront, selectedProfile.id_front_url, "ID Front")}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">Back Side</p>
+                        {renderDocumentPreview(documentUrls.idBack, selectedProfile.id_back_url, "ID Back")}
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        Proof of Residence
-                      </Label>
-                      <p className="text-xs text-muted-foreground">Utility Bill or Official Document</p>
+                  </div>
+
+                  {/* Proof of Residence */}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      Proof of Residence
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Utility Bill or Official Document</p>
+                    <div className="max-w-[50%]">
                       {renderDocumentPreview(documentUrls.residence, selectedProfile.proof_of_residence_url, "Proof of Residence")}
                     </div>
                   </div>
@@ -459,21 +474,15 @@ export default function AdminKYC() {
                   onChange={(e) => setRejectionReason(e.target.value)}
                   rows={4}
                 />
-                <p className="text-xs text-muted-foreground">
-                  This reason will be shown to the user so they can correct and resubmit.
-                </p>
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
                 Cancel
               </Button>
-              <Button 
-                variant="destructive" 
-                onClick={confirmReject}
-                disabled={isUpdating || !rejectionReason.trim()}
-              >
-                {isUpdating ? "Rejecting..." : "Confirm Rejection"}
+              <Button variant="destructive" onClick={confirmReject} disabled={isUpdating}>
+                {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Confirm Rejection
               </Button>
             </DialogFooter>
           </DialogContent>
