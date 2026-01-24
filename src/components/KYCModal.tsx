@@ -21,10 +21,12 @@ const IDENTITY_FORMATS = ["image/jpeg", "image/jpg", "image/png", "image/gif", "
 const RESIDENCE_FORMATS = [...IDENTITY_FORMATS, "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
 
 export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onStatusUpdate }: KYCModalProps) => {
-  const [proofOfIdentity, setProofOfIdentity] = useState<File | null>(null);
+  const [idFront, setIdFront] = useState<File | null>(null);
+  const [idBack, setIdBack] = useState<File | null>(null);
   const [proofOfResidence, setProofOfResidence] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [identityError, setIdentityError] = useState<string | null>(null);
+  const [idFrontError, setIdFrontError] = useState<string | null>(null);
+  const [idBackError, setIdBackError] = useState<string | null>(null);
   const [residenceError, setResidenceError] = useState<string | null>(null);
 
   const getProgressValue = () => {
@@ -67,15 +69,29 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     return null;
   };
 
-  const handleIdentityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleIdFrontChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const error = validateIdentityFile(file);
-      setIdentityError(error);
+      setIdFrontError(error);
       if (!error) {
-        setProofOfIdentity(file);
+        setIdFront(file);
       } else {
-        setProofOfIdentity(null);
+        setIdFront(null);
+        e.target.value = "";
+      }
+    }
+  };
+
+  const handleIdBackChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const error = validateIdentityFile(file);
+      setIdBackError(error);
+      if (!error) {
+        setIdBack(file);
+      } else {
+        setIdBack(null);
         e.target.value = "";
       }
     }
@@ -125,11 +141,20 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
   };
 
   const handleSubmit = async () => {
-    // Validate both documents are present
-    if (!proofOfIdentity) {
+    // Validate all documents are present
+    if (!idFront) {
       toast({
         title: "Missing Document",
-        description: "Please upload your Proof of Identity (ID card or Driving License).",
+        description: "Please upload the front side of your ID card or Driving License.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!idBack) {
+      toast({
+        title: "Missing Document",
+        description: "Please upload the back side of your ID card or Driving License.",
         variant: "destructive",
       });
       return;
@@ -145,9 +170,15 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     }
 
     // Re-validate files before submission
-    const identityValidation = validateIdentityFile(proofOfIdentity);
-    if (identityValidation) {
-      setIdentityError(identityValidation);
+    const frontValidation = validateIdentityFile(idFront);
+    if (frontValidation) {
+      setIdFrontError(frontValidation);
+      return;
+    }
+
+    const backValidation = validateIdentityFile(idBack);
+    if (backValidation) {
+      setIdBackError(backValidation);
       return;
     }
 
@@ -164,14 +195,18 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
       if (!user) throw new Error("Not authenticated");
 
       // Upload documents - returns storage paths (not URLs)
-      const identityPath = await uploadFile(proofOfIdentity, "proof-of-identity");
-      const residencePath = await uploadFile(proofOfResidence, "proof-of-residence");
+      const [idFrontPath, idBackPath, residencePath] = await Promise.all([
+        uploadFile(idFront, "id-front"),
+        uploadFile(idBack, "id-back"),
+        uploadFile(proofOfResidence, "proof-of-residence"),
+      ]);
 
       // Update profile with KYC data (store paths, not URLs)
       const { error } = await supabase
         .from("profiles")
         .update({
-          proof_of_identity_url: identityPath,
+          id_front_url: idFrontPath,
+          id_back_url: idBackPath,
           proof_of_residence_url: residencePath,
           kyc_status: "pending",
           kyc_rejection_reason: null,
@@ -194,7 +229,8 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
       });
 
       // Reset state
-      setProofOfIdentity(null);
+      setIdFront(null);
+      setIdBack(null);
       setProofOfResidence(null);
       onStatusUpdate();
       onClose();
@@ -209,9 +245,14 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     }
   };
 
-  const clearIdentity = () => {
-    setProofOfIdentity(null);
-    setIdentityError(null);
+  const clearIdFront = () => {
+    setIdFront(null);
+    setIdFrontError(null);
+  };
+
+  const clearIdBack = () => {
+    setIdBack(null);
+    setIdBackError(null);
   };
 
   const clearResidence = () => {
@@ -230,6 +271,56 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const renderFileUpload = (
+    file: File | null,
+    error: string | null,
+    onClear: () => void,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    accept: string,
+    formats: string
+  ) => {
+    if (file) {
+      return (
+        <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+          <div className="flex items-center gap-3">
+            {getFileIcon(file)}
+            <div>
+              <p className="text-sm font-medium truncate max-w-[200px]">{file.name}</p>
+              <p className="text-xs text-muted-foreground">{formatFileSize(file.size)}</p>
+            </div>
+            <CheckCircle className="w-4 h-4 text-green-500" />
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClear}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
+          <div className="flex flex-col items-center justify-center py-4">
+            <Upload className="w-6 h-6 mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold">Click to upload</span>
+            </p>
+            <p className="text-xs text-muted-foreground">{formats}</p>
+          </div>
+          <input 
+            type="file" 
+            className="hidden" 
+            accept={accept}
+            onChange={onChange}
+          />
+        </label>
+        {error && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -294,52 +385,43 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
         {/* Show form for not started or rejected status */}
         {(currentStatus === "not_started" || currentStatus === "rejected" || !currentStatus) && (
           <div className="space-y-6">
-            {/* Proof of Identity */}
-            <div className="space-y-3">
+            {/* Proof of Identity - Front & Back */}
+            <div className="space-y-4">
               <div>
                 <Label className="text-base font-semibold">Proof of Identity *</Label>
                 <p className="text-sm text-muted-foreground mt-1">
                   Upload your Government-issued National ID card or Driving License. 
-                  Must clearly display your full name and be valid.
+                  Both front and back sides are required.
                 </p>
               </div>
               
-              {proofOfIdentity ? (
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(proofOfIdentity)}
-                    <div>
-                      <p className="text-sm font-medium truncate max-w-[200px]">{proofOfIdentity.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(proofOfIdentity.size)}</p>
-                    </div>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={clearIdentity}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
+              <div className="grid grid-cols-2 gap-4">
+                {/* Front Side */}
                 <div className="space-y-2">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">JPG, PNG, GIF, WebP (Max 1MB)</p>
-                    </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept=".jpg,.jpeg,.png,.gif,.webp"
-                      onChange={handleIdentityChange}
-                    />
-                  </label>
-                  {identityError && (
-                    <p className="text-sm text-destructive">{identityError}</p>
+                  <Label className="text-sm">Front Side</Label>
+                  {renderFileUpload(
+                    idFront,
+                    idFrontError,
+                    clearIdFront,
+                    handleIdFrontChange,
+                    ".jpg,.jpeg,.png,.gif,.webp",
+                    "JPG, PNG (Max 1MB)"
                   )}
                 </div>
-              )}
+
+                {/* Back Side */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Back Side</Label>
+                  {renderFileUpload(
+                    idBack,
+                    idBackError,
+                    clearIdBack,
+                    handleIdBackChange,
+                    ".jpg,.jpeg,.png,.gif,.webp",
+                    "JPG, PNG (Max 1MB)"
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Proof of Residence */}
@@ -352,48 +434,20 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
                 </p>
               </div>
               
-              {proofOfResidence ? (
-                <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-                  <div className="flex items-center gap-3">
-                    {getFileIcon(proofOfResidence)}
-                    <div>
-                      <p className="text-sm font-medium truncate max-w-[200px]">{proofOfResidence.name}</p>
-                      <p className="text-xs text-muted-foreground">{formatFileSize(proofOfResidence.size)}</p>
-                    </div>
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={clearResidence}>
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-semibold">Click to upload</span> or drag and drop
-                      </p>
-                      <p className="text-xs text-muted-foreground">Images, PDF, or DOCX (Max 1MB)</p>
-                    </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.docx"
-                      onChange={handleResidenceChange}
-                    />
-                  </label>
-                  {residenceError && (
-                    <p className="text-sm text-destructive">{residenceError}</p>
-                  )}
-                </div>
+              {renderFileUpload(
+                proofOfResidence,
+                residenceError,
+                clearResidence,
+                handleResidenceChange,
+                ".jpg,.jpeg,.png,.gif,.webp,.pdf,.docx",
+                "Images, PDF, or DOCX (Max 1MB)"
               )}
             </div>
 
             {/* Submit Button */}
             <Button
               onClick={handleSubmit}
-              disabled={isSubmitting || !proofOfIdentity || !proofOfResidence}
+              disabled={isSubmitting || !idFront || !idBack || !proofOfResidence}
               className="w-full"
               size="lg"
             >
