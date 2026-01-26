@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import UserSearchSelect from '@/components/admin/UserSearchSelect';
+import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -194,23 +194,26 @@ export default function AdminBroadcast() {
               {/* Recipient Type Toggle */}
               <div className="space-y-2">
                 <Label>Recipient</Label>
-                <ToggleGroup
-                  type="single"
-                  value={recipientType}
-                  onValueChange={(value) => {
-                    if (value) setRecipientType(value as 'all' | 'single');
-                  }}
-                  className="justify-start"
-                >
-                  <ToggleGroupItem value="all" aria-label="Broadcast to all" className="gap-2">
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={recipientType === 'all' ? 'default' : 'outline'}
+                    onClick={() => setRecipientType('all')}
+                    className="gap-2"
+                  >
                     <Users className="h-4 w-4" />
                     All Users
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="single" aria-label="Send to specific user" className="gap-2">
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={recipientType === 'single' ? 'default' : 'outline'}
+                    onClick={() => setRecipientType('single')}
+                    className="gap-2"
+                  >
                     <User className="h-4 w-4" />
                     Specific User
-                  </ToggleGroupItem>
-                </ToggleGroup>
+                  </Button>
+                </div>
               </div>
 
               {/* User Selector - Only shown when specific user is selected */}
