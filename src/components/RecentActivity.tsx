@@ -29,11 +29,14 @@ export const RecentActivity = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Only show financial activities
+      const financialActivityTypes = ['deposit', 'withdrawal', 'bot_allocation', 'investment_completed'];
+      
       let query = supabase
         .from("activities")
         .select("*")
         .eq("user_id", user.id)
-        .neq("activity_type", "bot_return") // Exclude daily returns
+        .in("activity_type", financialActivityTypes)
         .order("created_at", { ascending: false })
         .limit(50);
 
