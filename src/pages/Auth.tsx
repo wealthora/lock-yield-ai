@@ -83,10 +83,15 @@ export default function Auth() {
       data: {
         subscription
       }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session && event === 'SIGNED_IN') {
-        navigate("/dashboard");
+        // Route admins to /admin, everyone else to /dashboard
+        const { data: isAdmin } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin',
+        });
+        navigate(isAdmin ? "/admin" : "/dashboard");
       }
     });
     return () => subscription.unsubscribe();
