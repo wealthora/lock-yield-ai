@@ -79,12 +79,14 @@ function AdminSidebar() {
                       to={item.url}
                       end={item.url === "/admin"}
                       className={({ isActive }) =>
-                        isActive
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted/50"
+                        `group relative flex items-center gap-2 rounded-lg transition-all duration-300 ease-out ${
+                          isActive
+                            ? "bg-primary/15 text-primary font-medium border border-primary/30 shadow-[0_0_18px_hsl(var(--primary)/0.25)]"
+                            : "hover:bg-primary/5 hover:text-primary hover:translate-x-1 hover:shadow-[0_0_16px_hsl(var(--primary)/0.25)]"
+                        }`
                       }
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_6px_hsl(var(--primary))]" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
