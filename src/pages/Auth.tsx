@@ -816,7 +816,7 @@ export default function Auth() {
                 setIsLoading(true);
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: "google",
-                  options: { redirectTo: `${window.location.origin}/dashboard` },
+                  options: { redirectTo: `${window.location.origin}/auth` },
                 });
                 if (error) {
                   toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
