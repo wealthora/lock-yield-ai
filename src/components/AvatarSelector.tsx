@@ -73,6 +73,29 @@ export function AvatarSelector({
   return (
     <div className={cn("space-y-3", className)}>
       <p className="text-sm text-muted-foreground">Choose your avatar:</p>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFileChange}
+        disabled={disabled || uploading}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={disabled || uploading}
+        className="w-full"
+      >
+        {uploading ? (
+          <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading...</>
+        ) : (
+          <><Upload className="h-4 w-4 mr-2" />Upload from device</>
+        )}
+      </Button>
+      <p className="text-xs text-muted-foreground text-center">or pick a preset below</p>
       <div 
         className="grid grid-cols-4 gap-3"
         role="radiogroup"
