@@ -130,7 +130,7 @@ export default function DashboardHome() {
               </CardTitle>
               <div className="text-3xl font-bold mt-1">
                 $
-                {((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toFixed(2)}
+                {((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
               </div>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${balance?.available_balance.toFixed(2) || "0.00"}
+              ${balance?.available_balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) || "0.00"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Ready to invest</p>
           </CardContent>
@@ -159,7 +159,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${balance?.locked_balance.toFixed(2) || "0.00"}
+              ${balance?.locked_balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) || "0.00"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">In active positions</p>
           </CardContent>
@@ -172,7 +172,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              ${balance?.returns_balance?.toFixed(2) || "0.00"}
+              ${balance?.returns_balance?.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) || "0.00"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Daily returns earned</p>
           </CardContent>
@@ -186,7 +186,7 @@ export default function DashboardHome() {
           <CardContent>
             <div className="text-2xl font-bold">
               $
-              {((balance?.available_balance || 0) + (balance?.locked_balance || 0) + (balance?.returns_balance || 0)).toFixed(2)}
+              {((balance?.available_balance || 0) + (balance?.locked_balance || 0) + (balance?.returns_balance || 0)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
             </div>
             <p className="text-xs text-muted-foreground mt-1">All assets combined</p>
           </CardContent>
@@ -248,7 +248,7 @@ export default function DashboardHome() {
             <Card className="border-primary/10">
               <CardContent className="pt-6 text-center">
                 <div className="text-3xl font-bold text-primary">
-                  ${referralStats.totalEarned.toFixed(2)}
+                  ${referralStats.totalEarned.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">Total Bonus Earned</p>
               </CardContent>
@@ -291,7 +291,7 @@ export default function DashboardHome() {
                         </TableCell>
                         <TableCell className="text-right">
                           {user.reward ? <span className="text-primary font-medium">
-                              ${user.reward.toFixed(2)}
+                              ${user.reward.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                             </span> : <span className="text-muted-foreground">Pending</span>}
                         </TableCell>
                       </TableRow>)}

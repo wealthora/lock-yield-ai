@@ -57,7 +57,7 @@ export const ActivityItem = ({ activityType, description, amount, method, status
         <div className="flex flex-wrap items-center gap-2 mt-1">
           {amount && (
             <span className="text-sm font-semibold text-primary">
-              ${amount.toFixed(2)}
+              ${amount.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
             </span>
           )}
           {method && (

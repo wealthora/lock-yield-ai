@@ -169,15 +169,15 @@ export default function Analytics() {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Total Invested</span>
-              <span className="font-semibold">${analytics.totalInvested.toFixed(2)}</span>
+              <span className="font-semibold">${analytics.totalInvested.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">Total Returns</span>
-              <span className="font-semibold text-primary">+${analytics.totalReturns.toFixed(2)}</span>
+              <span className="font-semibold text-primary">+${analytics.totalReturns.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             </div>
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm text-muted-foreground">ROI</span>
-              <span className="font-semibold">{analytics.roi.toFixed(2)}%</span>
+              <span className="font-semibold">{analytics.roi.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}%</span>
             </div>
           </CardContent>
         </Card>

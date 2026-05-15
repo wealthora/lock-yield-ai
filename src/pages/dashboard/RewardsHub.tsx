@@ -145,7 +145,7 @@ export default function RewardsHub() {
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <span className="text-sm">Earned from Referrals</span>
               <span className="font-semibold text-primary">
-                {loading ? "..." : `$${totalEarnings.toFixed(2)}`}
+                {loading ? "..." : `$${totalEarnings.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}`}
               </span>
             </div>
           </div>

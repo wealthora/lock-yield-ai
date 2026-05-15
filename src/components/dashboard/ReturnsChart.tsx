@@ -36,13 +36,13 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
         <div className="flex items-center justify-between gap-4">
           <span className="text-xs text-muted-foreground">Daily Return</span>
           <span className={`text-sm font-semibold ${data.dailyReturn >= 0 ? 'text-primary' : 'text-destructive'}`}>
-            {data.dailyReturn >= 0 ? '+' : ''}${data.dailyReturn.toFixed(2)}
+            {data.dailyReturn >= 0 ? '+' : ''}${data.dailyReturn.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </span>
         </div>
         <div className="flex items-center justify-between gap-4">
           <span className="text-xs text-muted-foreground">Cumulative</span>
           <span className={`text-sm font-semibold ${data.cumulativeReturn >= 0 ? 'text-primary' : 'text-destructive'}`}>
-            ${data.cumulativeReturn.toFixed(2)}
+            ${data.cumulativeReturn.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
           </span>
         </div>
       </div>

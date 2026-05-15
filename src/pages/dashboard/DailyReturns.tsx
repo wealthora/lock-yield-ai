@@ -105,7 +105,7 @@ export default function DailyReturns() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-primary">
-              ${totalReturns.toFixed(2)}
+              ${totalReturns.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
             </div>
           </CardContent>
         </Card>
@@ -116,7 +116,7 @@ export default function DailyReturns() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${avgDailyReturn.toFixed(2)}
+              ${avgDailyReturn.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
             </div>
           </CardContent>
         </Card>
@@ -182,10 +182,10 @@ export default function DailyReturns() {
                     </TableCell>
                     <TableCell className={`text-right font-semibold ${Number(returnData.daily_return) >= 0 ? "text-primary" : "text-destructive"}`}>
                       {Number(returnData.daily_return) >= 0 ? "+" : ""}$
-                      {Number(returnData.daily_return).toFixed(2)}
+                      {Number(returnData.daily_return).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </TableCell>
                     <TableCell className="text-right font-semibold text-primary">
-                      ${Number(returnData.cumulative_return).toFixed(2)}
+                      ${Number(returnData.cumulative_return).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </TableCell>
                   </TableRow>)}
               </TableBody>

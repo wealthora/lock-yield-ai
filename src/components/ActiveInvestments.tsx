@@ -117,7 +117,7 @@ export function ActiveInvestments() {
                       <DollarSign className="h-3 w-3" />
                       <span>Invested</span>
                     </div>
-                    <p className="font-semibold">${investment.initial_amount.toFixed(2)}</p>
+                    <p className="font-semibold">${investment.initial_amount.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}</p>
                   </div>
                   <div>
                     <div className="flex items-center gap-1 text-muted-foreground mb-1">
@@ -125,7 +125,7 @@ export function ActiveInvestments() {
                       <span>Returns</span>
                     </div>
                     <p className="font-semibold text-primary">
-                      +${investment.accumulated_returns.toFixed(2)}
+                      +${investment.accumulated_returns.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </p>
                   </div>
                   <div>
@@ -149,7 +149,7 @@ export function ActiveInvestments() {
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Value</span>
                     <span className="font-semibold">
-                      ${(investment.locked_amount + investment.accumulated_returns).toFixed(2)}
+                      ${(investment.locked_amount + investment.accumulated_returns).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
                   </div>
                 </div>
