@@ -211,7 +211,7 @@ export default function Dashboard() {
               <DollarSign className="h-4 w-4 text-accent" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${balance?.available_balance.toFixed(2) || "0.00"}</div>
+              <div className="text-2xl font-bold">${balance?.available_balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) || "0.00"}</div>
               <p className="text-xs text-muted-foreground mt-1">Ready to invest</p>
             </CardContent>
           </Card>
@@ -222,7 +222,7 @@ export default function Dashboard() {
               <Lock className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${balance?.locked_balance.toFixed(2) || "0.00"}</div>
+              <div className="text-2xl font-bold">${balance?.locked_balance.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) || "0.00"}</div>
               <p className="text-xs text-muted-foreground mt-1">In active positions</p>
             </CardContent>
           </Card>
@@ -234,7 +234,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toFixed(2)}
+                ${((balance?.available_balance || 0) + (balance?.locked_balance || 0)).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
               </div>
               <p className="text-xs text-muted-foreground mt-1">Portfolio value</p>
             </CardContent>
