@@ -67,14 +67,18 @@ export default function Auth() {
 
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({
+    supabase.auth.getSession().then(async ({
       data: {
         session
       }
     }) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard");
+        const { data: isAdmin } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin',
+        });
+        navigate(isAdmin ? "/admin" : "/dashboard");
       }
     });
 
