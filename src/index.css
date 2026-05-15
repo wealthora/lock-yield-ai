@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body {
+  font-family: 'Inter', 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Space Grotesk', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -62,53 +72,53 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 220 27% 8%;
-    --foreground: 220 14% 96%;
+    --background: 220 50% 6%;            /* #070B14 */
+    --foreground: 210 40% 96%;
 
-    --card: 220 24% 12%;
-    --card-foreground: 220 14% 96%;
+    --card: 222 30% 11%;                 /* layered panel */
+    --card-foreground: 210 40% 96%;
 
-    --popover: 220 24% 12%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 222 35% 9%;
+    --popover-foreground: 210 40% 96%;
 
-    --primary: 221 83% 53%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 221 83% 63%;
+    --primary: 190 100% 50%;             /* neon blue #00D4FF */
+    --primary-foreground: 220 50% 6%;
+    --primary-glow: 190 100% 60%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary: 220 25% 14%;
+    --secondary-foreground: 210 40% 96%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 13% 75%;
+    --muted: 220 22% 16%;
+    --muted-foreground: 215 20% 70%;
 
-    --accent: 142 76% 36%;
-    --accent-foreground: 0 0% 100%;
-    --accent-glow: 142 76% 46%;
+    --accent: 145 100% 45%;              /* profit green #00E676 */
+    --accent-foreground: 220 50% 6%;
+    --accent-glow: 145 100% 55%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 350 100% 65%;         /* loss red #FF4D6D */
     --destructive-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 36 100% 56%;              /* amber #FFB020 */
+    --warning-foreground: 220 50% 6%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 221 83% 53%;
+    --border: 220 20% 20%;
+    --input: 220 25% 14%;
+    --ring: 190 100% 50%;
 
-    --chart-1: 221 83% 53%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 45 93% 47%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 82% 52%;
+    --chart-1: 190 100% 50%;
+    --chart-2: 145 100% 45%;
+    --chart-3: 36 100% 56%;
+    --chart-4: 280 80% 65%;
+    --chart-5: 350 100% 65%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%), hsl(260 80% 55%));
-    --gradient-card: linear-gradient(180deg, hsl(220 24% 12%), hsl(220 20% 15%));
-    --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 46%));
-    
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3);
-    --shadow-glow: 0 0 40px hsl(221 83% 53% / 0.4);
+    --gradient-hero: linear-gradient(135deg, hsl(220 50% 6%) 0%, hsl(220 60% 10%) 50%, hsl(190 80% 14%) 100%);
+    --gradient-card: linear-gradient(180deg, hsla(222, 30%, 13%, 0.85), hsla(220, 30%, 9%, 0.85));
+    --gradient-accent: linear-gradient(135deg, hsl(190 100% 50%), hsl(220 100% 60%));
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow-md: 0 6px 16px -4px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 18px 40px -10px rgb(0 0 0 / 0.6);
+    --shadow-glow: 0 0 32px hsl(190 100% 50% / 0.35);
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -171,4 +181,80 @@ All colors MUST be HSL.
     background-size: 200% 100%;
     animation: shimmer 2s linear infinite;
   }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(17, 24, 39, 0.65);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  }
+  .glass-strong {
+    background: rgba(7, 11, 20, 0.85);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .glass-panel {
+    background: rgba(30, 41, 59, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .neon-glow {
+    box-shadow: 0 0 18px hsl(var(--primary) / 0.45), 0 0 40px hsl(var(--primary) / 0.18);
+  }
+  .neon-text {
+    text-shadow: 0 0 18px hsl(var(--primary) / 0.55);
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(0, 212, 255, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 212, 255, 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+  }
+  .hero-aurora {
+    background:
+      radial-gradient(60% 50% at 20% 20%, hsl(190 100% 50% / 0.18), transparent 60%),
+      radial-gradient(50% 50% at 80% 30%, hsl(260 90% 60% / 0.18), transparent 60%),
+      radial-gradient(60% 60% at 50% 90%, hsl(145 100% 45% / 0.10), transparent 70%);
+    animation: gradient-shift 14s ease infinite;
+    background-size: 200% 200%;
+  }
+}
+
+/* Override base shadcn surfaces with glass feel in dark mode */
+.dark [data-radix-popper-content-wrapper] > * ,
+.dark .glass-auto {
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Scrollbar */
+.dark ::-webkit-scrollbar { width: 10px; height: 10px; }
+.dark ::-webkit-scrollbar-track { background: rgba(7,11,20,0.6); }
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, hsl(190 100% 50% / 0.35), hsl(190 100% 50% / 0.15));
+  border-radius: 8px;
+}
+.dark ::-webkit-scrollbar-thumb:hover { background: hsl(190 100% 50% / 0.55); }
+
+/* Button hover neon */
+.btn-neon {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(220 100% 60%));
+  color: hsl(var(--primary-foreground));
+  border-radius: 0.85rem;
+  transition: all 0.25s ease;
+}
+.btn-neon:hover {
+  box-shadow: 0 0 24px hsl(var(--primary) / 0.55), 0 0 50px hsl(var(--primary) / 0.25);
+  transform: translateY(-1px);
+}
+
+/* Card lift in dark */
+.dark .card, .dark [class*="rounded-"][class*="border"] {
+  /* leave existing utility classes intact; targeted styling done via .glass */
 }

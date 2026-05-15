@@ -7,11 +7,7 @@ export const useTheme = () => {
     // Check localStorage first, then system preference
     const stored = localStorage.getItem('dashboard-theme') as Theme | null;
     if (stored) return stored;
-    
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    return 'light';
+    return 'dark';
   });
 
   const toggleTheme = () => {

@@ -103,10 +103,11 @@ export function DashboardLayout({
     }
     return location.pathname.startsWith(path);
   };
-  return <div className={theme}>
-      <div className="min-h-screen bg-background">
+  return <div className="dark">
+      <div className="min-h-screen bg-background relative">
+        <div className="pointer-events-none fixed inset-0 -z-10 hero-aurora opacity-60"></div>
         {/* Mobile Header */}
-        <header className="lg:hidden border-b border-border bg-card px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+        <header className="lg:hidden glass-strong px-4 py-3 flex items-center justify-between sticky top-0 z-50">
           <div className="flex items-center gap-2">
             <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
           </div>
@@ -128,7 +129,7 @@ export function DashboardLayout({
 
         <div className="flex min-h-screen">
           {/* Sidebar - Desktop & Mobile Overlay */}
-          <aside className={cn("fixed lg:sticky top-0 left-0 h-screen bg-card border-r border-border z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
+          <aside className={cn("fixed lg:sticky top-0 left-0 h-screen glass-strong border-r border-white/5 z-40 transition-transform duration-300", "lg:translate-x-0 lg:w-60", isSidebarOpen ? "translate-x-0 w-60" : "-translate-x-full")}>
             <div className="flex flex-col h-full">
               {/* Logo with Avatar */}
               <div className="flex items-center gap-3 p-4 border-b border-border">
@@ -152,8 +153,8 @@ export function DashboardLayout({
                 return <button key={item.href} onClick={() => {
                   navigate(item.href);
                   setIsSidebarOpen(false);
-                }} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors", active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
-                      <Icon className="h-4 w-4 shrink-0" />
+                }} className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group", active ? "bg-primary/15 text-primary border border-primary/30 shadow-[0_0_18px_hsl(var(--primary)/0.25)]" : "text-muted-foreground hover:bg-primary/5 hover:text-primary hover:translate-x-0.5")}>
+                      <Icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", active && "drop-shadow-[0_0_6px_hsl(var(--primary))]")} />
                       <span>{item.title}</span>
                     </button>;
               })}
@@ -175,7 +176,7 @@ export function DashboardLayout({
           {/* Main Content */}
           <main className="flex-1 w-full lg:w-auto">
             {/* Desktop Header with Notification Bell and Theme Toggle */}
-            <div className="hidden lg:flex items-center justify-end gap-2 px-6 py-4 border-b border-border bg-card">
+            <div className="hidden lg:flex items-center justify-end gap-2 px-6 py-4 glass border-b border-white/5">
               <NotificationBell />
               <Button 
                 variant="ghost" 
