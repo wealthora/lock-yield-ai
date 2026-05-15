@@ -32,8 +32,8 @@ const MarketTicker = () => {
     script.innerHTML = JSON.stringify({
       symbols: symbols,
       showSymbolLogo: true,
-      colorTheme: "light",
-      isTransparent: false,
+      colorTheme: "dark",
+      isTransparent: true,
       displayMode: "adaptive",
       locale: "en"
     });
