@@ -1,6 +1,10 @@
+import { useRef, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Check, User } from "lucide-react";
+import { Check, User, Upload, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Predefined avatar options - neutral illustrated icons
 export const AVATAR_OPTIONS = [
