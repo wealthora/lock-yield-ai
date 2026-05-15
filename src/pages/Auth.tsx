@@ -67,14 +67,18 @@ export default function Auth() {
 
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({
+    supabase.auth.getSession().then(async ({
       data: {
         session
       }
     }) => {
       setSession(session);
       if (session) {
-        navigate("/dashboard");
+        const { data: isAdmin } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin',
+        });
+        navigate(isAdmin ? "/admin" : "/dashboard");
       }
     });
 
@@ -83,10 +87,15 @@ export default function Auth() {
       data: {
         subscription
       }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session && event === 'SIGNED_IN') {
-        navigate("/dashboard");
+        // Route admins to /admin, everyone else to /dashboard
+        const { data: isAdmin } = await supabase.rpc('has_role', {
+          _user_id: session.user.id,
+          _role: 'admin',
+        });
+        navigate(isAdmin ? "/admin" : "/dashboard");
       }
     });
     return () => subscription.unsubscribe();
@@ -807,7 +816,7 @@ export default function Auth() {
                 setIsLoading(true);
                 const { error } = await supabase.auth.signInWithOAuth({
                   provider: "google",
-                  options: { redirectTo: `${window.location.origin}/dashboard` },
+                  options: { redirectTo: `${window.location.origin}/auth` },
                 });
                 if (error) {
                   toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
