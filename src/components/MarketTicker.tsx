@@ -32,8 +32,8 @@ const MarketTicker = () => {
     script.innerHTML = JSON.stringify({
       symbols: symbols,
       showSymbolLogo: true,
-      colorTheme: "light",
-      isTransparent: false,
+      colorTheme: "dark",
+      isTransparent: true,
       displayMode: "adaptive",
       locale: "en"
     });
@@ -50,7 +50,7 @@ const MarketTicker = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm shadow-[0_-2px_10px_rgba(0,0,0,0.1)] border-t border-border">
+    <div className="fixed bottom-0 left-0 right-0 z-50 glass-strong border-t border-white/5 shadow-[0_-2px_20px_rgba(0,0,0,0.4)]">
       <div className="tradingview-widget-container" ref={containerRef}>
         <div className="tradingview-widget-container__widget"></div>
       </div>
