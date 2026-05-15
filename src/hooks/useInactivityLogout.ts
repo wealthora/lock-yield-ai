@@ -8,7 +8,7 @@ const INACTIVITY_TIMEOUT = 15 * 60 * 1000; // 15 minutes in milliseconds
 export const useInactivityLogout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   const logout = useCallback(async () => {
@@ -42,7 +42,7 @@ export const useInactivityLogout = () => {
     const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
 
     // Throttle activity detection to avoid too many resets
-    let throttleTimeout: NodeJS.Timeout | null = null;
+    let throttleTimeout: ReturnType<typeof setTimeout> | null = null;
     const handleActivity = () => {
       if (!throttleTimeout) {
         throttleTimeout = setTimeout(() => {

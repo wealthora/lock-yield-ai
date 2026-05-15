@@ -108,7 +108,7 @@ function AdminChatView({ sessionId, onClose }: { sessionId: string; onClose: () 
   const [inputValue, setInputValue] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const {
     messages,
