@@ -20,7 +20,7 @@ export function ChatWidget({ isOpen, onClose, sessionId, onSessionCreated }: Cha
   const [isCreating, setIsCreating] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const {
     messages,

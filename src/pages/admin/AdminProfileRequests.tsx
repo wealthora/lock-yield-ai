@@ -145,7 +145,7 @@ export default function AdminProfileRequests() {
         if (Object.keys(filteredChanges).length > 0) {
           const { error: profileError } = await supabase
             .from("profiles")
-            .update(filteredChanges)
+            .update(filteredChanges as any)
             .eq("user_id", selectedRequest.user_id);
 
           if (profileError) throw profileError;
