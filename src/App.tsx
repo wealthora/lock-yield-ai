@@ -29,6 +29,8 @@ import AdminBroadcast from "./pages/admin/AdminBroadcast";
 import AdminInvestmentSettings from "./pages/admin/AdminInvestmentSettings";
 import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
+import Risk from "./pages/legal/Risk";
+import Compliance from "./pages/legal/Compliance";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/risk" element={<Risk />} />
+          <Route path="/compliance" element={<Compliance />} />
           
           {/* Dashboard Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
