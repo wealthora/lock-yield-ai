@@ -230,7 +230,7 @@ const Index = () => {
             <div>
               <h4 className="font-semibold mb-3">Legal</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>Terms of Service</li>
+                <li><Link to="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
                 <li>Privacy Policy</li>
                 <li>Risk Disclosure</li>
                 <li>Compliance</li>
