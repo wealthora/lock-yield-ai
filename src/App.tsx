@@ -27,6 +27,7 @@ import AdminProfileRequests from "./pages/admin/AdminProfileRequests";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminBroadcast from "./pages/admin/AdminBroadcast";
 import AdminInvestmentSettings from "./pages/admin/AdminInvestmentSettings";
+import Terms from "./pages/legal/Terms";
 
 const queryClient = new QueryClient();
 
