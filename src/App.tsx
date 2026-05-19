@@ -40,6 +40,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/terms" element={<Terms />} />
           
           {/* Dashboard Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
