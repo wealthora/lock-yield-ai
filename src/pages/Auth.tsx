@@ -522,98 +522,91 @@ export default function Auth() {
   // Signup Verification Flow UI
   if (signupStep !== 'form') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-        <Card className="w-full max-w-md border-primary/20 shadow-glow">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center mb-4">
-              <img 
-                src={logo} 
-                alt="Wealthora ai" 
-                className="h-[80px] w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300" 
-              />
-            </div>
-            <CardTitle className="text-2xl">
-              {signupStep === 'verify' && 'Verify Your Email'}
-              {signupStep === 'success' && 'Account Created!'}
-            </CardTitle>
-            <CardDescription>
-              {signupStep === 'verify' && `Enter the 6-digit code sent to ${signupMaskedEmail}`}
-              {signupStep === 'success' && 'You can now sign in to your account'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {signupStep === 'verify' && (
-              <>
-                <div className="flex justify-center py-4">
-                  <InputOTP 
-                    maxLength={6} 
-                    value={signupVerificationCode} 
-                    onChange={(value) => setSignupVerificationCode(value)}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Code expires in 10 minutes
-                </p>
-                <Button 
-                  className="w-full" 
-                  onClick={handleVerifySignupCode} 
-                  disabled={isLoading || signupVerificationCode.length !== 6}
+      <AuthShell>
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {signupStep === 'verify' && 'Verify Your Email'}
+            {signupStep === 'success' && 'Account Created!'}
+          </h2>
+          <p className="text-slate-400 text-sm">
+            {signupStep === 'verify' && `Enter the 6-digit code sent to ${signupMaskedEmail}`}
+            {signupStep === 'success' && 'You can now sign in to your account'}
+          </p>
+        </div>
+        <div className="space-y-4">
+          {signupStep === 'verify' && (
+            <>
+              <div className="flex justify-center py-4">
+                <InputOTP
+                  maxLength={6}
+                  value={signupVerificationCode}
+                  onChange={(value) => setSignupVerificationCode(value)}
                 >
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
-                  ) : (
-                    <><UserPlus className="mr-2 h-4 w-4" /> Verify & Create Account</>
-                  )}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full text-sm" 
-                  onClick={handleResendSignupCode}
-                  disabled={resendingSignup}
-                >
-                  {resendingSignup ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
-                  ) : (
-                    "Didn't receive the code? Resend"
-                  )}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full" 
-                  onClick={handleBackToSignup}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign Up
-                </Button>
-              </>
-            )}
-
-            {signupStep === 'success' && (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-                  <ShieldCheck className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-                <p className="text-muted-foreground">
-                  Your account has been created successfully. You can now sign in with your credentials.
-                </p>
-                <Button className="w-full" onClick={handleBackToSignup}>
-                  Sign In
-                </Button>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <p className="text-xs text-center text-slate-500">Code expires in 10 minutes</p>
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl shadow-[0_10px_20px_-5px_rgba(6,182,212,0.4)]"
+                onClick={handleVerifySignupCode}
+                disabled={isLoading || signupVerificationCode.length !== 6}
+              >
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating Account...</>
+                ) : (
+                  <><UserPlus className="mr-2 h-4 w-4" /> Verify & Create Account</>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-sm text-slate-400 hover:text-white hover:bg-white/5"
+                onClick={handleResendSignupCode}
+                disabled={resendingSignup}
+              >
+                {resendingSignup ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
+                ) : (
+                  "Didn't receive the code? Resend"
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-slate-400 hover:text-white hover:bg-white/5"
+                onClick={handleBackToSignup}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign Up
+              </Button>
+            </>
+          )}
+
+          {signupStep === 'success' && (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto">
+                <ShieldCheck className="w-8 h-8 text-cyan-400" />
+              </div>
+              <p className="text-slate-400">
+                Your account has been created successfully. You can now sign in with your credentials.
+              </p>
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl"
+                onClick={handleBackToSignup}
+              >
+                Sign In
+              </Button>
+            </div>
+          )}
+        </div>
+      </AuthShell>
     );
   }
+
 
   // Password Reset Flow UI
   if (showPasswordReset) {
