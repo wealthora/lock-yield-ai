@@ -4,18 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, KeyRound, ShieldCheck, UserPlus } from "lucide-react";
 import { Session } from "@supabase/supabase-js";
 import { PasswordStrengthIndicator } from "@/components/PasswordStrengthIndicator";
 import { validatePassword } from "@/lib/passwordValidation";
-import logo from "@/assets/wealthora-logo.png";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { CountrySelector } from "@/components/CountrySelector";
 import { PhoneInput } from "@/components/PhoneInput";
 import { Country } from "@/lib/countries";
+import { AuthShell } from "@/components/AuthShell";
 
 // Password reset flow states
 type ResetStep = 'email' | 'verify' | 'newPassword' | 'success';
