@@ -611,175 +611,165 @@ export default function Auth() {
   // Password Reset Flow UI
   if (showPasswordReset) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-        <Card className="w-full max-w-md border-primary/20 shadow-glow">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center mb-4">
-              <img 
-                src={logo} 
-                alt="Wealthora ai" 
-                className="h-[80px] w-auto drop-shadow-lg dark:drop-shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all duration-300" 
-              />
-            </div>
-            <CardTitle className="text-2xl">
-              {resetStep === 'email' && 'Reset Password'}
-              {resetStep === 'verify' && 'Enter Verification Code'}
-              {resetStep === 'newPassword' && 'Create New Password'}
-              {resetStep === 'success' && 'Password Reset Complete'}
-            </CardTitle>
-            <CardDescription>
-              {resetStep === 'email' && 'Enter your email to receive a verification code'}
-              {resetStep === 'verify' && `Enter the 6-digit code sent to ${maskedEmail}`}
-              {resetStep === 'newPassword' && 'Choose a strong password for your account'}
-              {resetStep === 'success' && 'You can now sign in with your new password'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {resetStep === 'email' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">
-                    <Mail className="h-4 w-4 inline mr-2" />
-                    Email Address
-                  </Label>
-                  <Input 
-                    id="reset-email" 
-                    type="email" 
-                    placeholder="you@example.com" 
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    required 
-                  />
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={handleSendResetCode} 
-                  disabled={isLoading || !resetEmail}
-                >
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
-                  ) : (
-                    <><KeyRound className="mr-2 h-4 w-4" /> Send Verification Code</>
-                  )}
-                </Button>
-              </>
-            )}
-
-            {resetStep === 'verify' && (
-              <>
-                <div className="flex justify-center py-4">
-                  <InputOTP 
-                    maxLength={6} 
-                    value={resetCode} 
-                    onChange={(value) => setResetCode(value)}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
-                <p className="text-xs text-center text-muted-foreground">
-                  Code expires in 10 minutes
-                </p>
-                <Button 
-                  className="w-full" 
-                  onClick={handleVerifyCode} 
-                  disabled={isLoading || resetCode.length !== 6}
-                >
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
-                  ) : (
-                    <><ShieldCheck className="mr-2 h-4 w-4" /> Verify Code</>
-                  )}
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  className="w-full text-sm" 
-                  onClick={handleResendCode}
-                  disabled={resending}
-                >
-                  {resending ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
-                  ) : (
-                    "Didn't receive the code? Resend"
-                  )}
-                </Button>
-              </>
-            )}
-
-            {resetStep === 'newPassword' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">
-                    <Lock className="h-4 w-4 inline mr-2" />
-                    New Password
-                  </Label>
-                  <div className="relative">
-                    <Input 
-                      id="new-password" 
-                      type={showNewPassword ? "text" : "password"} 
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      required 
-                      className="pr-10"
-                    />
-                    <button 
-                      type="button" 
-                      onClick={() => setShowNewPassword(!showNewPassword)} 
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                  {newPassword && <PasswordStrengthIndicator password={newPassword} />}
-                </div>
-                <Button 
-                  className="w-full" 
-                  onClick={handleResetPassword} 
-                  disabled={isLoading || !newPassword}
-                >
-                  {isLoading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</>
-                  ) : (
-                    <><Lock className="mr-2 h-4 w-4" /> Reset Password</>
-                  )}
-                </Button>
-              </>
-            )}
-
-            {resetStep === 'success' && (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-                  <ShieldCheck className="w-8 h-8 text-green-600 dark:text-green-400" />
-                </div>
-                <p className="text-muted-foreground">
-                  Your password has been successfully reset. You can now sign in with your new password.
-                </p>
-                <Button className="w-full" onClick={handleBackToLogin}>
-                  Sign In
-                </Button>
+      <AuthShell>
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-bold text-white mb-2">
+            {resetStep === 'email' && 'Reset Password'}
+            {resetStep === 'verify' && 'Enter Verification Code'}
+            {resetStep === 'newPassword' && 'Create New Password'}
+            {resetStep === 'success' && 'Password Reset Complete'}
+          </h2>
+          <p className="text-slate-400 text-sm">
+            {resetStep === 'email' && 'Enter your email to receive a verification code'}
+            {resetStep === 'verify' && `Enter the 6-digit code sent to ${maskedEmail}`}
+            {resetStep === 'newPassword' && 'Choose a strong password for your account'}
+            {resetStep === 'success' && 'You can now sign in with your new password'}
+          </p>
+        </div>
+        <div className="space-y-4">
+          {resetStep === 'email' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="reset-email" className="text-sm font-medium text-slate-300 ml-1">
+                  <Mail className="h-4 w-4 inline mr-2" />
+                  Email Address
+                </Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                  className="bg-slate-900/40 border-white/10 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 rounded-xl py-6"
+                />
               </div>
-            )}
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl shadow-[0_10px_20px_-5px_rgba(6,182,212,0.4)]"
+                onClick={handleSendResetCode}
+                disabled={isLoading || !resetEmail}
+              >
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...</>
+                ) : (
+                  <><KeyRound className="mr-2 h-4 w-4" /> Send Verification Code</>
+                )}
+              </Button>
+            </>
+          )}
 
-            {resetStep !== 'success' && (
-              <Button 
-                variant="ghost" 
-                className="w-full" 
+          {resetStep === 'verify' && (
+            <>
+              <div className="flex justify-center py-4">
+                <InputOTP maxLength={6} value={resetCode} onChange={(value) => setResetCode(value)}>
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+              <p className="text-xs text-center text-slate-500">Code expires in 10 minutes</p>
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl shadow-[0_10px_20px_-5px_rgba(6,182,212,0.4)]"
+                onClick={handleVerifyCode}
+                disabled={isLoading || resetCode.length !== 6}
+              >
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
+                ) : (
+                  <><ShieldCheck className="mr-2 h-4 w-4" /> Verify Code</>
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full text-sm text-slate-400 hover:text-white hover:bg-white/5"
+                onClick={handleResendCode}
+                disabled={resending}
+              >
+                {resending ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resending...</>
+                ) : (
+                  "Didn't receive the code? Resend"
+                )}
+              </Button>
+            </>
+          )}
+
+          {resetStep === 'newPassword' && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="new-password" className="text-sm font-medium text-slate-300 ml-1">
+                  <Lock className="h-4 w-4 inline mr-2" />
+                  New Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    className="pr-10 bg-slate-900/40 border-white/10 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 rounded-xl py-6"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {newPassword && <PasswordStrengthIndicator password={newPassword} />}
+              </div>
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl shadow-[0_10px_20px_-5px_rgba(6,182,212,0.4)]"
+                onClick={handleResetPassword}
+                disabled={isLoading || !newPassword}
+              >
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Updating...</>
+                ) : (
+                  <><Lock className="mr-2 h-4 w-4" /> Reset Password</>
+                )}
+              </Button>
+            </>
+          )}
+
+          {resetStep === 'success' && (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/30 rounded-full flex items-center justify-center mx-auto">
+                <ShieldCheck className="w-8 h-8 text-cyan-400" />
+              </div>
+              <p className="text-slate-400">
+                Your password has been successfully reset. You can now sign in with your new password.
+              </p>
+              <Button
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-6 rounded-xl"
                 onClick={handleBackToLogin}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign In
+                Sign In
               </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </div>
+          )}
+
+          {resetStep !== 'success' && (
+            <Button
+              variant="ghost"
+              className="w-full text-slate-400 hover:text-white hover:bg-white/5"
+              onClick={handleBackToLogin}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Sign In
+            </Button>
+          )}
+        </div>
+      </AuthShell>
     );
   }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
