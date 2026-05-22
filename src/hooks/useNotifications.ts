@@ -83,12 +83,15 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchNotifications();
 
-    const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
 
-      const channel = supabase
-        .channel('notifications-changes')
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+
+      channel = supabase
+        .channel(`notifications-changes-${user.id}-${Math.random().toString(36).slice(2)}`)
         .on(
           'postgres_changes',
           {
@@ -101,7 +104,7 @@ export const useNotifications = () => {
             const newNotification = payload.new as Notification;
             setNotifications(prev => [newNotification, ...prev]);
             setUnreadCount(prev => prev + 1);
-            
+
             toast({
               title: newNotification.title,
               description: newNotification.message.substring(0, 100),
@@ -109,14 +112,14 @@ export const useNotifications = () => {
           }
         )
         .subscribe();
+    })();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
+    return () => {
+      cancelled = true;
+      if (channel) supabase.removeChannel(channel);
     };
-
-    setupRealtime();
   }, [fetchNotifications, toast]);
+
 
   return {
     notifications,
