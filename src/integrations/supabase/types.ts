@@ -791,6 +791,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_notification: {
+        Args: {
+          p_message: string
+          p_metadata?: Json
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       credit_expired_investment: {
         Args: {
           p_locked_amount: number

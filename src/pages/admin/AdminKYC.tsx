@@ -35,6 +35,7 @@ export default function AdminKYC() {
   const [profiles, setProfiles] = useState<KYCProfile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<KYCProfile | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [documentUrls, setDocumentUrls] = useState<{ idFront?: string; idBack?: string; residence?: string }>({});
@@ -144,6 +145,55 @@ export default function AdminKYC() {
     setRejectionReason("");
     setShowRejectDialog(true);
   };
+
+  const handleRevokeClick = () => {
+    setRejectionReason("");
+    setShowRevokeDialog(true);
+  };
+
+  const confirmRevoke = async () => {
+    if (!rejectionReason.trim()) {
+      toast({
+        title: "Reason required",
+        description: "Please provide a reason for revoking this KYC verification.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!selectedProfile) return;
+
+    setIsUpdating(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        kyc_status: "revoked",
+        kyc_rejection_reason: rejectionReason.trim(),
+        id_front_url: null,
+        id_back_url: null,
+        proof_of_residence_url: null,
+        selfie_url: null,
+        kyc_submitted_at: null,
+      })
+      .eq("id", selectedProfile.id);
+    setIsUpdating(false);
+
+    if (error) {
+      toast({ title: "Error revoking KYC", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "KYC revoked", description: "User has been notified to resubmit documents." });
+      fetchKYCProfiles();
+      setSelectedProfile({
+        ...selectedProfile,
+        kyc_status: "revoked",
+        kyc_rejection_reason: rejectionReason.trim(),
+        id_front_url: null,
+        id_back_url: null,
+        proof_of_residence_url: null,
+      });
+      setShowRevokeDialog(false);
+    }
+  };
+
 
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
@@ -451,10 +501,25 @@ export default function AdminKYC() {
                     </Button>
                   </div>
                 )}
+
+                {selectedProfile.kyc_status === "verified" && (
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button
+                      variant="destructive"
+                      onClick={handleRevokeClick}
+                      disabled={isUpdating}
+                      className="flex-1"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Revoke KYC Verification
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
         </Dialog>
+
 
         {/* Rejection Reason Dialog */}
         <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
@@ -483,6 +548,43 @@ export default function AdminKYC() {
               <Button variant="destructive" onClick={confirmReject} disabled={isUpdating}>
                 {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Confirm Rejection
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Revoke Reason Dialog */}
+        <Dialog open={showRevokeDialog} onOpenChange={setShowRevokeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Revoke KYC Verification</DialogTitle>
+            </DialogHeader>
+            <Alert variant="destructive">
+              <AlertDescription>
+                This will revoke the user's verified status, clear their uploaded documents, and require them to resubmit KYC. They will be notified automatically.
+              </AlertDescription>
+            </Alert>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="revoke-reason">
+                  Reason <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="revoke-reason"
+                  placeholder="Explain why this KYC verification is being revoked..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowRevokeDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmRevoke} disabled={isUpdating}>
+                {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Confirm Revocation
               </Button>
             </DialogFooter>
           </DialogContent>
