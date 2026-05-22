@@ -146,6 +146,55 @@ export default function AdminKYC() {
     setShowRejectDialog(true);
   };
 
+  const handleRevokeClick = () => {
+    setRejectionReason("");
+    setShowRevokeDialog(true);
+  };
+
+  const confirmRevoke = async () => {
+    if (!rejectionReason.trim()) {
+      toast({
+        title: "Reason required",
+        description: "Please provide a reason for revoking this KYC verification.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!selectedProfile) return;
+
+    setIsUpdating(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        kyc_status: "revoked",
+        kyc_rejection_reason: rejectionReason.trim(),
+        id_front_url: null,
+        id_back_url: null,
+        proof_of_residence_url: null,
+        selfie_url: null,
+        kyc_submitted_at: null,
+      })
+      .eq("id", selectedProfile.id);
+    setIsUpdating(false);
+
+    if (error) {
+      toast({ title: "Error revoking KYC", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "KYC revoked", description: "User has been notified to resubmit documents." });
+      fetchKYCProfiles();
+      setSelectedProfile({
+        ...selectedProfile,
+        kyc_status: "revoked",
+        kyc_rejection_reason: rejectionReason.trim(),
+        id_front_url: null,
+        id_back_url: null,
+        proof_of_residence_url: null,
+      });
+      setShowRevokeDialog(false);
+    }
+  };
+
+
   const confirmReject = async () => {
     if (!rejectionReason.trim()) {
       toast({ 
