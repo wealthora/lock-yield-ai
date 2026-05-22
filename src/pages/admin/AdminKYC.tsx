@@ -501,10 +501,25 @@ export default function AdminKYC() {
                     </Button>
                   </div>
                 )}
+
+                {selectedProfile.kyc_status === "verified" && (
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Button
+                      variant="destructive"
+                      onClick={handleRevokeClick}
+                      disabled={isUpdating}
+                      className="flex-1"
+                    >
+                      <XCircle className="w-4 h-4 mr-2" />
+                      Revoke KYC Verification
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>
         </Dialog>
+
 
         {/* Rejection Reason Dialog */}
         <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
