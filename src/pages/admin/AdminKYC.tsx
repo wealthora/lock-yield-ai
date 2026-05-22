@@ -35,6 +35,7 @@ export default function AdminKYC() {
   const [profiles, setProfiles] = useState<KYCProfile[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<KYCProfile | null>(null);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [documentUrls, setDocumentUrls] = useState<{ idFront?: string; idBack?: string; residence?: string }>({});
