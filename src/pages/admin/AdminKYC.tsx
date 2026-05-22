@@ -552,6 +552,43 @@ export default function AdminKYC() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Revoke Reason Dialog */}
+        <Dialog open={showRevokeDialog} onOpenChange={setShowRevokeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Revoke KYC Verification</DialogTitle>
+            </DialogHeader>
+            <Alert variant="destructive">
+              <AlertDescription>
+                This will revoke the user's verified status, clear their uploaded documents, and require them to resubmit KYC. They will be notified automatically.
+              </AlertDescription>
+            </Alert>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="revoke-reason">
+                  Reason <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="revoke-reason"
+                  placeholder="Explain why this KYC verification is being revoked..."
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowRevokeDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmRevoke} disabled={isUpdating}>
+                {isUpdating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                Confirm Revocation
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );
