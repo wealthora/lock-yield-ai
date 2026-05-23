@@ -30,7 +30,7 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
   const getStatusColor = () => {
     if (currentStatus === "verified") return "text-green-500";
     if (currentStatus === "pending") return "text-yellow-500";
-    if (currentStatus === "rejected") return "text-red-500";
+    if (currentStatus === "rejected" || currentStatus === "revoked") return "text-red-500";
     return "text-muted-foreground";
   };
 
@@ -38,6 +38,7 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     if (currentStatus === "verified") return "Verified";
     if (currentStatus === "pending") return "Pending Review";
     if (currentStatus === "rejected") return "Rejected";
+    if (currentStatus === "revoked") return "Revoked – Resubmission Required";
     return "Not Started";
   };
 
