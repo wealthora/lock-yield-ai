@@ -238,10 +238,12 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
               Your documents have been sent for review. Verification typically takes 24–48 hours. We'll notify you once complete.
             </p>
           </div>
-        ) : currentStatus === "rejected" && !showResubmit ? (
+        ) : (currentStatus === "rejected" || currentStatus === "revoked") && !showResubmit ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <AlertCircle className="w-16 h-16 text-red-500" />
-            <h3 className="text-xl font-semibold">Verification Rejected</h3>
+            <h3 className="text-xl font-semibold">
+              {currentStatus === "revoked" ? "Verification Revoked" : "Verification Rejected"}
+            </h3>
             {rejectionReason && (
               <Alert variant="destructive" className="max-w-md">
                 <AlertDescription>
@@ -250,7 +252,9 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
               </Alert>
             )}
             <p className="text-center text-muted-foreground">
-              Please review the reason above and resubmit your documents.
+              {currentStatus === "revoked"
+                ? "Your previous verification has been revoked. Please resubmit your documents to regain verified status."
+                : "Please review the reason above and resubmit your documents."}
             </p>
             <Button onClick={handleResubmit} className="mt-4">
               Resubmit Documents
@@ -258,7 +262,7 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
           </div>
         ) : null}
 
-        {/* Show instructions for not started, rejected (resubmit), or no status */}
+        {/* Show instructions for not started, rejected/revoked (resubmit), or no status */}
         {(currentStatus === "not_started" || showResubmit || !currentStatus) && renderInstructions()}
       </DialogContent>
     </Dialog>
