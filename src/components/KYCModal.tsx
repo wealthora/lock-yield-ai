@@ -88,17 +88,14 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     setFiles((p) => ({ ...p, [slot]: file }));
   };
 
-  const uploadOne = async (file: File, documentType: string): Promise<string> => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("documentType", documentType);
-
-    const { data, error } = await supabase.functions.invoke("upload-kyc-document", {
-      body: form,
-    });
+  const uploadOne = async (file: File, userId: string, documentType: string): Promise<string> => {
+    const ext = file.name.split(".").pop() || "bin";
+    const fileName = `${userId}/${documentType}-${Date.now()}.${ext}`;
+    const { error } = await supabase.storage
+      .from("kyc-documents")
+      .upload(fileName, file, { contentType: file.type, upsert: true });
     if (error) throw new Error(error.message || `Failed to upload ${documentType}`);
-    if (!data?.path) throw new Error(data?.error || `Failed to upload ${documentType}`);
-    return data.path as string;
+    return `kyc-documents/${fileName}`;
   };
 
 
@@ -116,12 +113,14 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
+      const userId = session.user.id;
 
       const [idFrontPath, idBackPath, residencePath] = await Promise.all([
-        uploadOne(files.idFront, "proof-of-identity"),
-        uploadOne(files.idBack, "proof-of-identity"),
-        uploadOne(files.residence, "proof-of-residence"),
+        uploadOne(files.idFront, userId, "id-front"),
+        uploadOne(files.idBack, userId, "id-back"),
+        uploadOne(files.residence, userId, "proof-of-residence"),
       ]);
+
 
 
       const { error } = await supabase
