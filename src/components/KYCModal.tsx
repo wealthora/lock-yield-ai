@@ -118,10 +118,11 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
       if (!session) throw new Error("Not authenticated");
 
       const [idFrontPath, idBackPath, residencePath] = await Promise.all([
-        uploadOne(files.idFront, "proof-of-identity", session.access_token),
-        uploadOne(files.idBack, "proof-of-identity", session.access_token),
-        uploadOne(files.residence, "proof-of-residence", session.access_token),
+        uploadOne(files.idFront, "proof-of-identity"),
+        uploadOne(files.idBack, "proof-of-identity"),
+        uploadOne(files.residence, "proof-of-residence"),
       ]);
+
 
       const { error } = await supabase
         .from("profiles")
