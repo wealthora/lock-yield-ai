@@ -88,22 +88,19 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     setFiles((p) => ({ ...p, [slot]: file }));
   };
 
-  const uploadOne = async (file: File, documentType: string, token: string): Promise<string> => {
+  const uploadOne = async (file: File, documentType: string): Promise<string> => {
     const form = new FormData();
     form.append("file", file);
     form.append("documentType", documentType);
 
-    const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-kyc-document`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+    const { data, error } = await supabase.functions.invoke("upload-kyc-document", {
       body: form,
     });
-    const json = await res.json();
-    if (!res.ok || !json?.path) {
-      throw new Error(json?.error || `Failed to upload ${documentType}`);
-    }
-    return json.path as string;
+    if (error) throw new Error(error.message || `Failed to upload ${documentType}`);
+    if (!data?.path) throw new Error(data?.error || `Failed to upload ${documentType}`);
+    return data.path as string;
   };
+
 
   const handleSubmit = async () => {
     if (!files.idFront || !files.idBack || !files.residence) {
