@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, AlertCircle, Loader2, Mail, Copy, FileText, Image } from "lucide-react";
+import { CheckCircle, AlertCircle, Loader2, FileText, Image as ImageIcon, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Label } from "@/components/ui/label";
 
 interface KYCModalProps {
   isOpen: boolean;
@@ -15,11 +16,31 @@ interface KYCModalProps {
   onStatusUpdate: () => void;
 }
 
-const KYC_EMAIL = "wealthora.uk@gmail.com";
+type SlotKey = "idFront" | "idBack" | "residence";
+
+const SUPABASE_URL = "https://rjbdcucejlsegbgqmoao.supabase.co";
+const MAX_BYTES = 1_048_576; // 1MB
+
+const IDENTITY_FORMATS = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+const RESIDENCE_FORMATS = [
+  ...IDENTITY_FORMATS,
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onStatusUpdate }: KYCModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResubmit, setShowResubmit] = useState(false);
+  const [files, setFiles] = useState<Record<SlotKey, File | null>>({
+    idFront: null,
+    idBack: null,
+    residence: null,
+  });
+  const inputRefs = {
+    idFront: useRef<HTMLInputElement>(null),
+    idBack: useRef<HTMLInputElement>(null),
+    residence: useRef<HTMLInputElement>(null),
+  };
 
   const getProgressValue = () => {
     if (currentStatus === "verified") return 100;
@@ -42,59 +63,102 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     return "Not Started";
   };
 
-  const copyEmail = async () => {
-    try {
-      await navigator.clipboard.writeText(KYC_EMAIL);
-      toast({
-        title: "Email Copied",
-        description: "Email address copied to clipboard.",
-      });
-    } catch {
-      toast({
-        title: "Copy Failed",
-        description: "Please copy the email manually.",
-        variant: "destructive",
-      });
+  const validateFile = (file: File, slot: SlotKey): string | null => {
+    if (file.size > MAX_BYTES) return "File must be less than 1MB.";
+    const allowed = slot === "residence" ? RESIDENCE_FORMATS : IDENTITY_FORMATS;
+    if (!allowed.includes(file.type)) {
+      return slot === "residence"
+        ? "Allowed formats: JPG, PNG, GIF, WEBP, PDF, DOCX."
+        : "Allowed formats: JPG, PNG, GIF, WEBP.";
     }
+    return null;
   };
 
-  const handleConfirmSent = async () => {
+  const onFileChange = (slot: SlotKey, file: File | null) => {
+    if (!file) {
+      setFiles((p) => ({ ...p, [slot]: null }));
+      return;
+    }
+    const err = validateFile(file, slot);
+    if (err) {
+      toast({ title: "Invalid file", description: err, variant: "destructive" });
+      if (inputRefs[slot].current) inputRefs[slot].current!.value = "";
+      return;
+    }
+    setFiles((p) => ({ ...p, [slot]: file }));
+  };
+
+  const uploadOne = async (file: File, documentType: string, token: string): Promise<string> => {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("documentType", documentType);
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/upload-kyc-document`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const json = await res.json();
+    if (!res.ok || !json?.path) {
+      throw new Error(json?.error || `Failed to upload ${documentType}`);
+    }
+    return json.path as string;
+  };
+
+  const handleSubmit = async () => {
+    if (!files.idFront || !files.idBack || !files.residence) {
+      toast({
+        title: "Missing documents",
+        description: "Please upload ID front, ID back, and proof of residence.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
 
-      // Update profile with pending KYC status
+      const [idFrontPath, idBackPath, residencePath] = await Promise.all([
+        uploadOne(files.idFront, "proof-of-identity", session.access_token),
+        uploadOne(files.idBack, "proof-of-identity", session.access_token),
+        uploadOne(files.residence, "proof-of-residence", session.access_token),
+      ]);
+
       const { error } = await supabase
         .from("profiles")
         .update({
           kyc_status: "pending",
           kyc_rejection_reason: null,
           kyc_submitted_at: new Date().toISOString(),
+          id_front_url: idFrontPath,
+          id_back_url: idBackPath,
+          proof_of_residence_url: residencePath,
         })
-        .eq("user_id", user.id);
+        .eq("user_id", session.user.id);
 
       if (error) throw error;
 
-      // Log activity
       await supabase.from("activities").insert({
-        user_id: user.id,
+        user_id: session.user.id,
         activity_type: "kyc_update",
-        description: "KYC verification documents sent via email",
+        description: "KYC verification documents uploaded for review",
       });
 
       toast({
-        title: "Submission Confirmed",
-        description: "Your documents have been sent for review. Verification typically takes 24–48 hours.",
+        title: "Documents Submitted",
+        description: "Your documents are under review. Verification typically takes 24–48 hours.",
       });
 
+      setFiles({ idFront: null, idBack: null, residence: null });
+      setShowResubmit(false);
       onStatusUpdate();
       onClose();
     } catch (error: any) {
       toast({
         title: "Submission Failed",
-        description: error.message || "Failed to confirm submission. Please try again.",
+        description: error.message || "Failed to upload documents. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -102,65 +166,84 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
     }
   };
 
-  const handleResubmit = () => {
-    setShowResubmit(true);
+  const renderUploadSlot = (slot: SlotKey, label: string, icon: React.ReactNode, hint: string) => {
+    const file = files[slot];
+    const accept = slot === "residence"
+      ? "image/jpeg,image/png,image/gif,image/webp,application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      : "image/jpeg,image/png,image/gif,image/webp";
+
+    return (
+      <div className="border rounded-lg p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          {icon}
+          <Label className="font-medium">{label}</Label>
+        </div>
+        <p className="text-xs text-muted-foreground">{hint}</p>
+        <input
+          ref={inputRefs[slot]}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={(e) => onFileChange(slot, e.target.files?.[0] || null)}
+        />
+        {file ? (
+          <div className="flex items-center justify-between gap-2 bg-muted/40 rounded-md p-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <FileText className="w-4 h-4 shrink-0 text-primary" />
+              <span className="text-sm truncate">{file.name}</span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {(file.size / 1024).toFixed(0)} KB
+              </span>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 shrink-0"
+              onClick={() => onFileChange(slot, null)}
+              disabled={isSubmitting}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => inputRefs[slot].current?.click()}
+            disabled={isSubmitting}
+            className="w-full"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Choose file
+          </Button>
+        )}
+      </div>
+    );
   };
 
-  const renderInstructions = () => (
-    <div className="space-y-6">
-      {/* Email Instructions Card */}
-      <div className="bg-muted/50 rounded-lg p-5 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-full bg-primary/10">
-            <Mail className="w-5 h-5 text-primary" />
-          </div>
-          <h3 className="font-semibold">Submit Documents via Email</h3>
-        </div>
-        
-        <p className="text-sm text-muted-foreground">
-          Please email your KYC documents to:
-        </p>
-        
-        <div className="flex items-center gap-2 bg-background p-3 rounded-md border">
-          <span className="font-mono text-sm flex-1">{KYC_EMAIL}</span>
-          <Button variant="ghost" size="icon" onClick={copyEmail}>
-            <Copy className="w-4 h-4" />
-          </Button>
-        </div>
-        
-        <p className="text-sm text-muted-foreground">
-          Use the subject line: <strong>"Wealthora KYC – [Your Full Name]"</strong>
-        </p>
+  const renderUploader = () => (
+    <div className="space-y-5">
+      <div className="space-y-3">
+        {renderUploadSlot(
+          "idFront",
+          "ID / Driving License – Front",
+          <ImageIcon className="w-4 h-4 text-primary" />,
+          "Clear photo (JPG, PNG, GIF, WEBP). Max 1MB."
+        )}
+        {renderUploadSlot(
+          "idBack",
+          "ID / Driving License – Back",
+          <ImageIcon className="w-4 h-4 text-primary" />,
+          "Clear photo (JPG, PNG, GIF, WEBP). Max 1MB."
+        )}
+        {renderUploadSlot(
+          "residence",
+          "Proof of Residence",
+          <FileText className="w-4 h-4 text-primary" />,
+          "Utility bill, internet bill, or bank statement (PDF, DOCX, or image). Max 1MB."
+        )}
       </div>
 
-      {/* Required Documents */}
-      <div className="space-y-4">
-        <h4 className="font-semibold">Required Documents</h4>
-        
-        {/* Proof of Identity */}
-        <div className="border rounded-lg p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <Image className="w-4 h-4 text-primary" />
-            <span className="font-medium">1. Proof of Identity</span>
-          </div>
-          <p className="text-sm text-muted-foreground pl-6">
-            Government-issued ID card or driving license (photo format: JPG, PNG, or JPEG)
-          </p>
-        </div>
-
-        {/* Proof of Address */}
-        <div className="border rounded-lg p-4 space-y-2">
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-primary" />
-            <span className="font-medium">2. Proof of Address</span>
-          </div>
-          <p className="text-sm text-muted-foreground pl-6">
-            Utility bill, internet bill, or bank statement (PDF, DOCX, or image format)
-          </p>
-        </div>
-      </div>
-
-      {/* Document Requirements */}
       <Alert>
         <AlertDescription className="text-sm space-y-1">
           <p className="font-medium">Document Requirements:</p>
@@ -173,29 +256,19 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
         </AlertDescription>
       </Alert>
 
-      {/* Confirmation Button */}
-      <Button
-        onClick={handleConfirmSent}
-        disabled={isSubmitting}
-        className="w-full"
-        size="lg"
-      >
+      <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full" size="lg">
         {isSubmitting ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Confirming...
+            Uploading...
           </>
         ) : (
           <>
-            <CheckCircle className="w-4 h-4 mr-2" />
-            I've Sent My Documents
+            <Upload className="w-4 h-4 mr-2" />
+            Submit for Review
           </>
         )}
       </Button>
-      
-      <p className="text-xs text-center text-muted-foreground">
-        Click the button above after you have sent your documents via email.
-      </p>
     </div>
   );
 
@@ -210,9 +283,7 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Verification Status</span>
-            <span className={`text-sm font-medium ${getStatusColor()}`}>
-              {getStatusText()}
-            </span>
+            <span className={`text-sm font-medium ${getStatusColor()}`}>{getStatusText()}</span>
           </div>
           <Progress value={getProgressValue()} className="h-2" />
           <div className="flex justify-between text-xs text-muted-foreground">
@@ -235,7 +306,7 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
             <AlertCircle className="w-16 h-16 text-yellow-500" />
             <h3 className="text-xl font-semibold">Verification Pending</h3>
             <p className="text-center text-muted-foreground">
-              Your documents have been sent for review. Verification typically takes 24–48 hours. We'll notify you once complete.
+              Your documents have been submitted for review. Verification typically takes 24–48 hours. We'll notify you once complete.
             </p>
           </div>
         ) : (currentStatus === "rejected" || currentStatus === "revoked") && !showResubmit ? (
@@ -256,14 +327,13 @@ export const KYCModal = ({ isOpen, onClose, currentStatus, rejectionReason, onSt
                 ? "Your previous verification has been revoked. Please resubmit your documents to regain verified status."
                 : "Please review the reason above and resubmit your documents."}
             </p>
-            <Button onClick={handleResubmit} className="mt-4">
+            <Button onClick={() => setShowResubmit(true)} className="mt-4">
               Resubmit Documents
             </Button>
           </div>
         ) : null}
 
-        {/* Show instructions for not started, rejected/revoked (resubmit), or no status */}
-        {(currentStatus === "not_started" || showResubmit || !currentStatus) && renderInstructions()}
+        {(currentStatus === "not_started" || showResubmit || !currentStatus) && renderUploader()}
       </DialogContent>
     </Dialog>
   );
