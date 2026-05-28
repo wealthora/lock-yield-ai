@@ -31,6 +31,7 @@ import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Risk from "./pages/legal/Risk";
 import Compliance from "./pages/legal/Compliance";
+import { FloatingChatLauncher } from "./components/chat/FloatingChatLauncher";
 
 const queryClient = new QueryClient();
 
