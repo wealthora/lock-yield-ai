@@ -43,7 +43,12 @@ export function FloatingChatLauncher() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       init(session?.user?.id ?? null);
     });
-    return () => sub.subscription.unsubscribe();
+    const openHandler = () => setOpen(true);
+    window.addEventListener("open-support-chat", openHandler);
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("open-support-chat", openHandler);
+    };
   }, []);
 
   // Hide on admin routes (admins have their own chat console)
