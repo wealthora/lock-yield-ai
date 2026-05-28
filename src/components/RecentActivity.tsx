@@ -30,7 +30,7 @@ export const RecentActivity = () => {
       if (!user) return;
 
       // Only show financial activities
-      const financialActivityTypes = ['deposit', 'withdrawal', 'bot_allocation', 'investment_completed'];
+      const financialActivityTypes = ['deposit', 'withdrawal', 'bot_allocation', 'investment_completed', 'bot_return_credit', 'bot_return'];
       
       let query = supabase
         .from("activities")

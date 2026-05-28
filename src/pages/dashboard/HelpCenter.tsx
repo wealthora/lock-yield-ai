@@ -1,40 +1,11 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MessageCircle, Mail, Phone, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ChatWidget } from "@/components/chat/ChatWidget";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function HelpCenter() {
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatSessionId, setChatSessionId] = useState<string | null>(null);
-
-  // Check for existing active session on mount
-  useEffect(() => {
-    const checkExistingSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: existingSession } = await supabase
-        .from('chat_sessions')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (existingSession) {
-        setChatSessionId(existingSession.id);
-      }
-    };
-
-    checkExistingSession();
-  }, []);
-
   const handleStartChat = () => {
-    setChatOpen(true);
+    window.dispatchEvent(new CustomEvent("open-support-chat"));
   };
 
   return (
@@ -154,13 +125,6 @@ export default function HelpCenter() {
           </Button>
         </CardContent>
       </Card>
-
-      <ChatWidget
-        isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
-        sessionId={chatSessionId}
-        onSessionCreated={(id) => setChatSessionId(id)}
-      />
     </div>
   );
 }
