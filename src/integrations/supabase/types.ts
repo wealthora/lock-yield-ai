@@ -221,27 +221,30 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          guest_id: string | null
           id: string
           is_read: boolean
-          sender_id: string
+          sender_id: string | null
           sender_role: string
           session_id: string
         }
         Insert: {
           content: string
           created_at?: string
+          guest_id?: string | null
           id?: string
           is_read?: boolean
-          sender_id: string
+          sender_id?: string | null
           sender_role: string
           session_id: string
         }
         Update: {
           content?: string
           created_at?: string
+          guest_id?: string | null
           id?: string
           is_read?: boolean
-          sender_id?: string
+          sender_id?: string | null
           sender_role?: string
           session_id?: string
         }
@@ -259,26 +262,35 @@ export type Database = {
         Row: {
           closed_at: string | null
           created_at: string
+          guest_email: string | null
+          guest_id: string | null
+          guest_name: string | null
           id: string
           status: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           closed_at?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_name?: string | null
           id?: string
           status?: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           closed_at?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_id?: string | null
+          guest_name?: string | null
           id?: string
           status?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -603,25 +615,28 @@ export type Database = {
       }
       typing_indicators: {
         Row: {
+          guest_id: string | null
           id: string
           is_typing: boolean
           session_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
         }
         Insert: {
+          guest_id?: string | null
           id?: string
           is_typing?: boolean
           session_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
         }
         Update: {
+          guest_id?: string | null
           id?: string
           is_typing?: boolean
           session_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
