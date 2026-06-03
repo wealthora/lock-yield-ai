@@ -410,6 +410,75 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          deposit_address: string | null
+          deposit_instructions: string | null
+          fee_percent: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          max_deposit: number
+          max_withdrawal: number
+          min_deposit: number
+          min_withdrawal: number
+          name: string
+          network: string | null
+          processing_time: string
+          sort_order: number
+          supports_deposit: boolean
+          supports_withdrawal: boolean
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          code: string
+          created_at?: string
+          deposit_address?: string | null
+          deposit_instructions?: string | null
+          fee_percent?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_deposit?: number
+          max_withdrawal?: number
+          min_deposit?: number
+          min_withdrawal?: number
+          name: string
+          network?: string | null
+          processing_time?: string
+          sort_order?: number
+          supports_deposit?: boolean
+          supports_withdrawal?: boolean
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          deposit_address?: string | null
+          deposit_instructions?: string | null
+          fee_percent?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          max_deposit?: number
+          max_withdrawal?: number
+          min_deposit?: number
+          min_withdrawal?: number
+          name?: string
+          network?: string | null
+          processing_time?: string
+          sort_order?: number
+          supports_deposit?: boolean
+          supports_withdrawal?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profile_change_requests: {
         Row: {
           admin_notes: string | null

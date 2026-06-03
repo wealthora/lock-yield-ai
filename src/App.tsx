@@ -9,6 +9,13 @@ import NotFound from "./pages/NotFound";
 import { DashboardLayout } from "./components/DashboardLayout";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import Finances from "./pages/dashboard/Finances";
+import Deposit from "./pages/dashboard/Deposit";
+import Withdraw from "./pages/dashboard/Withdraw";
+import Transactions from "./pages/dashboard/Transactions";
+import TradingPlans from "./pages/dashboard/TradingPlans";
+import MyPlans from "./pages/dashboard/MyPlans";
+import ProfitHistory from "./pages/dashboard/ProfitHistory";
+import Referrals from "./pages/dashboard/Referrals";
 import DailyReturns from "./pages/dashboard/DailyReturns";
 import RewardsHub from "./pages/dashboard/RewardsHub";
 import Analytics from "./pages/dashboard/Analytics";
@@ -27,6 +34,7 @@ import AdminProfileRequests from "./pages/admin/AdminProfileRequests";
 import AdminChat from "./pages/admin/AdminChat";
 import AdminBroadcast from "./pages/admin/AdminBroadcast";
 import AdminInvestmentSettings from "./pages/admin/AdminInvestmentSettings";
+import AdminPaymentMethods from "./pages/admin/AdminPaymentMethods";
 import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Risk from "./pages/legal/Risk";
@@ -52,6 +60,13 @@ const App = () => (
           {/* Dashboard Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />
           <Route path="/dashboard/finances" element={<DashboardLayout><Finances /></DashboardLayout>} />
+          <Route path="/dashboard/deposit" element={<DashboardLayout><Deposit /></DashboardLayout>} />
+          <Route path="/dashboard/withdraw" element={<DashboardLayout><Withdraw /></DashboardLayout>} />
+          <Route path="/dashboard/transactions" element={<DashboardLayout><Transactions /></DashboardLayout>} />
+          <Route path="/dashboard/trading-plans" element={<DashboardLayout><TradingPlans /></DashboardLayout>} />
+          <Route path="/dashboard/my-plans" element={<DashboardLayout><MyPlans /></DashboardLayout>} />
+          <Route path="/dashboard/profit-history" element={<DashboardLayout><ProfitHistory /></DashboardLayout>} />
+          <Route path="/dashboard/referrals" element={<DashboardLayout><Referrals /></DashboardLayout>} />
           <Route path="/dashboard/daily-returns" element={<DashboardLayout><DailyReturns /></DashboardLayout>} />
           <Route path="/dashboard/rewards" element={<DashboardLayout><RewardsHub /></DashboardLayout>} />
           <Route path="/dashboard/analytics" element={<DashboardLayout><Analytics /></DashboardLayout>} />
@@ -72,6 +87,7 @@ const App = () => (
           <Route path="/admin/broadcast" element={<AdminBroadcast />} />
           <Route path="/admin/logs" element={<AdminLogs />} />
           <Route path="/admin/investment-settings" element={<AdminInvestmentSettings />} />
+          <Route path="/admin/payment-methods" element={<AdminPaymentMethods />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

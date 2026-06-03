@@ -15,7 +15,8 @@ import {
   PiggyBank,
   MessageCircle,
   Megaphone,
-  Briefcase
+  Briefcase,
+  CreditCard
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +48,7 @@ const adminNavItems = [
   { title: "Support Chat", url: "/admin/chat", icon: MessageCircle },
   { title: "Broadcast", url: "/admin/broadcast", icon: Megaphone },
   { title: "Investment Plans", url: "/admin/investment-settings", icon: Briefcase },
+  { title: "Payment Methods", url: "/admin/payment-methods", icon: CreditCard },
   { title: "System Logs", url: "/admin/logs", icon: ScrollText },
   { title: "Settings", url: "/admin/settings", icon: Settings },
 ];
