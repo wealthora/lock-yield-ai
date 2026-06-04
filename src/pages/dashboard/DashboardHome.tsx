@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "@/components/AvatarSelector";
+import { TradingViewTicker } from "@/components/dashboard/TradingViewTicker";
 import {
   Plus,
   ArrowUpRight,
