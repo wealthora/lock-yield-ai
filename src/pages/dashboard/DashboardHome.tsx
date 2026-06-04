@@ -331,70 +331,24 @@ export default function DashboardHome() {
 
       {/* Middle row: market + profile */}
       <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-        {/* Market Overview */}
+        {/* Market Overview - Live via TradingView */}
         <Card className="border-border/60">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base font-semibold">Market Overview</CardTitle>
-            <div className="flex items-center gap-1">
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-8 w-8"
-                onClick={() => setTickerIndex((i) => Math.max(0, i - 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="outline"
-                className="h-8 w-8"
-                onClick={() => setTickerIndex((i) => i + 1)}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <span className="inline-flex items-center gap-1.5 text-[10px] text-emerald-400">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
+              Live
+            </span>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {visibleTickers.map((t) => (
-                <div
-                  key={t.symbol}
-                  className="rounded-xl border border-border/60 bg-background/40 p-3 hover:border-primary/40 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold ${t.iconBg}`}>
-                        {t.icon}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold leading-tight">{t.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{t.symbol}</p>
-                      </div>
-                    </div>
-                    <span
-                      className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-md ${
-                        t.up ? "text-emerald-400 bg-emerald-500/10" : "text-rose-400 bg-rose-500/10"
-                      }`}
-                    >
-                      {t.up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                      {t.change > 0 ? "+" : ""}
-                      {t.change}%
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-baseline justify-between">
-                    <div>
-                      <p className="text-[10px] text-muted-foreground">Price</p>
-                      <p className="text-base font-bold">${t.price.toLocaleString()}</p>
-                    </div>
-                    <p className={`text-xs ${t.up ? "text-emerald-400" : "text-rose-400"}`}>
-                      {t.delta >= 0 ? "+" : ""}${t.delta.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="mt-2">
-                    <Sparkline points={t.spark} up={t.up} />
-                  </div>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+              <TradingViewTicker symbol="BINANCE:BTCUSDT" title="Bitcoin" ticker="BTC" />
+              <TradingViewTicker symbol="BINANCE:ETHUSDT" title="Ethereum" ticker="ETH" />
+              <TradingViewTicker symbol="BINANCE:BNBUSDT" title="BNB" ticker="BNB" />
+              <TradingViewTicker symbol="BINANCE:SOLUSDT" title="Solana" ticker="SOL" />
             </div>
           </CardContent>
         </Card>
