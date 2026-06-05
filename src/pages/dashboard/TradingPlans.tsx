@@ -68,12 +68,6 @@ export default function TradingPlans() {
       </div>
 
       <AIBotsModal open={open} onOpenChange={setOpen} initialBot={selected} />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <AIBotsModal open={open} onOpenChange={setOpen} />
     </div>
   );
 }
