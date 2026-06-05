@@ -59,9 +59,15 @@ export default function TradingPlans() {
                   <p className="font-semibold">{b.risk_level}</p>
                 </div>
               </div>
-              <Button className="w-full" size="sm" onClick={() => setOpen(true)}>
+              <Button className="w-full" size="sm" onClick={() => { setSelected(b); setOpen(true); }}>
                 Invest
               </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <AIBotsModal open={open} onOpenChange={setOpen} initialBot={selected} />
             </CardContent>
           </Card>
         ))}
