@@ -389,7 +389,7 @@ export default function DashboardHome() {
 
             <div className="flex items-center justify-between pt-2 border-t border-border/60">
               <span className="text-sm text-muted-foreground">Account Status</span>
-              {profile?.kyc_status === "approved" ? (
+              {profile?.kyc_status === "verified" || profile?.kyc_status === "approved" ? (
                 <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30">Verified</Badge>
               ) : (
                 <Badge variant="outline" className="text-rose-400 border-rose-500/40">Unverified</Badge>
