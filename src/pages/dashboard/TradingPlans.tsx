@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function TradingPlans() {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<any>(null);
   const [bots, setBots] = useState<any[]>([]);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export default function TradingPlans() {
             Choose an AI trading plan that matches your goals.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={() => { setSelected(null); setOpen(true); }}>
           <Sparkles className="h-4 w-4 mr-2" /> Allocate Funds
         </Button>
       </div>
@@ -58,7 +59,7 @@ export default function TradingPlans() {
                   <p className="font-semibold">{b.risk_level}</p>
                 </div>
               </div>
-              <Button className="w-full" size="sm" onClick={() => setOpen(true)}>
+              <Button className="w-full" size="sm" onClick={() => { setSelected(b); setOpen(true); }}>
                 Invest
               </Button>
             </CardContent>
@@ -66,7 +67,7 @@ export default function TradingPlans() {
         ))}
       </div>
 
-      <AIBotsModal open={open} onOpenChange={setOpen} />
+      <AIBotsModal open={open} onOpenChange={setOpen} initialBot={selected} />
     </div>
   );
 }
