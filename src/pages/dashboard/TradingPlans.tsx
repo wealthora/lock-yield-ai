@@ -31,7 +31,7 @@ export default function TradingPlans() {
             Choose an AI trading plan that matches your goals.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}>
+        <Button onClick={() => { setSelected(null); setOpen(true); }}>
           <Sparkles className="h-4 w-4 mr-2" /> Allocate Funds
         </Button>
       </div>
