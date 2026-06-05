@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export default function TradingPlans() {
   const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<any>(null);
   const [bots, setBots] = useState<any[]>([]);
 
   useEffect(() => {
