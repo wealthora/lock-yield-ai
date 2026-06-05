@@ -145,10 +145,12 @@ export default function DashboardHome() {
     if (!user) return;
     setUserId(user.id);
 
-    const [walletRes, profileRes, txRes, plansRes, refsRes, rewardsRes] = await Promise.all([
+    const [walletRes, profileRes, txRes, depRes, wdRes, plansRes, refsRes, rewardsRes] = await Promise.all([
       supabase.from("wallets").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("transactions").select("type, amount, status").eq("user_id", user.id),
+      supabase.from("deposit_requests").select("amount, status").eq("user_id", user.id).eq("status", "approved"),
+      supabase.from("withdrawal_requests").select("amount, status").eq("user_id", user.id).eq("status", "approved"),
       supabase.from("bot_investments").select("id").eq("user_id", user.id).eq("status", "active"),
       supabase.from("referrals").select("id").eq("referrer_id", user.id),
       supabase.from("referral_rewards").select("reward_amount").eq("referrer_id", user.id),
@@ -161,10 +163,11 @@ export default function DashboardHome() {
     const txs = txRes.data || [];
     const sum = (filter: (t: any) => boolean) =>
       txs.filter(filter).reduce((s, t) => s + Number(t.amount || 0), 0);
+    const sumAmt = (arr: any[] | null) => (arr || []).reduce((s, r) => s + Number(r.amount || 0), 0);
 
     setTotals({
-      deposit: sum((t) => t.type === "deposit" && t.status === "approved"),
-      withdrawal: sum((t) => t.type === "withdrawal" && t.status === "approved"),
+      deposit: sumAmt(depRes.data),
+      withdrawal: sumAmt(wdRes.data),
       profit: sum((t) => t.type === "bot_return_credit" && t.status === "approved"),
       bonus: sum((t) => (t.type === "referral_bonus" || t.type === "bonus") && t.status === "approved"),
     });
