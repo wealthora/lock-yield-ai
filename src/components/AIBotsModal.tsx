@@ -25,7 +25,7 @@ interface Bot {
   strategy: string | null;
 }
 
-export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsModalProps) {
+export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBot }: AIBotsModalProps) {
   const [bots, setBots] = useState<Bot[]>([]);
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [amount, setAmount] = useState("");
@@ -36,8 +36,12 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated }: AIBotsM
   useEffect(() => {
     if (open) {
       loadBots();
+      if (initialBot) setSelectedBot(initialBot);
+    } else {
+      setSelectedBot(null);
+      setAmount("");
     }
-  }, [open]);
+  }, [open, initialBot]);
 
   const loadBots = async () => {
     const { data, error } = await supabase
