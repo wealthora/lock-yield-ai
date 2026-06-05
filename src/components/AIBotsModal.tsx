@@ -12,6 +12,7 @@ interface AIBotsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onInvestmentCreated?: () => void;
+  initialBot?: Bot | null;
 }
 
 interface Bot {
