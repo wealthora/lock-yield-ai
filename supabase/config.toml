@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.get-kyc-document-url]
 verify_jwt = false
+
+[functions.ai-support-chat]
+verify_jwt = false
