@@ -58,11 +58,23 @@ export function ChatWidget({ isOpen, onClose, sessionId, onSessionCreated, guest
     }
   };
 
+  const [isAiReplying, setIsAiReplying] = useState(false);
+
   const handleSend = useCallback(async () => {
     if (!inputValue.trim() || !sessionId) return;
-    await sendMessage(inputValue, 'user');
+    const text = inputValue;
+    await sendMessage(text, 'user');
     setInputValue('');
     updateTypingStatus(false);
+
+    setIsAiReplying(true);
+    try {
+      await supabase.functions.invoke('ai-support-chat', { body: { sessionId } });
+    } catch (err) {
+      console.error('AI reply error:', err);
+    } finally {
+      setIsAiReplying(false);
+    }
   }, [inputValue, sessionId, sendMessage, updateTypingStatus]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
