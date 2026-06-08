@@ -192,7 +192,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
               />
             </div>
             <div className="w-full space-y-2">
-              <Label>Payment Screenshot (Optional)</Label>
+              <Label>Payment Screenshot <span className="text-destructive">*</span></Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -205,7 +205,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
             </div>
             <Button
               onClick={handleSubmitRequest}
-              disabled={!amount || isSubmitting}
+                disabled={!amount || !screenshot || isSubmitting}
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -254,7 +254,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
               />
             </div>
             <div className="w-full space-y-2">
-              <Label>Payment Screenshot (Optional)</Label>
+              <Label>Payment Screenshot <span className="text-destructive">*</span></Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -267,7 +267,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
             </div>
             <Button
               onClick={handleSubmitRequest}
-              disabled={!amount || isSubmitting}
+                disabled={!amount || !screenshot || isSubmitting}
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -352,7 +352,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
               />
             </div>
             <div className="w-full space-y-2">
-              <Label>Payment Screenshot (Optional)</Label>
+              <Label>Payment Screenshot <span className="text-destructive">*</span></Label>
               <Input
                 type="file"
                 accept="image/*"
@@ -365,7 +365,7 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
             </div>
             <Button
               onClick={handleSubmitRequest}
-              disabled={!amount || isSubmitting}
+                disabled={!amount || !screenshot || isSubmitting}
               className="w-full"
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
