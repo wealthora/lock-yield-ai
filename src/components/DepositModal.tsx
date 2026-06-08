@@ -10,6 +10,8 @@ import { useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const DEPOSIT_PROOF_BUCKET = "kyc-documents";
+
 interface DepositModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -71,6 +73,15 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
   const handleSubmitRequest = async () => {
     if (!amount || !selectedOption) return;
 
+    if (!screenshot) {
+      toast({
+        title: "Payment proof required",
+        description: "Please upload a screenshot of your payment confirmation",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (selectedOption === "mpesa" && !transactionRef) {
       toast({
         title: "Missing Reference",
@@ -85,25 +96,15 @@ export function DepositModal({ open, onOpenChange }: DepositModalProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      let screenshotUrl = null;
+      const fileExt = screenshot.name.split('.').pop();
+      const fileName = `${user.id}/deposit-proofs/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from(DEPOSIT_PROOF_BUCKET)
+        .upload(fileName, screenshot, { contentType: screenshot.type });
 
-      // Upload screenshot if provided
-      if (screenshot) {
-        const fileExt = screenshot.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('deposit-screenshots')
-          .upload(fileName, screenshot);
+      if (uploadError) throw uploadError;
 
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('deposit-screenshots')
-          .getPublicUrl(fileName);
-        
-        screenshotUrl = publicUrl;
-      }
+      const screenshotUrl = `${DEPOSIT_PROOF_BUCKET}:${fileName}`;
 
       const methodName = depositOptions.find((o) => o.id === selectedOption)?.symbol || selectedOption;
       const depositAmount = parseFloat(amount);
