@@ -99,7 +99,7 @@ export default function AdminDeposits() {
   };
 
   const handleViewScreenshot = async (screenshotUrl: string) => {
-    if (!screenshotUrl.includes(":")) {
+    if (/^https?:\/\//.test(screenshotUrl) || !screenshotUrl.includes(":")) {
       window.open(screenshotUrl, "_blank", "noopener,noreferrer");
       return;
     }
