@@ -19,6 +19,7 @@ interface Props {
 
 const MAX_PROOF_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png", "image/jpg", "application/pdf"];
+const DEPOSIT_PROOF_BUCKET = "kyc-documents";
 
 export function DepositFlowDialog({ method, onOpenChange, onSuccess, onChangeMethod }: Props) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -93,12 +94,12 @@ export function DepositFlowDialog({ method, onOpenChange, onSuccess, onChangeMet
       if (!user) throw new Error("Not authenticated");
 
       const ext = proof.name.split(".").pop();
-      const path = `${user.id}/${Date.now()}.${ext}`;
+      const path = `${user.id}/deposit-proofs/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from("deposit-proofs")
+        .from(DEPOSIT_PROOF_BUCKET)
         .upload(path, proof, { contentType: proof.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("deposit-proofs").getPublicUrl(path);
+      const proofPath = `${DEPOSIT_PROOF_BUCKET}:${path}`;
 
       const { data: dep, error } = await supabase
         .from("deposit_requests")
@@ -108,7 +109,7 @@ export function DepositFlowDialog({ method, onOpenChange, onSuccess, onChangeMet
           method: method.name,
           status: "pending",
           transaction_reference: txRef || null,
-          screenshot_url: pub.publicUrl,
+          screenshot_url: proofPath,
         })
         .select("id")
         .single();
