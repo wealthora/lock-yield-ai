@@ -18,6 +18,8 @@ interface DepositRequest {
   status: string;
   admin_notes: string | null;
   created_at: string;
+  transaction_reference: string | null;
+  screenshot_url: string | null;
   profiles: {
     first_name: string | null;
     other_names: string | null;
@@ -94,6 +96,24 @@ export default function AdminDeposits() {
     } catch (err) {
       console.error("Failed to send transaction email:", err);
     }
+  };
+
+  const handleViewScreenshot = async (screenshotUrl: string) => {
+    if (/^https?:\/\//.test(screenshotUrl) || !screenshotUrl.includes(":")) {
+      window.open(screenshotUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    const [bucket, ...pathParts] = screenshotUrl.split(":");
+    const path = pathParts.join(":");
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 10);
+
+    if (error || !data?.signedUrl) {
+      toast({ title: "Unable to open screenshot", variant: "destructive" });
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleApprove = async (deposit: DepositRequest) => {
@@ -299,17 +319,16 @@ export default function AdminDeposits() {
                              {(deposit as any).transaction_reference}
                            </div>
                          )}
-                         {(deposit as any).screenshot_url && (
-                           <a 
-                             href={(deposit as any).screenshot_url} 
-                             target="_blank" 
-                             rel="noopener noreferrer"
+                         {deposit.screenshot_url && (
+                           <button
+                             type="button"
+                             onClick={() => handleViewScreenshot(deposit.screenshot_url!)}
                              className="text-xs text-primary hover:underline block"
                            >
                              View Screenshot
-                           </a>
+                           </button>
                          )}
-                         {!(deposit as any).transaction_reference && !(deposit as any).screenshot_url && "—"}
+                         {!deposit.transaction_reference && !deposit.screenshot_url && "—"}
                        </div>
                      </TableCell>
                      <TableCell>
