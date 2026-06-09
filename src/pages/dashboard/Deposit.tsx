@@ -6,6 +6,7 @@ import { Wallet, ArrowDownToLine, Clock, History } from "lucide-react";
 import { StatCard } from "@/components/finances/StatCards";
 import { PaymentMethodsTable, type PaymentMethod } from "@/components/finances/PaymentMethodsTable";
 import { DepositFlowDialog } from "@/components/finances/DepositFlowDialog";
+import { DepositInfoPanels } from "@/components/finances/DepositInfoPanels";
 
 export default function Deposit() {
   const navigate = useNavigate();
@@ -71,6 +72,8 @@ export default function Deposit() {
       <div id="methods">
         <PaymentMethodsTable mode="deposit" onSelect={setSelected} />
       </div>
+
+      <DepositInfoPanels />
 
       <DepositFlowDialog
         method={selected}
