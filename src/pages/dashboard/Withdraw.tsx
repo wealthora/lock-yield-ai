@@ -7,6 +7,7 @@ import { StatCard } from "@/components/finances/StatCards";
 import { PaymentMethodsTable, type PaymentMethod } from "@/components/finances/PaymentMethodsTable";
 import { WithdrawFlowDialog } from "@/components/finances/WithdrawFlowDialog";
 import { PasswordConfirmDialog } from "@/components/PasswordConfirmDialog";
+import { WithdrawalInfoPanels } from "@/components/finances/WithdrawalInfoPanels";
 
 export default function Withdraw() {
   const navigate = useNavigate();
@@ -65,6 +66,8 @@ export default function Withdraw() {
       </div>
 
       <PaymentMethodsTable mode="withdrawal" onSelect={setPendingMethod} />
+
+      <WithdrawalInfoPanels />
 
       <PasswordConfirmDialog
         open={!!pendingMethod}
