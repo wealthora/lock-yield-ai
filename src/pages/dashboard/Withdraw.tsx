@@ -6,11 +6,13 @@ import { Wallet, ArrowUpFromLine, Clock, History } from "lucide-react";
 import { StatCard } from "@/components/finances/StatCards";
 import { PaymentMethodsTable, type PaymentMethod } from "@/components/finances/PaymentMethodsTable";
 import { WithdrawFlowDialog } from "@/components/finances/WithdrawFlowDialog";
+import { PasswordConfirmDialog } from "@/components/PasswordConfirmDialog";
 
 export default function Withdraw() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ available: 0, total: 0, pending: 0, last: 0 });
   const [selected, setSelected] = useState<PaymentMethod | null>(null);
+  const [pendingMethod, setPendingMethod] = useState<PaymentMethod | null>(null);
 
   const load = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -62,7 +64,16 @@ export default function Withdraw() {
         <StatCard label="Last Withdrawal" value={fmt(stats.last)} icon={History} />
       </div>
 
-      <PaymentMethodsTable mode="withdrawal" onSelect={setSelected} />
+      <PaymentMethodsTable mode="withdrawal" onSelect={setPendingMethod} />
+
+      <PasswordConfirmDialog
+        open={!!pendingMethod}
+        onOpenChange={(o) => !o && setPendingMethod(null)}
+        onVerified={() => {
+          setSelected(pendingMethod);
+          setPendingMethod(null);
+        }}
+      />
 
       <WithdrawFlowDialog
         method={selected}
