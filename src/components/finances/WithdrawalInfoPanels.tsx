@@ -95,7 +95,7 @@ export function WithdrawalInfoPanels() {
               </div>
             );
           })}
-          <a href="/dashboard/help" className="block text-xs text-primary hover:underline mt-2">
+          <a href="/withdrawal-policy" className="block text-xs text-primary hover:underline mt-2">
             View full withdrawal policy ›
           </a>
         </CardContent>
