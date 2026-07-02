@@ -18,8 +18,8 @@ const WithdrawalPolicy = () => {
           <Link to="/" className="flex items-center gap-2">
             <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
           </Link>
-          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-            ← Back to Dashboard
+          <Link to="/dashboard/withdraw" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            ← Back
           </Link>
         </div>
       </nav>
