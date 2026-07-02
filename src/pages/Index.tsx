@@ -223,7 +223,7 @@ const Index = () => {
                 <li>Trading Bots</li>
                 <li>Performance</li>
                 <li>Pricing</li>
-                <li>API</li>
+                <li>{"\n"}</li>
               </ul>
             </div>
 
