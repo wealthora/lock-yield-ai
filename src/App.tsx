@@ -40,6 +40,7 @@ import Privacy from "./pages/legal/Privacy";
 import Risk from "./pages/legal/Risk";
 import Compliance from "./pages/legal/Compliance";
 import WithdrawalPolicy from "./pages/legal/WithdrawalPolicy";
+import DepositPolicy from "./pages/legal/DepositPolicy";
 import { FloatingChatLauncher } from "./components/chat/FloatingChatLauncher";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
           <Route path="/risk" element={<Risk />} />
           <Route path="/compliance" element={<Compliance />} />
           <Route path="/withdrawal-policy" element={<WithdrawalPolicy />} />
+          <Route path="/deposit-policy" element={<DepositPolicy />} />
           
           {/* Dashboard Routes with Sidebar Layout */}
           <Route path="/dashboard" element={<DashboardLayout><DashboardHome /></DashboardLayout>} />

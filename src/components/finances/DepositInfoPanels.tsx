@@ -92,9 +92,9 @@ export function DepositInfoPanels() {
               </div>
             );
           })}
-          <a href="/dashboard/transactions" className="block text-xs text-primary hover:underline mt-2">
-            View deposit history ›
-          </a>
+          <Link to="/deposit-policy" className="block text-xs text-primary hover:underline mt-2">
+            View full deposit policy ›
+          </Link>
         </CardContent>
       </Card>
     </div>
