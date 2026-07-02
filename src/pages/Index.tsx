@@ -242,7 +242,7 @@ const Index = () => {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>Help Center</li>
                 <li>Contact Us</li>
-                <li>System Status</li>
+                <li>{"\n"}</li>
               </ul>
             </div>
           </div>
