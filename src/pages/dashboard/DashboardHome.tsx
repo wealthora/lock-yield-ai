@@ -155,9 +155,9 @@ export default function DashboardHome() {
       supabase.from("referral_rewards").select("reward_amount").eq("referrer_id", user.id),
       supabase
         .from("bot_returns")
-        .select("return_date, return_amount")
+        .select("date, daily_return, cumulative_return")
         .eq("user_id", user.id)
-        .order("return_date", { ascending: false })
+        .order("date", { ascending: false })
         .limit(400),
       supabase
         .from("activities")
@@ -169,7 +169,7 @@ export default function DashboardHome() {
         .from("notifications")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
-        .eq("read", false),
+        .eq("is_read", false),
     ]);
 
     setBalance(walletRes.data || { available_balance: 0, locked_balance: 0, returns_balance: 0 });
