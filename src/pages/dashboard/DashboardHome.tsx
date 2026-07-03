@@ -221,18 +221,14 @@ export default function DashboardHome() {
       totalEarned: (rewardsRes.data || []).reduce((s, r) => s + Number(r.reward_amount), 0),
     });
 
-    // Returns series (build cumulative)
+    // Returns series (already has cumulative from DB)
     const rows = (returnsRes.data || []).slice().reverse();
-    let cum = 0;
     setReturnSeries(
-      rows.map((r) => {
-        cum += Number(r.return_amount || 0);
-        return {
-          date: r.return_date,
-          dailyReturn: Number(r.return_amount || 0),
-          cumulativeReturn: cum,
-        };
-      })
+      rows.map((r) => ({
+        date: r.date,
+        dailyReturn: Number(r.daily_return || 0),
+        cumulativeReturn: Number(r.cumulative_return || 0),
+      }))
     );
   };
 
