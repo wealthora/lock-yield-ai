@@ -184,13 +184,18 @@ export default function DashboardHome() {
     const planName = (plans[0] as any)?.ai_bots?.name || (plans.length ? "Active Plan" : "None");
     setCurrentPlanName(planName);
 
-    // Allocation: aggregate active investments by bot name
+    // Allocation: bots (by locked_amount) + available cash, as slices of total portfolio
     const allocMap = new Map<string, number>();
     plans.forEach((p: any) => {
       const name = p.ai_bots?.name || "Other";
-      allocMap.set(name, (allocMap.get(name) || 0) + Number(p.initial_amount || 0));
+      const amt = Number(p.locked_amount ?? p.initial_amount ?? 0);
+      if (amt > 0) allocMap.set(name, (allocMap.get(name) || 0) + amt);
     });
-    setAllocation(Array.from(allocMap.entries()).map(([name, value]) => ({ name, value })));
+    const availableCash = Number(walletRes.data?.available_balance ?? 0);
+    const allocationArr = Array.from(allocMap.entries()).map(([name, value]) => ({ name, value }));
+    if (availableCash > 0) allocationArr.push({ name: "Available Cash", value: availableCash });
+    setAllocation(allocationArr);
+
 
     // Totals
     const txs = txRes.data || [];
