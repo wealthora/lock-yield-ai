@@ -148,9 +148,10 @@ export default function DashboardHome() {
       supabase.from("withdrawal_requests").select("amount, status").eq("user_id", user.id),
       supabase
         .from("bot_investments")
-        .select("id, amount, status, ai_bots(name)")
+        .select("id, initial_amount, status, ai_bots(name)")
         .eq("user_id", user.id)
         .eq("status", "active"),
+
       supabase.from("referrals").select("id").eq("referrer_id", user.id),
       supabase.from("referral_rewards").select("reward_amount").eq("referrer_id", user.id),
       supabase
