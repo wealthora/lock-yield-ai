@@ -187,7 +187,7 @@ export default function DashboardHome() {
     const allocMap = new Map<string, number>();
     plans.forEach((p: any) => {
       const name = p.ai_bots?.name || "Other";
-      allocMap.set(name, (allocMap.get(name) || 0) + Number(p.amount || 0));
+      allocMap.set(name, (allocMap.get(name) || 0) + Number(p.initial_amount || 0));
     });
     setAllocation(Array.from(allocMap.entries()).map(([name, value]) => ({ name, value })));
 
