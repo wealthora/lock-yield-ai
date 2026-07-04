@@ -197,11 +197,11 @@ export default function DashboardHome() {
     const sumAmt = (arr: any[] | null) =>
       (arr || []).filter((r) => r.status === "approved").reduce((s, r) => s + Number(r.amount || 0), 0);
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayProfit = txs
-      .filter((t) => t.type === "bot_return_credit" && t.status === "approved" && new Date(t.created_at) >= todayStart)
-      .reduce((s, t) => s + Number(t.amount || 0), 0);
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayProfit = (returnsRes.data || [])
+      .filter((r: any) => r.date === todayStr)
+      .reduce((s: number, r: any) => s + Number(r.daily_return || 0), 0);
+
 
     setTotals({
       deposit: sumAmt(depAllRes.data),
