@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "@/assets/wealthora-logo.png";
+import logo from "@/assets/wealthora-logo.png.asset.json";
 
 const Risk = () => {
   return (

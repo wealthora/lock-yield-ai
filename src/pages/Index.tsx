@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Bot, TrendingUp, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
-import logo from "@/assets/wealthora-logo.png";
+import logo from "@/assets/wealthora-logo.png.asset.json";
 import { useEffect } from "react";
 const Index = () => {
   useEffect(() => {

@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { ShieldCheck, Activity, Zap, TrendingUp } from "lucide-react";
-import logo from "@/assets/wealthora-logo.png";
+import logo from "@/assets/wealthora-logo.png.asset.json";
 
 interface AuthShellProps {
   children: ReactNode;
