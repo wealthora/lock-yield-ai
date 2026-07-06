@@ -23,7 +23,7 @@ export function AuthShell({ children }: AuthShellProps) {
             <img
               src={logo}
               alt="Wealthora AI"
-              className="h-14 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
+              className="h-16 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
             />
           </div>
 
@@ -84,7 +84,7 @@ export function AuthShell({ children }: AuthShellProps) {
               <img
                 src={logo}
                 alt="Wealthora AI"
-                className="h-12 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
+                className="h-14 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
               />
             </div>
             <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
