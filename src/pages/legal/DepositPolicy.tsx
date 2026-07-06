@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "@/assets/wealthora-logo.png";
+import logo from "/wealthora-logo.png";
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <section className="mb-8">
@@ -16,7 +16,7 @@ const DepositPolicy = () => {
       <nav className="glass-strong sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
+            <img src={logo} alt="Wealthora ai" className="h-[48px] w-auto" />
           </Link>
           <Link to="/dashboard/deposit" className="text-sm text-muted-foreground hover:text-primary transition-colors">
             ← Back
