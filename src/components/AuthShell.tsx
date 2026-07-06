@@ -21,7 +21,7 @@ export function AuthShell({ children }: AuthShellProps) {
         <div className="hidden lg:flex flex-col space-y-10 pr-8">
           <div className="flex items-center gap-3">
             <img
-              src={logo}
+              src={logo.url}
               alt="Wealthora AI"
               className="h-14 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
             />
@@ -82,7 +82,7 @@ export function AuthShell({ children }: AuthShellProps) {
             {/* Mobile logo */}
             <div className="flex lg:hidden justify-center mb-6">
               <img
-                src={logo}
+                src={logo.url}
                 alt="Wealthora AI"
                 className="h-12 w-auto drop-shadow-[0_0_25px_rgba(34,211,238,0.4)]"
               />

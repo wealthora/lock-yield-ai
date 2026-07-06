@@ -16,7 +16,7 @@ const WithdrawalPolicy = () => {
       <nav className="glass-strong sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Wealthora ai" className="h-[40px] w-auto" />
+            <img src={logo.url} alt="Wealthora ai" className="h-[40px] w-auto" />
           </Link>
           <Link to="/dashboard/withdraw" className="text-sm text-muted-foreground hover:text-primary transition-colors">
             ← Back
