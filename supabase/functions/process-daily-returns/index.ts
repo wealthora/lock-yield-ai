@@ -223,4 +223,124 @@ async function processExpiredInvestment(supabase: any, investment: BotInvestment
   });
 
   console.log(`Successfully expired investment ${investment.id}, credited $${totalCredit}`);
+
+  // Auto-reinvest handling
+  if (investment.auto_reinvest) {
+    await autoReinvest(supabase, investment);
+  }
+}
+
+async function autoReinvest(supabase: any, investment: BotInvestment) {
+  const reinvestAmount = Number(investment.initial_amount);
+  console.log(`Auto-reinvest: attempting $${reinvestAmount} for user ${investment.user_id} into bot ${investment.bot_id}`);
+
+  // Verify bot is still active and get current terms
+  const { data: bot, error: botError } = await supabase
+    .from('ai_bots')
+    .select('id, name, daily_return_rate, minimum_investment, duration_days, is_active, status, auto_reinvest_enabled')
+    .eq('id', investment.bot_id)
+    .maybeSingle();
+
+  if (botError || !bot || !bot.is_active || bot.status === 'archived') {
+    console.log(`Auto-reinvest skipped: bot inactive/archived`);
+    await supabase.from('activities').insert({
+      user_id: investment.user_id,
+      activity_type: 'bot_allocation',
+      description: `Auto-reinvest skipped — bot is no longer available.`,
+      status: 'failed',
+    });
+    return;
+  }
+
+  if (reinvestAmount < Number(bot.minimum_investment || 0)) {
+    console.log(`Auto-reinvest skipped: amount below current minimum`);
+    return;
+  }
+
+  // Check wallet balance
+  const { data: wallet } = await supabase
+    .from('wallets')
+    .select('available_balance, locked_balance')
+    .eq('user_id', investment.user_id)
+    .maybeSingle();
+
+  if (!wallet || Number(wallet.available_balance) < reinvestAmount) {
+    console.log(`Auto-reinvest skipped: insufficient balance`);
+    await supabase.from('activities').insert({
+      user_id: investment.user_id,
+      activity_type: 'bot_allocation',
+      description: `Auto-reinvest of $${reinvestAmount.toFixed(2)} into ${bot.name} skipped — insufficient available balance.`,
+      amount: reinvestAmount,
+      status: 'failed',
+    });
+    return;
+  }
+
+  const durationDays = Number(bot.duration_days || 30);
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + durationDays);
+
+  // Create new investment (preserve auto_reinvest so it keeps rolling)
+  const { data: newInvestment, error: newInvError } = await supabase
+    .from('bot_investments')
+    .insert({
+      user_id: investment.user_id,
+      bot_id: investment.bot_id,
+      initial_amount: reinvestAmount,
+      locked_amount: reinvestAmount,
+      daily_return_rate: bot.daily_return_rate,
+      start_date: new Date().toISOString(),
+      end_date: endDate.toISOString(),
+      status: 'active',
+      auto_reinvest: true,
+    })
+    .select()
+    .single();
+
+  if (newInvError) {
+    console.error(`Auto-reinvest failed to create investment:`, newInvError);
+    return;
+  }
+
+  // Move funds available -> locked
+  const { error: walletErr } = await supabase
+    .from('wallets')
+    .update({
+      available_balance: Number(wallet.available_balance) - reinvestAmount,
+      locked_balance: Number(wallet.locked_balance || 0) + reinvestAmount,
+    })
+    .eq('user_id', investment.user_id);
+
+  if (walletErr) {
+    console.error(`Auto-reinvest wallet update failed:`, walletErr);
+    return;
+  }
+
+  await supabase.from('transactions').insert({
+    user_id: investment.user_id,
+    type: 'bot_allocation',
+    amount: reinvestAmount,
+    status: 'approved',
+    bot_id: investment.bot_id,
+    allocation_id: newInvestment.id,
+    notes: 'Auto-reinvestment from expired allocation',
+  });
+
+  await supabase.from('activities').insert({
+    user_id: investment.user_id,
+    activity_type: 'bot_allocation',
+    description: `Auto-reinvested $${reinvestAmount.toFixed(2)} into ${bot.name}`,
+    amount: reinvestAmount,
+    status: 'approved',
+  });
+
+  await supabase.rpc('create_notification', {
+    p_user_id: investment.user_id,
+    p_title: 'Auto-Reinvestment Successful',
+    p_message: `$${reinvestAmount.toFixed(2)} has been automatically re-invested into ${bot.name} for another ${durationDays}-day cycle.`,
+    p_type: 'bot_allocation',
+    p_metadata: { allocation_id: newInvestment.id, amount: reinvestAmount },
+  });
+
+  console.log(`Auto-reinvest complete: new investment ${newInvestment.id}`);
 }
