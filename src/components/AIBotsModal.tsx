@@ -295,9 +295,31 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    min="1"
+                    min={selectedBot.minimum_lockup_days || 1}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum lock-up: {selectedBot.minimum_lockup_days || 1} day
+                    {(selectedBot.minimum_lockup_days || 1) === 1 ? "" : "s"}
+                  </p>
                 </div>
+
+                {selectedBot.auto_reinvest_enabled && (
+                  <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="mt-1 accent-primary"
+                      checked={autoReinvest}
+                      onChange={(e) => setAutoReinvest(e.target.checked)}
+                    />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Auto-reinvest at maturity</p>
+                      <p className="text-xs text-muted-foreground">
+                        When this period ends, the same amount will be automatically re-invested
+                        into {selectedBot.name} for another cycle. Returns are credited to your wallet.
+                      </p>
+                    </div>
+                  </label>
+                )}
 
                 <div className="flex gap-2">
                   <Button
