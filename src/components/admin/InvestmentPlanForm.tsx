@@ -134,6 +134,7 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
         minimum_investment: validated.minimum_investment,
         max_investment: validated.max_investment,
         duration_days: validated.duration_days,
+        minimum_lockup_days: validated.minimum_lockup_days,
         early_withdrawal_allowed: validated.early_withdrawal_allowed,
         early_withdrawal_penalty: validated.early_withdrawal_penalty,
         auto_reinvest_enabled: validated.auto_reinvest_enabled,
