@@ -35,6 +35,7 @@ interface InvestmentPlan {
   minimum_investment: number;
   max_investment: number | null;
   duration_days: number;
+  minimum_lockup_days: number;
   early_withdrawal_allowed: boolean;
   early_withdrawal_penalty: number;
   auto_reinvest_enabled: boolean;
