@@ -63,6 +63,7 @@ export type Database = {
           is_active: boolean | null
           max_investment: number | null
           minimum_investment: number
+          minimum_lockup_days: number
           name: string
           risk_level: string | null
           roi_period: string | null
@@ -82,6 +83,7 @@ export type Database = {
           is_active?: boolean | null
           max_investment?: number | null
           minimum_investment?: number
+          minimum_lockup_days?: number
           name: string
           risk_level?: string | null
           roi_period?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           is_active?: boolean | null
           max_investment?: number | null
           minimum_investment?: number
+          minimum_lockup_days?: number
           name?: string
           risk_level?: string | null
           roi_period?: string | null
@@ -113,6 +116,7 @@ export type Database = {
       bot_investments: {
         Row: {
           accumulated_returns: number | null
+          auto_reinvest: boolean
           bot_id: string
           completed_at: string | null
           created_at: string
@@ -128,6 +132,7 @@ export type Database = {
         }
         Insert: {
           accumulated_returns?: number | null
+          auto_reinvest?: boolean
           bot_id: string
           completed_at?: string | null
           created_at?: string
@@ -143,6 +148,7 @@ export type Database = {
         }
         Update: {
           accumulated_returns?: number | null
+          auto_reinvest?: boolean
           bot_id?: string
           completed_at?: string | null
           created_at?: string
