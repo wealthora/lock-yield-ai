@@ -39,12 +39,22 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
   useEffect(() => {
     if (open) {
       loadBots();
-      if (initialBot) setSelectedBot(initialBot);
+      if (initialBot) {
+        setSelectedBot(initialBot);
+        setDuration(String(initialBot.minimum_lockup_days || 30));
+      }
     } else {
       setSelectedBot(null);
       setAmount("");
+      setAutoReinvest(false);
     }
   }, [open, initialBot]);
+
+  useEffect(() => {
+    if (selectedBot) {
+      setDuration(String(selectedBot.minimum_lockup_days || 30));
+    }
+  }, [selectedBot]);
 
   const loadBots = async () => {
     const { data, error } = await supabase
