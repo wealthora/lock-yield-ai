@@ -21,6 +21,8 @@ interface Bot {
   description: string | null;
   daily_return_rate: number;
   minimum_investment: number;
+  minimum_lockup_days: number;
+  auto_reinvest_enabled: boolean;
   risk_level: string | null;
   strategy: string | null;
 }
