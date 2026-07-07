@@ -132,6 +132,7 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
           start_date: new Date().toISOString(),
           end_date: endDate.toISOString(),
           status: 'active',
+          auto_reinvest: selectedBot.auto_reinvest_enabled ? autoReinvest : false,
         })
         .select()
         .single();
