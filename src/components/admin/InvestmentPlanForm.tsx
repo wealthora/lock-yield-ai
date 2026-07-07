@@ -356,6 +356,9 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
             Users cannot choose a lock period shorter than this. Existing active investments keep their original period until expiry.
           </p>
           {errors.minimum_lockup_days && <p className="text-sm text-destructive">{errors.minimum_lockup_days}</p>}
+        </div>
+
+
 
         {/* Risk Level */}
         <div className="space-y-2">
