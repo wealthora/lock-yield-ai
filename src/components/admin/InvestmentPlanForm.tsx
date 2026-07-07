@@ -25,8 +25,6 @@ const planSchema = z.object({
   strategy: z.string().max(200).optional(),
   status: z.enum(["draft", "active", "archived"]),
   roi_period: z.enum(["daily", "weekly", "monthly"]),
-  status: z.enum(["draft", "active", "archived"]),
-  roi_period: z.enum(["daily", "weekly", "monthly"]),
 });
 
 interface InvestmentPlan {
