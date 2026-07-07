@@ -21,6 +21,8 @@ interface Bot {
   description: string | null;
   daily_return_rate: number;
   minimum_investment: number;
+  minimum_lockup_days: number;
+  auto_reinvest_enabled: boolean;
   risk_level: string | null;
   strategy: string | null;
 }
@@ -30,18 +32,29 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("30");
+  const [autoReinvest, setAutoReinvest] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     if (open) {
       loadBots();
-      if (initialBot) setSelectedBot(initialBot);
+      if (initialBot) {
+        setSelectedBot(initialBot);
+        setDuration(String(initialBot.minimum_lockup_days || 30));
+      }
     } else {
       setSelectedBot(null);
       setAmount("");
+      setAutoReinvest(false);
     }
   }, [open, initialBot]);
+
+  useEffect(() => {
+    if (selectedBot) {
+      setDuration(String(selectedBot.minimum_lockup_days || 30));
+    }
+  }, [selectedBot]);
 
   const loadBots = async () => {
     const { data, error } = await supabase
@@ -66,6 +79,17 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
         variant: "destructive",
         title: "Invalid amount",
         description: `Minimum investment is $${selectedBot.minimum_investment}`,
+      });
+      return;
+    }
+
+    const minLockup = selectedBot.minimum_lockup_days || 1;
+    const lockDays = parseInt(duration);
+    if (isNaN(lockDays) || lockDays < minLockup) {
+      toast({
+        variant: "destructive",
+        title: "Lock period too short",
+        description: `Minimum lock-up period for this bot is ${minLockup} day${minLockup === 1 ? "" : "s"}.`,
       });
       return;
     }
@@ -108,6 +132,7 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
           start_date: new Date().toISOString(),
           end_date: endDate.toISOString(),
           status: 'active',
+          auto_reinvest: selectedBot.auto_reinvest_enabled ? autoReinvest : false,
         })
         .select()
         .single();
@@ -270,9 +295,31 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    min="1"
+                    min={selectedBot.minimum_lockup_days || 1}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Minimum lock-up: {selectedBot.minimum_lockup_days || 1} day
+                    {(selectedBot.minimum_lockup_days || 1) === 1 ? "" : "s"}
+                  </p>
                 </div>
+
+                {selectedBot.auto_reinvest_enabled && (
+                  <label className="flex items-start gap-3 p-3 rounded-lg border cursor-pointer hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="mt-1 accent-primary"
+                      checked={autoReinvest}
+                      onChange={(e) => setAutoReinvest(e.target.checked)}
+                    />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Auto-reinvest at maturity</p>
+                      <p className="text-xs text-muted-foreground">
+                        When this period ends, the same amount will be automatically re-invested
+                        into {selectedBot.name} for another cycle. Returns are credited to your wallet.
+                      </p>
+                    </div>
+                  </label>
+                )}
 
                 <div className="flex gap-2">
                   <Button

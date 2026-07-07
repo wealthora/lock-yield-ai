@@ -17,6 +17,7 @@ const planSchema = z.object({
   minimum_investment: z.number().min(1, "Minimum investment must be at least $1"),
   max_investment: z.number().nullable().optional(),
   duration_days: z.number().min(1, "Duration must be at least 1 day").max(365, "Duration cannot exceed 365 days"),
+  minimum_lockup_days: z.number().min(1, "Minimum lock-up must be at least 1 day").max(365, "Minimum lock-up cannot exceed 365 days"),
   early_withdrawal_allowed: z.boolean(),
   early_withdrawal_penalty: z.number().min(0).max(100),
   auto_reinvest_enabled: z.boolean(),
@@ -34,6 +35,7 @@ interface InvestmentPlan {
   minimum_investment: number;
   max_investment: number | null;
   duration_days: number;
+  minimum_lockup_days: number;
   early_withdrawal_allowed: boolean;
   early_withdrawal_penalty: number;
   auto_reinvest_enabled: boolean;
@@ -67,6 +69,7 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
     minimum_investment: plan?.minimum_investment || 50,
     max_investment: plan?.max_investment || null,
     duration_days: plan?.duration_days || 30,
+    minimum_lockup_days: plan?.minimum_lockup_days || 30,
     early_withdrawal_allowed: plan?.early_withdrawal_allowed || false,
     early_withdrawal_penalty: plan?.early_withdrawal_penalty || 10,
     auto_reinvest_enabled: plan?.auto_reinvest_enabled || false,
@@ -131,6 +134,7 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
         minimum_investment: validated.minimum_investment,
         max_investment: validated.max_investment,
         duration_days: validated.duration_days,
+        minimum_lockup_days: validated.minimum_lockup_days,
         early_withdrawal_allowed: validated.early_withdrawal_allowed,
         early_withdrawal_penalty: validated.early_withdrawal_penalty,
         auto_reinvest_enabled: validated.auto_reinvest_enabled,
@@ -336,6 +340,25 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
           />
           {errors.duration_days && <p className="text-sm text-destructive">{errors.duration_days}</p>}
         </div>
+
+        {/* Minimum Lock-Up Period */}
+        <div className="space-y-2">
+          <Label htmlFor="minimum_lockup_days">Minimum Lock-Up Period (days) *</Label>
+          <Input
+            id="minimum_lockup_days"
+            type="number"
+            min="1"
+            max="365"
+            value={formData.minimum_lockup_days}
+            onChange={(e) => setFormData({ ...formData, minimum_lockup_days: parseInt(e.target.value) || 1 })}
+          />
+          <p className="text-xs text-muted-foreground">
+            Users cannot choose a lock period shorter than this. Existing active investments keep their original period until expiry.
+          </p>
+          {errors.minimum_lockup_days && <p className="text-sm text-destructive">{errors.minimum_lockup_days}</p>}
+        </div>
+
+
 
         {/* Risk Level */}
         <div className="space-y-2">
