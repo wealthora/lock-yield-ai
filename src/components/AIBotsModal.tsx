@@ -83,6 +83,17 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
       return;
     }
 
+    const minLockup = selectedBot.minimum_lockup_days || 1;
+    const lockDays = parseInt(duration);
+    if (isNaN(lockDays) || lockDays < minLockup) {
+      toast({
+        variant: "destructive",
+        title: "Lock period too short",
+        description: `Minimum lock-up period for this bot is ${minLockup} day${minLockup === 1 ? "" : "s"}.`,
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
