@@ -32,6 +32,7 @@ export function AIBotsModal({ open, onOpenChange, onInvestmentCreated, initialBo
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState("30");
+  const [autoReinvest, setAutoReinvest] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
