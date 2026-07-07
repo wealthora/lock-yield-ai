@@ -341,6 +341,22 @@ export const InvestmentPlanForm = ({ plan, onSuccess, onCancel }: InvestmentPlan
           {errors.duration_days && <p className="text-sm text-destructive">{errors.duration_days}</p>}
         </div>
 
+        {/* Minimum Lock-Up Period */}
+        <div className="space-y-2">
+          <Label htmlFor="minimum_lockup_days">Minimum Lock-Up Period (days) *</Label>
+          <Input
+            id="minimum_lockup_days"
+            type="number"
+            min="1"
+            max="365"
+            value={formData.minimum_lockup_days}
+            onChange={(e) => setFormData({ ...formData, minimum_lockup_days: parseInt(e.target.value) || 1 })}
+          />
+          <p className="text-xs text-muted-foreground">
+            Users cannot choose a lock period shorter than this. Existing active investments keep their original period until expiry.
+          </p>
+          {errors.minimum_lockup_days && <p className="text-sm text-destructive">{errors.minimum_lockup_days}</p>}
+
         {/* Risk Level */}
         <div className="space-y-2">
           <Label htmlFor="risk_level">Risk Level *</Label>
