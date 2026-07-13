@@ -170,12 +170,26 @@ export function ActiveInvestments() {
                   <Progress value={progress} className="h-2" />
                 </div>
 
-                <div className="pt-2 border-t text-sm">
+                <div className="pt-2 border-t text-sm space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Value</span>
                     <span className="font-semibold">
                       ${(investment.locked_amount + investment.accumulated_returns).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <RefreshCw className="h-3 w-3" />
+                      <span>Auto-reinvest: {investment.auto_reinvest ? "On" : "Off"}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={investment.auto_reinvest ? "outline" : "secondary"}
+                      disabled={updatingId === investment.id}
+                      onClick={() => toggleAutoReinvest(investment.id, investment.auto_reinvest)}
+                    >
+                      {investment.auto_reinvest ? "Cancel auto-reinvest" : "Enable auto-reinvest"}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
