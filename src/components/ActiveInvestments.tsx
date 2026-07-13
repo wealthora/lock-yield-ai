@@ -27,6 +27,28 @@ interface Investment {
 
 export function ActiveInvestments() {
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const toggleAutoReinvest = async (id: string, current: boolean) => {
+    setUpdatingId(id);
+    const { error } = await supabase
+      .from("bot_investments")
+      .update({ auto_reinvest: !current })
+      .eq("id", id);
+    setUpdatingId(null);
+    if (error) {
+      toast({ variant: "destructive", title: "Failed to update", description: error.message });
+    } else {
+      toast({
+        title: !current ? "Auto-reinvest enabled" : "Auto-reinvest cancelled",
+        description: !current
+          ? "This investment will renew automatically at maturity."
+          : "This investment will not renew when it expires.",
+      });
+      loadInvestments();
+    }
+  };
 
   useEffect(() => {
     loadInvestments();
