@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Clock, DollarSign } from "lucide-react";
+import { TrendingUp, Clock, DollarSign, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Investment {
   id: string;
@@ -15,6 +17,7 @@ interface Investment {
   start_date: string;
   end_date: string;
   status: string;
+  auto_reinvest: boolean;
   ai_bots: {
     name: string;
     strategy: string;
