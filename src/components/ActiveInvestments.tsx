@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { TrendingUp, Clock, DollarSign } from "lucide-react";
+import { TrendingUp, Clock, DollarSign, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Investment {
   id: string;
@@ -15,6 +17,7 @@ interface Investment {
   start_date: string;
   end_date: string;
   status: string;
+  auto_reinvest: boolean;
   ai_bots: {
     name: string;
     strategy: string;
@@ -24,6 +27,28 @@ interface Investment {
 
 export function ActiveInvestments() {
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const toggleAutoReinvest = async (id: string, current: boolean) => {
+    setUpdatingId(id);
+    const { error } = await supabase
+      .from("bot_investments")
+      .update({ auto_reinvest: !current })
+      .eq("id", id);
+    setUpdatingId(null);
+    if (error) {
+      toast({ variant: "destructive", title: "Failed to update", description: error.message });
+    } else {
+      toast({
+        title: !current ? "Auto-reinvest enabled" : "Auto-reinvest cancelled",
+        description: !current
+          ? "This investment will renew automatically at maturity."
+          : "This investment will not renew when it expires.",
+      });
+      loadInvestments();
+    }
+  };
 
   useEffect(() => {
     loadInvestments();
@@ -145,12 +170,26 @@ export function ActiveInvestments() {
                   <Progress value={progress} className="h-2" />
                 </div>
 
-                <div className="pt-2 border-t text-sm">
+                <div className="pt-2 border-t text-sm space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Total Value</span>
                     <span className="font-semibold">
                       ${(investment.locked_amount + investment.accumulated_returns).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <RefreshCw className="h-3 w-3" />
+                      <span>Auto-reinvest: {investment.auto_reinvest ? "On" : "Off"}</span>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant={investment.auto_reinvest ? "outline" : "secondary"}
+                      disabled={updatingId === investment.id}
+                      onClick={() => toggleAutoReinvest(investment.id, investment.auto_reinvest)}
+                    >
+                      {investment.auto_reinvest ? "Cancel auto-reinvest" : "Enable auto-reinvest"}
+                    </Button>
                   </div>
                 </div>
               </CardContent>
