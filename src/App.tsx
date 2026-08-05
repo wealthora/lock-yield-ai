@@ -14,6 +14,7 @@ import Withdraw from "./pages/dashboard/Withdraw";
 import Transactions from "./pages/dashboard/Transactions";
 import TradingPlans from "./pages/dashboard/TradingPlans";
 import MyPlans from "./pages/dashboard/MyPlans";
+import BinaryOptions from "./pages/dashboard/BinaryOptions";
 import ProfitHistory from "./pages/dashboard/ProfitHistory";
 import Referrals from "./pages/dashboard/Referrals";
 import DailyReturns from "./pages/dashboard/DailyReturns";
