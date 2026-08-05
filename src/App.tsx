@@ -14,6 +14,7 @@ import Withdraw from "./pages/dashboard/Withdraw";
 import Transactions from "./pages/dashboard/Transactions";
 import TradingPlans from "./pages/dashboard/TradingPlans";
 import MyPlans from "./pages/dashboard/MyPlans";
+import BinaryOptions from "./pages/dashboard/BinaryOptions";
 import ProfitHistory from "./pages/dashboard/ProfitHistory";
 import Referrals from "./pages/dashboard/Referrals";
 import DailyReturns from "./pages/dashboard/DailyReturns";
@@ -69,6 +70,7 @@ const App = () => (
           <Route path="/dashboard/transactions" element={<DashboardLayout><Transactions /></DashboardLayout>} />
           <Route path="/dashboard/trading-plans" element={<DashboardLayout><TradingPlans /></DashboardLayout>} />
           <Route path="/dashboard/my-plans" element={<DashboardLayout><MyPlans /></DashboardLayout>} />
+          <Route path="/dashboard/binary-options" element={<DashboardLayout><BinaryOptions /></DashboardLayout>} />
           <Route path="/dashboard/profit-history" element={<DashboardLayout><ProfitHistory /></DashboardLayout>} />
           <Route path="/dashboard/referrals" element={<DashboardLayout><Referrals /></DashboardLayout>} />
           <Route path="/dashboard/daily-returns" element={<DashboardLayout><DailyReturns /></DashboardLayout>} />

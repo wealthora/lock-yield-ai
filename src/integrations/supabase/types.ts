@@ -113,6 +113,203 @@ export type Database = {
         }
         Relationships: []
       }
+      binary_assets: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_suspended: boolean
+          market_hours: string
+          max_trade: number
+          min_trade: number
+          name: string
+          payout_percent: number
+          sort_order: number
+          spread: number
+          symbol: string
+          tv_symbol: string | null
+          updated_at: string
+          volatility_level: string
+        }
+        Insert: {
+          base_price?: number
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_suspended?: boolean
+          market_hours?: string
+          max_trade?: number
+          min_trade?: number
+          name: string
+          payout_percent?: number
+          sort_order?: number
+          spread?: number
+          symbol: string
+          tv_symbol?: string | null
+          updated_at?: string
+          volatility_level?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_suspended?: boolean
+          market_hours?: string
+          max_trade?: number
+          min_trade?: number
+          name?: string
+          payout_percent?: number
+          sort_order?: number
+          spread?: number
+          symbol?: string
+          tv_symbol?: string | null
+          updated_at?: string
+          volatility_level?: string
+        }
+        Relationships: []
+      }
+      binary_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      binary_settings: {
+        Row: {
+          created_at: string
+          expiry_options: Json
+          global_max_trade: number
+          global_min_trade: number
+          id: string
+          max_open_trades: number
+          max_platform_exposure: number
+          max_user_exposure: number
+          trading_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_options?: Json
+          global_max_trade?: number
+          global_min_trade?: number
+          id?: string
+          max_open_trades?: number
+          max_platform_exposure?: number
+          max_user_exposure?: number
+          trading_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expiry_options?: Json
+          global_max_trade?: number
+          global_min_trade?: number
+          id?: string
+          max_open_trades?: number
+          max_platform_exposure?: number
+          max_user_exposure?: number
+          trading_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      binary_trades: {
+        Row: {
+          asset_id: string | null
+          category: string
+          created_at: string
+          direction: string
+          entry_price: number
+          exit_price: number | null
+          expires_at: string
+          expiry_seconds: number
+          id: string
+          opened_at: string
+          payout_percent: number
+          potential_payout: number
+          profit_loss: number | null
+          result: string | null
+          settled_at: string | null
+          stake: number
+          status: string
+          symbol: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_id?: string | null
+          category?: string
+          created_at?: string
+          direction: string
+          entry_price: number
+          exit_price?: number | null
+          expires_at: string
+          expiry_seconds: number
+          id?: string
+          opened_at?: string
+          payout_percent: number
+          potential_payout: number
+          profit_loss?: number | null
+          result?: string | null
+          settled_at?: string | null
+          stake: number
+          status?: string
+          symbol: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_id?: string | null
+          category?: string
+          created_at?: string
+          direction?: string
+          entry_price?: number
+          exit_price?: number | null
+          expires_at?: string
+          expiry_seconds?: number
+          id?: string
+          opened_at?: string
+          payout_percent?: number
+          potential_payout?: number
+          profit_loss?: number | null
+          result?: string | null
+          settled_at?: string | null
+          stake?: number
+          status?: string
+          symbol?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "binary_trades_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "binary_assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bot_investments: {
         Row: {
           accumulated_returns: number | null
