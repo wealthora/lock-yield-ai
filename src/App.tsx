@@ -70,6 +70,7 @@ const App = () => (
           <Route path="/dashboard/transactions" element={<DashboardLayout><Transactions /></DashboardLayout>} />
           <Route path="/dashboard/trading-plans" element={<DashboardLayout><TradingPlans /></DashboardLayout>} />
           <Route path="/dashboard/my-plans" element={<DashboardLayout><MyPlans /></DashboardLayout>} />
+          <Route path="/dashboard/binary-options" element={<DashboardLayout><BinaryOptions /></DashboardLayout>} />
           <Route path="/dashboard/profit-history" element={<DashboardLayout><ProfitHistory /></DashboardLayout>} />
           <Route path="/dashboard/referrals" element={<DashboardLayout><Referrals /></DashboardLayout>} />
           <Route path="/dashboard/daily-returns" element={<DashboardLayout><DailyReturns /></DashboardLayout>} />
