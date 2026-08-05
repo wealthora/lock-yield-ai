@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ASSET_CATEGORIES } from "@/lib/binaryConstants";
 import { formatPrice, isMarketOpen } from "@/lib/binaryPricing";
-import type { BinaryAsset } from "@/pages/dashboard/BinaryOptions";
+import type { BinaryAsset } from "@/lib/binaryTypes";
 import type { LivePrice } from "@/hooks/useBinaryPrices";
 
 interface Props {
