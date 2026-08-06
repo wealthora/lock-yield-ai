@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { expiryLabel } from "@/lib/binaryConstants";
-import type { BinaryTrade } from "@/lib/binaryTypes";
+import { formatPrice } from "@/lib/binaryPricing";
+import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
+
 
 const RANGES = [
   { id: "today", label: "Today" },
