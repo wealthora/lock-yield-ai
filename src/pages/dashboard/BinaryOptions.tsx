@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Zap, ShieldAlert } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BinaryAssetSelector } from "@/components/binary/BinaryAssetSelector";
+import { BinaryTickerStrip } from "@/components/binary/BinaryTickerStrip";
+
 import { BinaryChart } from "@/components/binary/BinaryChart";
 import { BinaryTradePanel } from "@/components/binary/BinaryTradePanel";
 import { BinaryAIInsights } from "@/components/binary/BinaryAIInsights";
