@@ -150,20 +150,55 @@ export function BinaryChart({ asset, live }: Props) {
       className="glass-panel rounded-xl border border-border/60 flex flex-col overflow-hidden bg-card"
     >
       <div className="flex flex-wrap items-center gap-2 p-3 border-b border-border/50">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-sm font-bold">{asset.symbol}</h2>
             <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{asset.category}</span>
-          </div>
-          <p
-            className={cn(
-              "text-xl font-bold font-mono tabular-nums transition-colors",
-              up ? "text-accent" : "text-destructive"
+            {asset.category === "otc" && (
+              <span className="text-[8px] px-1 rounded bg-primary/15 text-primary font-bold uppercase">
+                otc · 24/7
+              </span>
             )}
-          >
-            {live ? formatPrice(asset, live.price) : "—"}
-          </p>
+            <span
+              className={cn(
+                "text-[10px] flex items-center gap-1",
+                live?.open ? "text-accent" : "text-muted-foreground"
+              )}
+            >
+              <span
+                className={cn("h-1.5 w-1.5 rounded-full", live?.open ? "bg-accent animate-pulse" : "bg-muted-foreground")}
+              />
+              {live?.open ? "Market open" : "Market closed"}
+            </span>
+          </div>
+          <div className="flex items-end gap-2 flex-wrap">
+            <p
+              className={cn(
+                "text-xl font-bold font-mono tabular-nums transition-colors",
+                up ? "text-accent" : "text-destructive"
+              )}
+            >
+              {live ? formatPrice(asset, live.price) : "—"}
+            </p>
+            <p
+              className={cn(
+                "text-xs font-semibold pb-1",
+                (live?.change24h ?? 0) >= 0 ? "text-accent" : "text-destructive"
+              )}
+            >
+              {(live?.change24h ?? 0) >= 0 ? "+" : ""}
+              {(live?.change24h ?? 0).toFixed(2)}%
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-[10px] text-muted-foreground font-mono tabular-nums flex-wrap">
+            <span>Bid {live ? formatPrice(asset, live.bid) : "—"}</span>
+            <span>Ask {live ? formatPrice(asset, live.ask) : "—"}</span>
+            <span>Spread {live ? live.spread : asset.spread}</span>
+            <span>Payout {live?.payout ?? asset.payout_percent}%</span>
+            <span>{live ? new Date(live.ts).toLocaleTimeString("en-GB") : "—"}</span>
+          </div>
         </div>
+
 
         <div className="ml-auto flex items-center gap-1 flex-wrap">
           <div className="flex items-center rounded-md border border-border/60 overflow-hidden">
