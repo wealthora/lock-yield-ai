@@ -205,7 +205,7 @@ export default function BinaryOptions() {
               <ActiveBinaryTrades trades={activeTrades} assets={assets} prices={prices} />
             </TabsContent>
             <TabsContent value="history" className="mt-3">
-              <BinaryTradeHistory trades={trades} />
+              <BinaryTradeHistory trades={trades} assets={assets} />
             </TabsContent>
             <TabsContent value="performance" className="mt-3">
               <BinaryPerformance trades={trades} />
