@@ -73,6 +73,17 @@ export default function BinaryOptions() {
 
   const activeTrades = useMemo(() => trades.filter((t) => t.status === "open"), [trades]);
 
+  // Favourites first, then a spread of headline instruments for the top strip.
+  const tickerAssets = useMemo(() => {
+    const starred = assets.filter((a) => favorites.includes(a.symbol));
+    const rest = assets.filter((a) => !favorites.includes(a.symbol));
+    const byCat: Record<string, BinaryAsset[]> = {};
+    for (const a of rest) (byCat[a.category] ??= []).push(a);
+    const picked = Object.values(byCat).flatMap((list) => list.slice(0, 4));
+    return [...starred, ...picked].slice(0, 24);
+  }, [assets, favorites]);
+
+
   // Ask the backend to settle anything that has expired.
   useEffect(() => {
     if (!userId) return;
