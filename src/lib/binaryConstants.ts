@@ -29,8 +29,13 @@ export const CHART_TIMEFRAMES = [
 export const ASSET_CATEGORIES = [
   { id: "forex", label: "Forex" },
   { id: "crypto", label: "Crypto" },
+  { id: "commodities", label: "Commodities" },
+  { id: "indices", label: "Indices" },
+  { id: "stocks", label: "Stocks" },
   { id: "synthetic", label: "Synthetics" },
+  { id: "otc", label: "OTC" },
 ];
+
 
 export function expiryLabel(seconds: number): string {
   const found = EXPIRY_OPTIONS.find((e) => e.seconds === seconds);
