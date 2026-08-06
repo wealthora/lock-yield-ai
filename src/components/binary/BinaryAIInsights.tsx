@@ -34,12 +34,15 @@ export function BinaryAIInsights({ asset }: { asset: BinaryAsset }) {
         </span>
         <div>
           <h3 className="text-sm font-bold leading-tight">AI Trading Assistant</h3>
-          <p className="text-[10px] text-muted-foreground">{asset.symbol} live analysis</p>
+          <p className="text-[10px] text-muted-foreground">
+            {asset.symbol} · updated {new Date(insights.updatedAt).toLocaleTimeString("en-GB")}
+          </p>
         </div>
         <Badge variant="outline" className="ml-auto h-5 text-[10px] border-primary/40 text-primary">
           {insights.confidence}% confidence
         </Badge>
       </div>
+
 
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-lg border border-border/60 bg-background/40 p-2.5">
