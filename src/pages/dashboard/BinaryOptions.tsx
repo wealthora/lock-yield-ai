@@ -147,8 +147,18 @@ export default function BinaryOptions() {
         </div>
       )}
 
+      <BinaryTickerStrip
+        assets={tickerAssets}
+        prices={prices}
+        selected={selected}
+        favorites={favorites}
+        onSelect={setSelected}
+        onToggleFavorite={toggleFavorite}
+      />
+
       <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
         <div className="h-[420px] xl:h-auto xl:max-h-[calc(100vh-9rem)] xl:sticky xl:top-20">
+
           <BinaryAssetSelector
             assets={assets}
             prices={prices}
