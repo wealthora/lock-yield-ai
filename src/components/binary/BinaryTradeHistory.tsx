@@ -36,8 +36,13 @@ export function rangeStart(range: string): { from: number; to: number } {
   }
 }
 
-export function BinaryTradeHistory({ trades }: { trades: BinaryTrade[] }) {
+export function BinaryTradeHistory({ trades, assets = [] }: { trades: BinaryTrade[]; assets?: BinaryAsset[] }) {
   const [range, setRange] = useState("today");
+  const fmt = (symbol: string, value: number) => {
+    const asset = assets.find((a) => a.symbol === symbol);
+    return asset ? formatPrice(asset, value) : value.toFixed(4);
+  };
+
 
   const filtered = useMemo(() => {
     const { from, to } = rangeStart(range);
