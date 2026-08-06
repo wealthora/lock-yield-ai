@@ -4,6 +4,8 @@ export interface BinaryInsights {
   trend: "bullish" | "bearish" | "neutral";
   sentiment: string;
   momentum: number; // 0-100
+  rsi: number; // 0-100
+  macd: { value: number; signal: number; histogram: number; bias: "bullish" | "bearish" };
   buyProbability: number;
   sellProbability: number;
   volatility: { level: string; value: number };
@@ -12,7 +14,9 @@ export interface BinaryInsights {
   confidence: number;
   news: { headline: string; impact: "positive" | "negative" | "neutral" };
   suggestedExpiry: number;
+  updatedAt: number;
 }
+
 
 const NEWS_POOL = [
   { headline: "Liquidity deepening across major venues", impact: "positive" as const },
