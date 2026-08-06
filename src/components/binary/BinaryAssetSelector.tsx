@@ -1,18 +1,18 @@
 import { useMemo, useState } from "react";
-import { Star, Search, TrendingUp, TrendingDown, Lock } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Star, Search, TrendingUp, TrendingDown, Lock, Clock3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { ASSET_CATEGORIES } from "@/lib/binaryConstants";
-import { formatPrice, isMarketOpen } from "@/lib/binaryPricing";
+import { formatPrice } from "@/lib/binaryPricing";
+import { isOtc } from "@/lib/binaryQuotes";
 import type { BinaryAsset } from "@/lib/binaryTypes";
-import type { LivePrice } from "@/hooks/useBinaryPrices";
+import type { Quote } from "@/lib/binaryQuotes";
 
 interface Props {
   assets: BinaryAsset[];
-  prices: Record<string, LivePrice>;
+  prices: Record<string, Quote>;
   selected: string;
   favorites: string[];
   onSelect: (symbol: string) => void;
@@ -26,6 +26,8 @@ const VOL_STYLES: Record<string, string> = {
   extreme: "bg-destructive/20 text-destructive border-destructive/50",
 };
 
+const TABS = [{ id: "favorites", label: "Favorites" }, ...ASSET_CATEGORIES];
+
 export function BinaryAssetSelector({
   assets,
   prices,
@@ -36,6 +38,12 @@ export function BinaryAssetSelector({
 }: Props) {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState("forex");
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = { favorites: favorites.length };
+    for (const a of assets) map[a.category] = (map[a.category] ?? 0) + 1;
+    return map;
+  }, [assets, favorites.length]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,7 +56,7 @@ export function BinaryAssetSelector({
 
   return (
     <div className="glass-panel rounded-xl border border-border/60 flex flex-col h-full min-h-0">
-      <div className="p-3 border-b border-border/50 space-y-3">
+      <div className="p-3 border-b border-border/50 space-y-2.5">
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -59,15 +67,33 @@ export function BinaryAssetSelector({
             maxLength={40}
           />
         </div>
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="w-full grid grid-cols-4 h-8">
-            {[{ id: "favorites", label: "★" }, ...ASSET_CATEGORIES].map((c) => (
-              <TabsTrigger key={c.id} value={c.id} className="text-[11px] px-1">
+
+        <ScrollArea className="w-full">
+          <div className="flex gap-1 pb-1.5">
+            {TABS.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setTab(c.id)}
+                className={cn(
+                  "shrink-0 rounded-md px-2 py-1 text-[11px] font-medium transition-colors border",
+                  tab === c.id
+                    ? "border-primary/50 bg-primary/15 text-primary"
+                    : "border-transparent text-muted-foreground hover:bg-muted/50"
+                )}
+              >
                 {c.label}
-              </TabsTrigger>
+                <span className="ml-1 opacity-60">{counts[c.id] ?? 0}</span>
+              </button>
             ))}
-          </TabsList>
-        </Tabs>
+          </div>
+          <ScrollBar orientation="horizontal" className="h-1.5" />
+        </ScrollArea>
+
+        {tab === "otc" && (
+          <p className="flex items-center gap-1 text-[10px] text-primary">
+            <Clock3 className="h-3 w-3" /> OTC markets are available 24/7 — nights, weekends and holidays.
+          </p>
+        )}
       </div>
 
       <ScrollArea className="flex-1 min-h-0">
@@ -79,8 +105,9 @@ export function BinaryAssetSelector({
             const live = prices[asset.symbol];
             const change = live?.change24h ?? 0;
             const up = change >= 0;
-            const open = isMarketOpen(asset.market_hours) && asset.is_active && !asset.is_suspended;
+            const open = live?.open ?? false;
             const isSelected = asset.symbol === selected;
+            const otc = isOtc(asset);
 
             return (
               <button
@@ -119,9 +146,16 @@ export function BinaryAssetSelector({
                     />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold truncate">{asset.symbol}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      spread {asset.spread}
+                    <p className="text-xs font-semibold truncate flex items-center gap-1">
+                      {asset.symbol}
+                      {otc && (
+                        <span className="text-[8px] px-1 rounded bg-primary/15 text-primary font-bold uppercase">
+                          otc
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground truncate font-mono tabular-nums">
+                      {live ? `${formatPrice(asset, live.bid)} / ${formatPrice(asset, live.ask)}` : "—"}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
@@ -146,9 +180,10 @@ export function BinaryAssetSelector({
                   >
                     {asset.volatility_level}
                   </Badge>
-                  <Badge variant="outline" className="h-4 px-1.5 text-[9px]">
+                  <Badge variant="outline" className="h-4 px-1.5 text-[9px] border-primary/40 text-primary">
                     {asset.payout_percent}%
                   </Badge>
+                  <span className="text-[9px] text-muted-foreground">spr {asset.spread}</span>
                   <span
                     className={cn(
                       "ml-auto text-[9px] flex items-center gap-0.5",
@@ -157,7 +192,8 @@ export function BinaryAssetSelector({
                   >
                     {open ? (
                       <>
-                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" /> Open
+                        <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+                        {otc ? "24/7" : "Open"}
                       </>
                     ) : (
                       <>
