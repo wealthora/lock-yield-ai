@@ -76,7 +76,7 @@ export function ActiveBinaryTrades({ trades, assets, prices }: Props) {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 text-[11px]">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-2.5 text-[11px]">
               <div>
                 <p className="text-muted-foreground">Entry</p>
                 <p className="font-mono font-semibold">{asset ? formatPrice(asset, entry) : entry.toFixed(4)}</p>
@@ -92,12 +92,17 @@ export function ActiveBinaryTrades({ trades, assets, prices }: Props) {
                 <p className="font-semibold">${Number(trade.stake).toFixed(2)}</p>
               </div>
               <div>
+                <p className="text-muted-foreground">Potential payout</p>
+                <p className="font-semibold">${Number(trade.potential_payout).toFixed(2)}</p>
+              </div>
+              <div>
                 <p className="text-muted-foreground">Potential profit</p>
                 <p className="font-semibold text-accent">
                   +${(Number(trade.potential_payout) - Number(trade.stake)).toFixed(2)}
                 </p>
               </div>
             </div>
+
 
             <div className="mt-2.5 flex items-center gap-3">
               <Progress value={progress} className="h-1.5 flex-1" />
