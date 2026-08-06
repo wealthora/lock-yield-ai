@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { expiryLabel } from "@/lib/binaryConstants";
-import type { BinaryTrade } from "@/lib/binaryTypes";
+import { formatPrice } from "@/lib/binaryPricing";
+import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
+
 
 const RANGES = [
   { id: "today", label: "Today" },
@@ -34,8 +36,13 @@ export function rangeStart(range: string): { from: number; to: number } {
   }
 }
 
-export function BinaryTradeHistory({ trades }: { trades: BinaryTrade[] }) {
+export function BinaryTradeHistory({ trades, assets = [] }: { trades: BinaryTrade[]; assets?: BinaryAsset[] }) {
   const [range, setRange] = useState("today");
+  const fmt = (symbol: string, value: number) => {
+    const asset = assets.find((a) => a.symbol === symbol);
+    return asset ? formatPrice(asset, value) : value.toFixed(4);
+  };
+
 
   const filtered = useMemo(() => {
     const { from, to } = rangeStart(range);
@@ -108,10 +115,11 @@ export function BinaryTradeHistory({ trades }: { trades: BinaryTrade[] }) {
                         <TrendingDown className="h-3.5 w-3.5 text-destructive" />
                       )}
                     </TableCell>
-                    <TableCell className="text-right font-mono">{Number(t.entry_price).toFixed(4)}</TableCell>
+                    <TableCell className="text-right font-mono">{fmt(t.symbol, Number(t.entry_price))}</TableCell>
                     <TableCell className="text-right font-mono">
-                      {t.exit_price !== null ? Number(t.exit_price).toFixed(4) : "—"}
+                      {t.exit_price !== null ? fmt(t.symbol, Number(t.exit_price)) : "—"}
                     </TableCell>
+
                     <TableCell className="text-right">${Number(t.stake).toFixed(2)}</TableCell>
                     <TableCell className="text-right">
                       ${win ? Number(t.potential_payout).toFixed(2) : t.result === "tie" ? Number(t.stake).toFixed(2) : "0.00"}

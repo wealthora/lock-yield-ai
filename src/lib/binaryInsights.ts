@@ -4,6 +4,8 @@ export interface BinaryInsights {
   trend: "bullish" | "bearish" | "neutral";
   sentiment: string;
   momentum: number; // 0-100
+  rsi: number; // 0-100
+  macd: { value: number; signal: number; histogram: number; bias: "bullish" | "bearish" };
   buyProbability: number;
   sellProbability: number;
   volatility: { level: string; value: number };
@@ -12,7 +14,9 @@ export interface BinaryInsights {
   confidence: number;
   news: { headline: string; impact: "positive" | "negative" | "neutral" };
   suggestedExpiry: number;
+  updatedAt: number;
 }
+
 
 const NEWS_POOL = [
   { headline: "Liquidity deepening across major venues", impact: "positive" as const },
@@ -63,11 +67,36 @@ export function computeInsights(asset: PricingAsset, atMs: number = Date.now()):
 
   const suggestedExpiry = realisedVol > 0.12 ? 60 : realisedVol > 0.05 ? 180 : 300;
 
+  // Wilder RSI over the last 14 changes.
+  const changes = series.slice(-15).map((p, i, arr) => (i === 0 ? 0 : p - arr[i - 1])).slice(1);
+  const gains = changes.filter((c) => c > 0).reduce((a, b) => a + b, 0) / 14;
+  const losses = Math.abs(changes.filter((c) => c < 0).reduce((a, b) => a + b, 0)) / 14;
+  const rsi = losses === 0 ? 100 : Math.round(clamp(100 - 100 / (1 + gains / losses), 1, 99));
+
+  // MACD (12, 26, 9) expressed in basis points for readability.
+  const ema = (values: number[], period: number) => {
+    const k = 2 / (period + 1);
+    return values.reduce((acc, v, i) => (i === 0 ? v : v * k + acc * (1 - k)), 0);
+  };
+  const macdSeries = series.map((_, i) =>
+    i < 26 ? 0 : ema(series.slice(0, i + 1).slice(-12), 12) - ema(series.slice(0, i + 1).slice(-26), 26)
+  );
+  const macdValue = macdSeries[macdSeries.length - 1];
+  const macdSignal = ema(macdSeries.slice(-9), 9);
+  const toBps = (v: number) => Number(((v / last) * 10000).toFixed(2));
+
   return {
     trend,
     sentiment:
       trend === "bullish" ? "Risk-on / accumulation" : trend === "bearish" ? "Risk-off / distribution" : "Balanced",
     momentum: Math.round(momentum),
+    rsi,
+    macd: {
+      value: toBps(macdValue),
+      signal: toBps(macdSignal),
+      histogram: toBps(macdValue - macdSignal),
+      bias: macdValue >= macdSignal ? ("bullish" as const) : ("bearish" as const),
+    },
     buyProbability,
     sellProbability,
     volatility: { level: volLevel, value: Number(realisedVol.toFixed(3)) },
@@ -76,8 +105,10 @@ export function computeInsights(asset: PricingAsset, atMs: number = Date.now()):
     confidence,
     news: NEWS_POOL[newsIndex],
     suggestedExpiry,
+    updatedAt: atMs,
   };
 }
+
 
 export function currentPrice(asset: PricingAsset) {
   return priceAt(asset);

@@ -34,12 +34,15 @@ export function BinaryAIInsights({ asset }: { asset: BinaryAsset }) {
         </span>
         <div>
           <h3 className="text-sm font-bold leading-tight">AI Trading Assistant</h3>
-          <p className="text-[10px] text-muted-foreground">{asset.symbol} live analysis</p>
+          <p className="text-[10px] text-muted-foreground">
+            {asset.symbol} · updated {new Date(insights.updatedAt).toLocaleTimeString("en-GB")}
+          </p>
         </div>
         <Badge variant="outline" className="ml-auto h-5 text-[10px] border-primary/40 text-primary">
           {insights.confidence}% confidence
         </Badge>
       </div>
+
 
       <div className="grid grid-cols-2 gap-2">
         <div className="rounded-lg border border-border/60 bg-background/40 p-2.5">
@@ -75,7 +78,56 @@ export function BinaryAIInsights({ asset }: { asset: BinaryAsset }) {
             <div className="bg-destructive" style={{ width: `${insights.sellProbability}%` }} />
           </div>
         </div>
+
+        <div>
+          <div className="flex justify-between text-[11px] mb-1">
+            <span className="text-muted-foreground">RSI (14)</span>
+            <span
+              className={cn(
+                "font-semibold",
+                insights.rsi >= 70 ? "text-destructive" : insights.rsi <= 30 ? "text-accent" : ""
+              )}
+            >
+              {insights.rsi}{" "}
+              <span className="text-[9px] text-muted-foreground">
+                {insights.rsi >= 70 ? "overbought" : insights.rsi <= 30 ? "oversold" : "neutral"}
+              </span>
+            </span>
+          </div>
+          <Progress value={insights.rsi} className="h-1.5" />
+        </div>
       </div>
+
+      <div className="rounded-lg border border-border/60 bg-background/40 p-2.5 text-[11px]">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">MACD (12, 26, 9)</p>
+          <Badge
+            variant="outline"
+            className={cn(
+              "h-4 px-1.5 text-[9px] uppercase",
+              insights.macd.bias === "bullish" ? "border-accent/40 text-accent" : "border-destructive/40 text-destructive"
+            )}
+          >
+            {insights.macd.bias}
+          </Badge>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-1.5 font-mono tabular-nums">
+          <span>
+            <span className="text-muted-foreground text-[9px] block">MACD</span>
+            {insights.macd.value}
+          </span>
+          <span>
+            <span className="text-muted-foreground text-[9px] block">Signal</span>
+            {insights.macd.signal}
+          </span>
+          <span className={insights.macd.histogram >= 0 ? "text-accent" : "text-destructive"}>
+            <span className="text-muted-foreground text-[9px] block">Hist</span>
+            {insights.macd.histogram}
+          </span>
+        </div>
+      </div>
+
+
 
       <div className="grid grid-cols-2 gap-2 text-[11px]">
         <div className="rounded-lg border border-border/60 bg-background/40 p-2.5">

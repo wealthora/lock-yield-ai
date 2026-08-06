@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { Zap, ShieldAlert } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BinaryAssetSelector } from "@/components/binary/BinaryAssetSelector";
+import { BinaryTickerStrip } from "@/components/binary/BinaryTickerStrip";
+
 import { BinaryChart } from "@/components/binary/BinaryChart";
 import { BinaryTradePanel } from "@/components/binary/BinaryTradePanel";
 import { BinaryAIInsights } from "@/components/binary/BinaryAIInsights";
@@ -70,6 +72,17 @@ export default function BinaryOptions() {
   }, [loadBalance, loadTrades]);
 
   const activeTrades = useMemo(() => trades.filter((t) => t.status === "open"), [trades]);
+
+  // Favourites first, then a spread of headline instruments for the top strip.
+  const tickerAssets = useMemo(() => {
+    const starred = assets.filter((a) => favorites.includes(a.symbol));
+    const rest = assets.filter((a) => !favorites.includes(a.symbol));
+    const byCat: Record<string, BinaryAsset[]> = {};
+    for (const a of rest) (byCat[a.category] ??= []).push(a);
+    const picked = Object.values(byCat).flatMap((list) => list.slice(0, 4));
+    return [...starred, ...picked].slice(0, 24);
+  }, [assets, favorites]);
+
 
   // Ask the backend to settle anything that has expired.
   useEffect(() => {
@@ -147,8 +160,18 @@ export default function BinaryOptions() {
         </div>
       )}
 
+      <BinaryTickerStrip
+        assets={tickerAssets}
+        prices={prices}
+        selected={selected}
+        favorites={favorites}
+        onSelect={setSelected}
+        onToggleFavorite={toggleFavorite}
+      />
+
       <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
         <div className="h-[420px] xl:h-auto xl:max-h-[calc(100vh-9rem)] xl:sticky xl:top-20">
+
           <BinaryAssetSelector
             assets={assets}
             prices={prices}
@@ -182,7 +205,7 @@ export default function BinaryOptions() {
               <ActiveBinaryTrades trades={activeTrades} assets={assets} prices={prices} />
             </TabsContent>
             <TabsContent value="history" className="mt-3">
-              <BinaryTradeHistory trades={trades} />
+              <BinaryTradeHistory trades={trades} assets={assets} />
             </TabsContent>
             <TabsContent value="performance" className="mt-3">
               <BinaryPerformance trades={trades} />
