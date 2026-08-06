@@ -1,17 +1,19 @@
 import { useMemo, useState } from "react";
-import { TrendingUp, TrendingDown, Loader2, Info } from "lucide-react";
+import { TrendingUp, TrendingDown, Loader2, Info, Timer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EXPIRY_OPTIONS, QUICK_AMOUNTS, expiryLabel } from "@/lib/binaryConstants";
-import { formatPrice, isMarketOpen } from "@/lib/binaryPricing";
+import { formatPrice } from "@/lib/binaryPricing";
+import { isOtc } from "@/lib/binaryQuotes";
 import type { BinaryAsset, BinarySettings } from "@/lib/binaryTypes";
-import type { LivePrice } from "@/hooks/useBinaryPrices";
+import type { Quote } from "@/lib/binaryQuotes";
 
 interface Props {
   asset: BinaryAsset;
-  live?: LivePrice;
+  live?: Quote;
   settings: BinarySettings | null;
   balance: number;
   placing: boolean;
@@ -31,9 +33,11 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
     return EXPIRY_OPTIONS.filter((e) => !allowed?.length || allowed.includes(e.seconds));
   }, [settings]);
 
-  const marketOpen = isMarketOpen(asset.market_hours) && asset.is_active && !asset.is_suspended;
-  const payout = Number.isFinite(stake) ? stake * (1 + asset.payout_percent / 100) : 0;
+  const marketOpen = live?.open ?? false;
+  const payoutRate = live?.payout ?? Number(asset.payout_percent);
+  const payout = Number.isFinite(stake) ? stake * (1 + payoutRate / 100) : 0;
   const profit = payout - (Number.isFinite(stake) ? stake : 0);
+  const entry = live ? (/* entry fills at the ask for CALL, bid for PUT — mid is shown */ live.price) : undefined;
 
   let error: string | null = null;
   if (!Number.isFinite(stake) || stake <= 0) error = "Enter a valid amount";
@@ -47,9 +51,17 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
 
   return (
     <div className="glass-panel rounded-xl border border-border/60 p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold">Place Trade</h3>
-        <span className="text-[10px] text-muted-foreground">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold flex items-center gap-1.5">
+            Place Trade
+            {isOtc(asset) && (
+              <span className="text-[8px] px-1 rounded bg-primary/15 text-primary font-bold uppercase">otc</span>
+            )}
+          </h3>
+          <p className="text-[10px] text-muted-foreground truncate">{asset.symbol}</p>
+        </div>
+        <span className="text-[10px] text-muted-foreground shrink-0">
           Balance ${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </span>
       </div>
@@ -93,7 +105,12 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
       </div>
 
       <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Expiry time</Label>
+        <div className="flex items-center justify-between">
+          <Label className="text-xs text-muted-foreground">Expiry time</Label>
+          <Badge variant="outline" className="h-4 px-1.5 text-[9px] gap-1 border-primary/40 text-primary">
+            <Timer className="h-2.5 w-2.5" /> {expiryLabel(expiry)}
+          </Badge>
+        </div>
         <div className="grid grid-cols-4 gap-1">
           {expiries.map((e) => (
             <button
@@ -114,25 +131,53 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
 
       <div className="rounded-lg border border-border/60 bg-background/40 p-3 space-y-1.5">
         <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Current price</span>
+          <span
+            className={cn(
+              "font-mono tabular-nums font-semibold",
+              (live?.price ?? 0) >= (live?.prev ?? 0) ? "text-accent" : "text-destructive"
+            )}
+          >
+            {live ? formatPrice(asset, live.price) : "—"}
+          </span>
+        </div>
+        <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Entry price</span>
-          <span className="font-mono tabular-nums">{live ? formatPrice(asset, live.price) : "—"}</span>
+          <span className="font-mono tabular-nums">{entry !== undefined ? formatPrice(asset, entry) : "—"}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Bid / Ask</span>
+          <span className="font-mono tabular-nums text-[11px]">
+            {live ? `${formatPrice(asset, live.bid)} / ${formatPrice(asset, live.ask)}` : "—"}
+          </span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-muted-foreground">Spread</span>
+          <span className="font-mono tabular-nums text-[11px]">{live ? live.spread : asset.spread}</span>
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Payout rate</span>
-          <span className="font-semibold text-primary">{asset.payout_percent}%</span>
+          <span className="font-semibold text-primary">{payoutRate}%</span>
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-muted-foreground">Expected payout</span>
           <span className="font-semibold text-accent">${payout.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Net profit if correct</span>
+          <span className="text-muted-foreground">Potential profit</span>
           <span className="font-semibold text-accent">+${profit.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-xs">
-          <span className="text-muted-foreground">Loss if incorrect</span>
+          <span className="text-muted-foreground">Potential loss</span>
           <span className="font-semibold text-destructive">
             -${Number.isFinite(stake) ? stake.toFixed(2) : "0.00"}
+          </span>
+        </div>
+        <div className="flex justify-between text-[10px] pt-1 border-t border-border/50">
+          <span className="text-muted-foreground">Market</span>
+          <span className={marketOpen ? "text-accent" : "text-muted-foreground"}>
+            {marketOpen ? (isOtc(asset) ? "Open · 24/7" : "Open") : "Closed"} ·{" "}
+            {live ? new Date(live.ts).toLocaleTimeString("en-GB") : "—"}
           </span>
         </div>
       </div>
