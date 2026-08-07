@@ -123,8 +123,11 @@ export function BinaryChart({ asset, live }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const tf = CHART_TIMEFRAMES.find((t) => t.id === timeframe) ?? CHART_TIMEFRAMES[4];
-  const useTv = Boolean(asset.tv_symbol);
-  const effectiveStyle: ChartStyle = useTv ? style : style === "candles" ? "area" : style;
+  // The chart must show the exact feed that settles trades, so every asset is
+  // rendered from the platform price engine (no external TradingView prices).
+  const useTv = false;
+  const effectiveStyle: ChartStyle = style === "candles" ? "area" : style;
+
 
   const toggleFullscreen = async () => {
     const el = wrapRef.current;
