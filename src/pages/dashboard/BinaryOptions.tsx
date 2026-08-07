@@ -126,8 +126,20 @@ export default function BinaryOptions() {
   const placeTrade = async (direction: "call" | "put", stake: number, expirySeconds: number) => {
     setPlacing(true);
     try {
+      const quote = prices[selected];
+      if (!quote) {
+        toast.error("Waiting for a live price. Please try again.");
+        return;
+      }
       const { data, error } = await supabase.functions.invoke("binary-trade", {
-        body: { action: "open", symbol: selected, direction, stake, expiry_seconds: expirySeconds },
+        body: {
+          action: "open",
+          symbol: selected,
+          direction,
+          stake,
+          expiry_seconds: expirySeconds,
+          quote_ts: quote.ts,
+        },
       });
       const payload = data as { trade?: BinaryTrade; error?: string } | null;
       if (error || payload?.error) {

@@ -157,12 +157,14 @@ Deno.serve(async (req) => {
     const direction = body.direction === "call" || body.direction === "put" ? body.direction : null;
     const stake = Number(body.stake);
     const expirySeconds = Number(body.expiry_seconds);
+    const quoteTs = Number(body.quote_ts);
 
     if (!symbol) return json({ error: "Asset is required" }, 400);
     if (!direction) return json({ error: "Direction must be call or put" }, 400);
     if (!Number.isFinite(stake) || stake <= 0) return json({ error: "Invalid stake amount" }, 400);
     if (!Number.isInteger(expirySeconds) || expirySeconds <= 0)
       return json({ error: "Invalid expiry time" }, 400);
+    if (!Number.isFinite(quoteTs)) return json({ error: "A live quote is required" }, 400);
 
     const { data: settings } = await admin.from("binary_settings").select("*").limit(1).maybeSingle();
     if (settings && settings.trading_enabled === false)
@@ -223,7 +225,13 @@ Deno.serve(async (req) => {
     if (balance < stake) return json({ error: "Insufficient available balance" }, 400);
 
     const now = Date.now();
-    const entryPrice = priceAt(asset, now);
+    const canonicalQuoteTs = Math.floor(quoteTs / 500) * 500;
+    const quoteAge = now - canonicalQuoteTs;
+    if (quoteAge < -500 || quoteAge > 3000)
+      return json({ error: "Price changed before the trade was placed. Please try again." }, 409);
+    // Fill from the exact quote tick shown in the browser, avoiding a different
+    // entry when the network request crosses a 500 ms pricing boundary.
+    const entryPrice = priceAt(asset, canonicalQuoteTs);
     const payoutPercent = Number(asset.payout_percent);
     const potentialPayout = Number((stake * (1 + payoutPercent / 100)).toFixed(2));
 
