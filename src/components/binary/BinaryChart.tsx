@@ -245,18 +245,17 @@ export function BinaryChart({ asset, live }: Props) {
         </div>
       </div>
 
-      <div className={cn("w-full", fullscreen ? "flex-1" : "h-[340px] sm:h-[420px]")}>
+      <div className={cn("w-full", fullscreen ? "flex-1" : "h-[260px] sm:h-[380px] xl:h-[420px]")}>
         {useTv ? (
           <TradingViewChart tvSymbol={asset.tv_symbol!} interval={tf.tvInterval} style={effectiveStyle} />
         ) : (
           <SyntheticChart asset={asset} style={effectiveStyle} stepMs={tf.stepMs} />
         )}
       </div>
-      {!useTv && (
-        <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
-          Synthetic index — priced by the Wealthora volatility engine.
-        </p>
-      )}
+      <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
+        Live Wealthora price feed — trades execute and settle on exactly these prices.
+      </p>
     </div>
+
   );
 }
