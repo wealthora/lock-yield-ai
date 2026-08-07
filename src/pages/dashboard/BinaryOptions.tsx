@@ -169,9 +169,90 @@ export default function BinaryOptions() {
         onToggleFavorite={toggleFavorite}
       />
 
-      <div className="grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
-        <div className="h-[420px] xl:h-auto xl:max-h-[calc(100vh-9rem)] xl:sticky xl:top-20">
+      {/* ---------- Mobile: simple terminal ---------- */}
+      <div className="xl:hidden space-y-3">
+        <Sheet open={pickerOpen} onOpenChange={setPickerOpen}>
+          <SheetTrigger asChild>
+            <button className="w-full glass-panel rounded-xl border border-border/60 px-3 py-2.5 flex items-center justify-between">
+              <span className="min-w-0 text-left">
+                <span className="block text-sm font-bold truncate">{asset?.symbol ?? "Select asset"}</span>
+                <span className="block text-[10px] text-muted-foreground truncate">
+                  {asset?.name ?? "Choose a market"}
+                </span>
+              </span>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="text-sm font-mono tabular-nums font-semibold">
+                  {asset && prices[asset.symbol] ? formatPrice(asset, prices[asset.symbol].price) : "—"}
+                </span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </span>
+            </button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[85dvh] p-3 pt-5">
+            <BinaryAssetSelector
+              assets={assets}
+              prices={prices}
+              selected={selected}
+              favorites={favorites}
+              onSelect={(s) => {
+                setSelected(s);
+                setPickerOpen(false);
+              }}
+              onToggleFavorite={toggleFavorite}
+            />
+          </SheetContent>
+        </Sheet>
 
+        {asset ? (
+          <BinaryChart asset={asset} live={prices[asset.symbol]} />
+        ) : (
+          <div className="glass-panel rounded-xl border border-border/60 h-[260px]" />
+        )}
+
+        {asset && (
+          <BinaryMobileTradeBar
+            asset={asset}
+            live={prices[asset.symbol]}
+            settings={settings}
+            balance={balance}
+            placing={placing}
+            onPlace={placeTrade}
+          />
+        )}
+
+        <Tabs defaultValue="active">
+          <TabsList className="grid grid-cols-4 w-full">
+            <TabsTrigger value="active" className="text-[11px]">
+              Trades ({activeTrades.length})
+            </TabsTrigger>
+            <TabsTrigger value="history" className="text-[11px]">
+              History
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="text-[11px]">
+              Stats
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="text-[11px]">
+              AI
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="active" className="mt-3">
+            <ActiveBinaryTrades trades={activeTrades} assets={assets} prices={prices} />
+          </TabsContent>
+          <TabsContent value="history" className="mt-3">
+            <BinaryTradeHistory trades={trades} assets={assets} />
+          </TabsContent>
+          <TabsContent value="performance" className="mt-3">
+            <BinaryPerformance trades={trades} />
+          </TabsContent>
+          <TabsContent value="ai" className="mt-3">
+            {asset && <BinaryAIInsights asset={asset} />}
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* ---------- Desktop: full terminal ---------- */}
+      <div className="hidden xl:grid gap-3 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        <div className="xl:max-h-[calc(100vh-9rem)] xl:sticky xl:top-20">
           <BinaryAssetSelector
             assets={assets}
             prices={prices}
@@ -190,7 +271,7 @@ export default function BinaryOptions() {
           )}
 
           <Tabs defaultValue="active">
-            <TabsList className="grid grid-cols-3 w-full sm:w-auto sm:inline-grid">
+            <TabsList className="inline-grid grid-cols-3">
               <TabsTrigger value="active" className="text-xs">
                 Active ({activeTrades.length})
               </TabsTrigger>
@@ -229,6 +310,7 @@ export default function BinaryOptions() {
           )}
         </div>
       </div>
+
     </div>
   );
 }
