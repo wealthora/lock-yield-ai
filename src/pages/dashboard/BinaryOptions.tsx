@@ -28,6 +28,8 @@ export default function BinaryOptions() {
   const [balance, setBalance] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
   const now = useNow(1000);
 
   const prices = useBinaryPrices(assets);
