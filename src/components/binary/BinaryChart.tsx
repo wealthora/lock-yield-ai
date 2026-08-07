@@ -47,7 +47,7 @@ function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; int
   return <div ref={ref} className="tradingview-widget-container h-full w-full" />;
 }
 
-function SyntheticChart({ asset, style, stepMs }: { asset: BinaryAsset; style: ChartStyle; stepMs: number }) {
+function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; live?: LivePrice; style: ChartStyle; stepMs: number }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setTick((t) => t + 1), 1000);
@@ -55,13 +55,14 @@ function SyntheticChart({ asset, style, stepMs }: { asset: BinaryAsset; style: C
   }, []);
 
   const data = useMemo(() => {
-    const raw = priceSeries(asset, 90, stepMs);
+    const endMs = live?.ts ?? Date.now();
+    const raw = priceSeries(asset, 90, stepMs, endMs);
     return raw.map((p) => ({
       t: new Date(p.t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" }),
-      price: Number(p.price.toFixed(decimalsFor(asset))),
+      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimalsFor(asset))),
     }));
     // tick drives the live refresh
-  }, [asset.symbol, stepMs, tick]);
+  }, [asset.symbol, live?.price, live?.ts, stepMs, tick]);
 
   const min = Math.min(...data.map((d) => d.price));
   const max = Math.max(...data.map((d) => d.price));
@@ -249,7 +250,7 @@ export function BinaryChart({ asset, live }: Props) {
         {useTv ? (
           <TradingViewChart tvSymbol={asset.tv_symbol!} interval={tf.tvInterval} style={effectiveStyle} />
         ) : (
-          <SyntheticChart asset={asset} style={effectiveStyle} stepMs={tf.stepMs} />
+          <SyntheticChart asset={asset} live={live} style={effectiveStyle} stepMs={tf.stepMs} />
         )}
       </div>
       <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">

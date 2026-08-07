@@ -5,7 +5,7 @@
  * chart header, trade panel, active trades, history) reads its numbers from a
  * Quote produced here, so the same symbol never shows two different prices.
  */
-import { priceAt, dailyChange, isMarketOpen } from "./binaryPricing";
+import { TICK_MS, priceAt, dailyChange, isMarketOpen } from "./binaryPricing";
 import type { BinaryAsset } from "./binaryTypes";
 
 export interface Quote {
@@ -26,7 +26,8 @@ export interface Quote {
 }
 
 export function buildQuote(asset: BinaryAsset, prev: number | undefined, atMs: number): Quote {
-  const price = priceAt(asset, atMs);
+  const quoteTs = Math.floor(atMs / TICK_MS) * TICK_MS;
+  const price = priceAt(asset, quoteTs);
   const spread = Number(asset.spread) || 0;
   return {
     symbol: asset.symbol,
@@ -35,10 +36,10 @@ export function buildQuote(asset: BinaryAsset, prev: number | undefined, atMs: n
     bid: price - spread / 2,
     ask: price + spread / 2,
     spread,
-    change24h: dailyChange(asset, atMs),
-    open: isMarketOpen(asset.market_hours, new Date(atMs)) && asset.is_active && !asset.is_suspended,
+    change24h: dailyChange(asset, quoteTs),
+    open: isMarketOpen(asset.market_hours, new Date(quoteTs)) && asset.is_active && !asset.is_suspended,
     payout: Number(asset.payout_percent),
-    ts: atMs,
+    ts: quoteTs,
   };
 }
 

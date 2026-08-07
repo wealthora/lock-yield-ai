@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ArrowUpRight, ArrowDownRight, Loader2, Clock, Minus, Plus, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { EXPIRY_OPTIONS, expiryLabel } from "@/lib/binaryConstants";
 import type { BinaryAsset, BinarySettings } from "@/lib/binaryTypes";
@@ -122,20 +123,20 @@ export function BinaryMobileTradeBar({ asset, live, settings, balance, placing, 
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <button
+        <Button
           disabled={disabled}
           onClick={() => onPlace("call", stake, expiry)}
-          className="h-14 rounded-xl bg-accent text-accent-foreground font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="h-14 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
-          {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowUpRight className="h-5 w-5" /> BUY</>}
-        </button>
-        <button
+          {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowUpRight className="h-5 w-5" /> CALL</>}
+        </Button>
+        <Button
           disabled={disabled}
           onClick={() => onPlace("put", stake, expiry)}
-          className="h-14 rounded-xl bg-destructive text-destructive-foreground font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="h-14 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
-          {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowDownRight className="h-5 w-5" /> SELL</>}
-        </button>
+          {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowDownRight className="h-5 w-5" /> PUT</>}
+        </Button>
       </div>
     </div>
   );
