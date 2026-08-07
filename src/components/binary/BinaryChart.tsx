@@ -123,8 +123,11 @@ export function BinaryChart({ asset, live }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const tf = CHART_TIMEFRAMES.find((t) => t.id === timeframe) ?? CHART_TIMEFRAMES[4];
-  const useTv = Boolean(asset.tv_symbol);
-  const effectiveStyle: ChartStyle = useTv ? style : style === "candles" ? "area" : style;
+  // The chart must show the exact feed that settles trades, so every asset is
+  // rendered from the platform price engine (no external TradingView prices).
+  const useTv = false;
+  const effectiveStyle: ChartStyle = style === "candles" ? "area" : style;
+
 
   const toggleFullscreen = async () => {
     const el = wrapRef.current;
@@ -242,18 +245,17 @@ export function BinaryChart({ asset, live }: Props) {
         </div>
       </div>
 
-      <div className={cn("w-full", fullscreen ? "flex-1" : "h-[340px] sm:h-[420px]")}>
+      <div className={cn("w-full", fullscreen ? "flex-1" : "h-[260px] sm:h-[380px] xl:h-[420px]")}>
         {useTv ? (
           <TradingViewChart tvSymbol={asset.tv_symbol!} interval={tf.tvInterval} style={effectiveStyle} />
         ) : (
           <SyntheticChart asset={asset} style={effectiveStyle} stepMs={tf.stepMs} />
         )}
       </div>
-      {!useTv && (
-        <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
-          Synthetic index — priced by the Wealthora volatility engine.
-        </p>
-      )}
+      <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
+        Live Wealthora price feed — trades execute and settle on exactly these prices.
+      </p>
     </div>
+
   );
 }
