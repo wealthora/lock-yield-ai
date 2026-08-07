@@ -1,19 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Zap, ShieldAlert } from "lucide-react";
+import { Zap, ShieldAlert, ChevronDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BinaryAssetSelector } from "@/components/binary/BinaryAssetSelector";
 import { BinaryTickerStrip } from "@/components/binary/BinaryTickerStrip";
 
 import { BinaryChart } from "@/components/binary/BinaryChart";
 import { BinaryTradePanel } from "@/components/binary/BinaryTradePanel";
+import { BinaryMobileTradeBar } from "@/components/binary/BinaryMobileTradeBar";
 import { BinaryAIInsights } from "@/components/binary/BinaryAIInsights";
 import { ActiveBinaryTrades } from "@/components/binary/ActiveBinaryTrades";
 import { BinaryTradeHistory } from "@/components/binary/BinaryTradeHistory";
 import { BinaryPerformance } from "@/components/binary/BinaryPerformance";
 import { useBinaryPrices, useNow } from "@/hooks/useBinaryPrices";
+import { formatPrice } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinarySettings, BinaryTrade } from "@/lib/binaryTypes";
+
 
 export default function BinaryOptions() {
   const [assets, setAssets] = useState<BinaryAsset[]>([]);
