@@ -209,7 +209,7 @@ export function BinaryChart({ asset, live }: Props) {
   // The chart must show the exact feed that settles trades, so every asset is
   // rendered from the platform price engine (no external TradingView prices).
   const useTv = false;
-  const effectiveStyle: ChartStyle = style === "candles" ? "area" : style;
+  const effectiveStyle: ChartStyle = style;
 
 
   const toggleFullscreen = async () => {
