@@ -1,12 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  ComposedChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChart as LineIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
-import { priceSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
+import { priceSeries, candleSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
 import type { BinaryAsset } from "@/lib/binaryTypes";
 import type { LivePrice } from "@/hooks/useBinaryPrices";
+
 
 type ChartStyle = "candles" | "area" | "line";
 
