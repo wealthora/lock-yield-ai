@@ -6,6 +6,7 @@ import {
   Line,
   ComposedChart,
   Bar,
+  Customized,
   XAxis,
   YAxis,
   Tooltip,
@@ -164,6 +165,7 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
       <XAxis dataKey="t" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
       <YAxis
         domain={[min - pad, max + pad]}
+        allowDataOverflow
         tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
         width={70}
         tickFormatter={(v: number) => v.toFixed(decimals)}
