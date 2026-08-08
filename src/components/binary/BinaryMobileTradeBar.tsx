@@ -126,14 +126,14 @@ export function BinaryMobileTradeBar({ asset, live, settings, balance, placing, 
         <Button
           disabled={disabled}
           onClick={() => onPlace("call", stake, expiry)}
-          className="h-14 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="h-14 rounded-xl bg-none bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
           {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowUpRight className="h-5 w-5" /> CALL</>}
         </Button>
         <Button
           disabled={disabled}
           onClick={() => onPlace("put", stake, expiry)}
-          className="h-14 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
+          className="h-14 rounded-xl bg-none bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40 active:scale-[0.98] transition-transform"
         >
           {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ArrowDownRight className="h-5 w-5" /> PUT</>}
         </Button>

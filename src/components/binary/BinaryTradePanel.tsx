@@ -192,7 +192,7 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
         <Button
           disabled={disabled}
           onClick={() => onPlace("call", stake, expiry)}
-          className="h-14 flex-col gap-0 bg-accent text-accent-foreground hover:bg-accent/90 disabled:opacity-40"
+          className="h-14 flex-col gap-0 bg-none bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-none disabled:opacity-40"
         >
           {placing ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -208,7 +208,7 @@ export function BinaryTradePanel({ asset, live, settings, balance, placing, onPl
         <Button
           disabled={disabled}
           onClick={() => onPlace("put", stake, expiry)}
-          className="h-14 flex-col gap-0 bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-40"
+          className="h-14 flex-col gap-0 bg-none bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:shadow-none disabled:opacity-40"
         >
           {placing ? (
             <Loader2 className="h-5 w-5 animate-spin" />
