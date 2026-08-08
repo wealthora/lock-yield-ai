@@ -163,3 +163,43 @@ export function isMarketOpen(marketHours: string, at: Date = new Date()): boolea
   if (day === 5) return hour < 21;
   return true;
 }
+
+export interface Candle {
+  t: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+/**
+ * OHLC candles derived from the same deterministic tick engine that settles
+ * trades, so every asset (forex, indices, synthetics, OTC…) has candlesticks.
+ */
+export function candleSeries(
+  asset: PricingAsset,
+  points: number,
+  stepMs: number,
+  endMs: number = Date.now()
+): Candle[] {
+  const out: Candle[] = [];
+  const subTicks = Math.max(2, Math.min(40, Math.round(stepMs / TICK_MS)));
+  const sub = stepMs / subTicks;
+  for (let i = points - 1; i >= 0; i--) {
+    const start = endMs - i * stepMs;
+    let high = -Infinity;
+    let low = Infinity;
+    let open = 0;
+    let close = 0;
+    for (let k = 0; k <= subTicks; k++) {
+      const at = Math.min(start + k * sub, endMs);
+      const p = priceAt(asset, at);
+      if (k === 0) open = p;
+      close = p;
+      if (p > high) high = p;
+      if (p < low) low = p;
+    }
+    out.push({ t: start, open, high, low, close });
+  }
+  return out;
+}

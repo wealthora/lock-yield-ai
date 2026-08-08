@@ -1,12 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AreaChart, Area, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  AreaChart,
+  Area,
+  LineChart,
+  Line,
+  ComposedChart,
+  Bar,
+  Customized,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChart as LineIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
-import { priceSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
+import { priceSeries, candleSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
 import type { BinaryAsset } from "@/lib/binaryTypes";
 import type { LivePrice } from "@/hooks/useBinaryPrices";
+
 
 type ChartStyle = "candles" | "area" | "line";
 
@@ -47,6 +60,57 @@ function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; int
   return <div ref={ref} className="tradingview-widget-container h-full w-full" />;
 }
 
+interface CandleRow {
+  t: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+/**
+ * Candles are drawn through recharts' <Customized>, using the real axis scales
+ * so the price axis stays tight around the data for every asset type.
+ */
+function Candles(props: Record<string, unknown>) {
+  const data = (props.data ?? []) as CandleRow[];
+  const xMap = props.xAxisMap as Record<string, { scale: (v: unknown) => number; bandSize?: number }>;
+  const yMap = props.yAxisMap as Record<string, { scale: (v: number) => number }>;
+  const xAxis = xMap && Object.values(xMap)[0];
+  const yAxis = yMap && Object.values(yMap)[0];
+  if (!xAxis || !yAxis || !data.length) return null;
+  const band = xAxis.bandSize ?? 8;
+  const bw = Math.max(2, band * 0.6);
+
+  return (
+    <g>
+      {data.map((c, i) => {
+        const cx = xAxis.scale(c.t) + band / 2;
+        const up = c.close >= c.open;
+        const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
+        const yHigh = yAxis.scale(c.high);
+        const yLow = yAxis.scale(c.low);
+        const yTop = yAxis.scale(Math.max(c.open, c.close));
+        const yBottom = yAxis.scale(Math.min(c.open, c.close));
+        if (!Number.isFinite(cx) || !Number.isFinite(yHigh)) return null;
+        return (
+          <g key={i}>
+            <line x1={cx} x2={cx} y1={yHigh} y2={yLow} stroke={color} strokeWidth={1} />
+            <rect
+              x={cx - bw / 2}
+              y={yTop}
+              width={bw}
+              height={Math.max(1, yBottom - yTop)}
+              fill={color}
+            />
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
+
 function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; live?: LivePrice; style: ChartStyle; stepMs: number }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -54,18 +118,46 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
     return () => window.clearInterval(id);
   }, []);
 
+  const decimals = decimalsFor(asset);
+  const label = (t: number) =>
+    new Date(t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" });
+
+  const candles = useMemo(() => {
+    if (style !== "candles") return [];
+    const endMs = live?.ts ?? Date.now();
+    const raw = candleSeries(asset, 60, stepMs, endMs);
+    return raw.map((c, i) => {
+      const close = i === raw.length - 1 && live ? live.price : c.close;
+      const high = Math.max(c.high, close);
+      const low = Math.min(c.low, close);
+      return {
+        t: label(c.t),
+        open: Number(c.open.toFixed(decimals)),
+        close: Number(close.toFixed(decimals)),
+        high: Number(high.toFixed(decimals)),
+        low: Number(low.toFixed(decimals)),
+        // recharts needs a numeric bar value: base + span
+        low_: low,
+        range: high - low,
+      };
+    });
+    // tick drives the live refresh
+  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
+
   const data = useMemo(() => {
+    if (style === "candles") return [];
     const endMs = live?.ts ?? Date.now();
     const raw = priceSeries(asset, 90, stepMs, endMs);
     return raw.map((p) => ({
-      t: new Date(p.t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" }),
-      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimalsFor(asset))),
+      t: label(p.t),
+      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimals)),
     }));
     // tick drives the live refresh
-  }, [asset.symbol, live?.price, live?.ts, stepMs, tick]);
+  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
 
-  const min = Math.min(...data.map((d) => d.price));
-  const max = Math.max(...data.map((d) => d.price));
+  const values = style === "candles" ? candles.flatMap((c) => [c.high, c.low]) : data.map((d) => d.price);
+  const min = values.length ? Math.min(...values) : 0;
+  const max = values.length ? Math.max(...values) : 1;
   const pad = (max - min) * 0.12 || max * 0.001;
 
   const axes = (
@@ -73,9 +165,10 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
       <XAxis dataKey="t" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
       <YAxis
         domain={[min - pad, max + pad]}
+        allowDataOverflow
         tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
         width={70}
-        tickFormatter={(v: number) => v.toFixed(decimalsFor(asset))}
+        tickFormatter={(v: number) => v.toFixed(decimals)}
       />
       <Tooltip
         contentStyle={{
@@ -87,6 +180,19 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
       />
     </>
   );
+
+  if (style === "candles") {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={candles}>
+          {axes}
+          <Bar dataKey="close" fill="transparent" isAnimationActive={false} />
+          <Customized component={Candles} />
+        </ComposedChart>
+
+      </ResponsiveContainer>
+    );
+  }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -117,6 +223,7 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
   );
 }
 
+
 export function BinaryChart({ asset, live }: Props) {
   const [timeframe, setTimeframe] = useState("1m");
   const [style, setStyle] = useState<ChartStyle>("candles");
@@ -127,7 +234,7 @@ export function BinaryChart({ asset, live }: Props) {
   // The chart must show the exact feed that settles trades, so every asset is
   // rendered from the platform price engine (no external TradingView prices).
   const useTv = false;
-  const effectiveStyle: ChartStyle = style === "candles" ? "area" : style;
+  const effectiveStyle: ChartStyle = style;
 
 
   const toggleFullscreen = async () => {
