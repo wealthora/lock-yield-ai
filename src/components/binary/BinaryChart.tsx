@@ -184,9 +184,10 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={candles}>
           {axes}
-          <Bar dataKey="low_" stackId="c" fill="transparent" isAnimationActive={false} />
-          <Bar dataKey="range" stackId="c" shape={<Candle />} isAnimationActive={false} />
+          <Bar dataKey="close" fill="transparent" isAnimationActive={false} />
+          <Customized component={Candles} />
         </ComposedChart>
+
       </ResponsiveContainer>
     );
   }
