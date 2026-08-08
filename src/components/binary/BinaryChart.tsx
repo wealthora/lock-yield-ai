@@ -59,34 +59,56 @@ function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; int
   return <div ref={ref} className="tradingview-widget-container h-full w-full" />;
 }
 
-interface CandleShapeProps {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  payload?: { open: number; high: number; low: number; close: number; low_: number; range: number };
+interface CandleRow {
+  t: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
 }
 
-/** Draws a wick + body candle inside the space recharts allocates to the bar. */
-function Candle({ x = 0, y = 0, width = 0, height = 0, payload }: CandleShapeProps) {
-  if (!payload || !height) return null;
-  const { open, close, high, low } = payload;
-  const span = high - low || 1;
-  const scale = height / span;
-  const topOf = (v: number) => y + (high - v) * scale;
-  const up = close >= open;
-  const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
-  const bodyTop = topOf(Math.max(open, close));
-  const bodyH = Math.max(1, Math.abs(close - open) * scale);
-  const bw = Math.max(2, width * 0.6);
-  const bx = x + (width - bw) / 2;
+/**
+ * Candles are drawn through recharts' <Customized>, using the real axis scales
+ * so the price axis stays tight around the data for every asset type.
+ */
+function Candles(props: Record<string, unknown>) {
+  const data = (props.data ?? []) as CandleRow[];
+  const xMap = props.xAxisMap as Record<string, { scale: (v: unknown) => number; bandSize?: number }>;
+  const yMap = props.yAxisMap as Record<string, { scale: (v: number) => number }>;
+  const xAxis = xMap && Object.values(xMap)[0];
+  const yAxis = yMap && Object.values(yMap)[0];
+  if (!xAxis || !yAxis || !data.length) return null;
+  const band = xAxis.bandSize ?? 8;
+  const bw = Math.max(2, band * 0.6);
+
   return (
     <g>
-      <line x1={x + width / 2} x2={x + width / 2} y1={topOf(high)} y2={topOf(low)} stroke={color} strokeWidth={1} />
-      <rect x={bx} y={bodyTop} width={bw} height={bodyH} fill={color} />
+      {data.map((c, i) => {
+        const cx = xAxis.scale(c.t) + band / 2;
+        const up = c.close >= c.open;
+        const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
+        const yHigh = yAxis.scale(c.high);
+        const yLow = yAxis.scale(c.low);
+        const yTop = yAxis.scale(Math.max(c.open, c.close));
+        const yBottom = yAxis.scale(Math.min(c.open, c.close));
+        if (!Number.isFinite(cx) || !Number.isFinite(yHigh)) return null;
+        return (
+          <g key={i}>
+            <line x1={cx} x2={cx} y1={yHigh} y2={yLow} stroke={color} strokeWidth={1} />
+            <rect
+              x={cx - bw / 2}
+              y={yTop}
+              width={bw}
+              height={Math.max(1, yBottom - yTop)}
+              fill={color}
+            />
+          </g>
+        );
+      })}
     </g>
   );
 }
+
 
 function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; live?: LivePrice; style: ChartStyle; stepMs: number }) {
   const [tick, setTick] = useState(0);
