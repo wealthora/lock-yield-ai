@@ -59,6 +59,35 @@ function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; int
   return <div ref={ref} className="tradingview-widget-container h-full w-full" />;
 }
 
+interface CandleShapeProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  payload?: { open: number; high: number; low: number; close: number; low_: number; range: number };
+}
+
+/** Draws a wick + body candle inside the space recharts allocates to the bar. */
+function Candle({ x = 0, y = 0, width = 0, height = 0, payload }: CandleShapeProps) {
+  if (!payload || !height) return null;
+  const { open, close, high, low } = payload;
+  const span = high - low || 1;
+  const scale = height / span;
+  const topOf = (v: number) => y + (high - v) * scale;
+  const up = close >= open;
+  const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
+  const bodyTop = topOf(Math.max(open, close));
+  const bodyH = Math.max(1, Math.abs(close - open) * scale);
+  const bw = Math.max(2, width * 0.6);
+  const bx = x + (width - bw) / 2;
+  return (
+    <g>
+      <line x1={x + width / 2} x2={x + width / 2} y1={topOf(high)} y2={topOf(low)} stroke={color} strokeWidth={1} />
+      <rect x={bx} y={bodyTop} width={bw} height={bodyH} fill={color} />
+    </g>
+  );
+}
+
 function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; live?: LivePrice; style: ChartStyle; stepMs: number }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -66,18 +95,46 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
     return () => window.clearInterval(id);
   }, []);
 
+  const decimals = decimalsFor(asset);
+  const label = (t: number) =>
+    new Date(t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" });
+
+  const candles = useMemo(() => {
+    if (style !== "candles") return [];
+    const endMs = live?.ts ?? Date.now();
+    const raw = candleSeries(asset, 60, stepMs, endMs);
+    return raw.map((c, i) => {
+      const close = i === raw.length - 1 && live ? live.price : c.close;
+      const high = Math.max(c.high, close);
+      const low = Math.min(c.low, close);
+      return {
+        t: label(c.t),
+        open: Number(c.open.toFixed(decimals)),
+        close: Number(close.toFixed(decimals)),
+        high: Number(high.toFixed(decimals)),
+        low: Number(low.toFixed(decimals)),
+        // recharts needs a numeric bar value: base + span
+        low_: low,
+        range: high - low,
+      };
+    });
+    // tick drives the live refresh
+  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
+
   const data = useMemo(() => {
+    if (style === "candles") return [];
     const endMs = live?.ts ?? Date.now();
     const raw = priceSeries(asset, 90, stepMs, endMs);
     return raw.map((p) => ({
-      t: new Date(p.t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" }),
-      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimalsFor(asset))),
+      t: label(p.t),
+      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimals)),
     }));
     // tick drives the live refresh
-  }, [asset.symbol, live?.price, live?.ts, stepMs, tick]);
+  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
 
-  const min = Math.min(...data.map((d) => d.price));
-  const max = Math.max(...data.map((d) => d.price));
+  const values = style === "candles" ? candles.flatMap((c) => [c.high, c.low]) : data.map((d) => d.price);
+  const min = values.length ? Math.min(...values) : 0;
+  const max = values.length ? Math.max(...values) : 1;
   const pad = (max - min) * 0.12 || max * 0.001;
 
   const axes = (
@@ -87,7 +144,7 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
         domain={[min - pad, max + pad]}
         tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
         width={70}
-        tickFormatter={(v: number) => v.toFixed(decimalsFor(asset))}
+        tickFormatter={(v: number) => v.toFixed(decimals)}
       />
       <Tooltip
         contentStyle={{
@@ -99,6 +156,18 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
       />
     </>
   );
+
+  if (style === "candles") {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={candles}>
+          {axes}
+          <Bar dataKey="low_" stackId="c" fill="transparent" isAnimationActive={false} />
+          <Bar dataKey="range" stackId="c" shape={<Candle />} isAnimationActive={false} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    );
+  }
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -128,6 +197,7 @@ function SyntheticChart({ asset, live, style, stepMs }: { asset: BinaryAsset; li
     </ResponsiveContainer>
   );
 }
+
 
 export function BinaryChart({ asset, live }: Props) {
   const [timeframe, setTimeframe] = useState("1m");
