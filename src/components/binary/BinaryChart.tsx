@@ -592,7 +592,15 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
         {useTv ? (
           <TradingViewChart tvSymbol={asset.tv_symbol!} interval={tf.tvInterval} style={effectiveStyle} />
         ) : (
-          <SyntheticChart asset={asset} live={live} style={effectiveStyle} stepMs={tf.stepMs} />
+          <SyntheticChart
+            asset={asset}
+            live={live}
+            style={effectiveStyle}
+            stepMs={tf.stepMs}
+            markers={markers}
+            now={now}
+          />
+
         )}
       </div>
       <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
