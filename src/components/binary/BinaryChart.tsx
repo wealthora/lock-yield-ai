@@ -388,6 +388,7 @@ function SyntheticChart({
           {axes}
           <Bar dataKey="close" fill="transparent" isAnimationActive={false} />
           <Customized component={Candles} />
+          <Customized component={overlay} />
         </ComposedChart>
 
       </ResponsiveContainer>
@@ -400,6 +401,7 @@ function SyntheticChart({
         <LineChart data={data}>
           {axes}
           <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+          <Customized component={overlay} />
         </LineChart>
       ) : (
         <AreaChart data={data}>
@@ -417,6 +419,7 @@ function SyntheticChart({
             strokeWidth={2}
             fill="url(#binaryFill)"
           />
+          <Customized component={overlay} />
         </AreaChart>
       )}
     </ResponsiveContainer>
@@ -424,7 +427,8 @@ function SyntheticChart({
 }
 
 
-export function BinaryChart({ asset, live }: Props) {
+export function BinaryChart({ asset, live, trades = [] }: Props) {
+
   const [timeframe, setTimeframe] = useState("1m");
   const [style, setStyle] = useState<ChartStyle>("candles");
   const [fullscreen, setFullscreen] = useState(false);
