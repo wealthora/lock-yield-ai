@@ -440,6 +440,37 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
   const useTv = false;
   const effectiveStyle: ChartStyle = style;
 
+  const now = useNow(500);
+
+  /**
+   * Markers for the selected instrument only, so chart and trade state stay in
+   * sync when the user switches asset or timeframe. entry_price is read
+   * straight off the trade record (immutable) — never from the live feed.
+   */
+  const markers: MarkerTrade[] = useMemo(() => {
+    const cutoff = now - 10 * 60 * 1000;
+    return trades
+      .filter(
+        (t) =>
+          t.symbol === asset.symbol &&
+          (t.status === "open" || new Date(t.settled_at ?? t.expires_at).getTime() >= cutoff)
+      )
+      .slice(0, 12)
+      .map((t) => ({
+        id: t.id,
+        direction: t.direction,
+        stake: Number(t.stake),
+        entryPrice: Number(t.entry_price),
+        exitPrice: t.exit_price == null ? null : Number(t.exit_price),
+        openedAt: new Date(t.opened_at).getTime(),
+        expiresAt: new Date(t.expires_at).getTime(),
+        status: t.status,
+        result: t.result,
+        potentialPayout: Number(t.potential_payout),
+      }));
+  }, [trades, asset.symbol, Math.floor(now / 60000)]);
+
+
 
   const toggleFullscreen = async () => {
     const el = wrapRef.current;
