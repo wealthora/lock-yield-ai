@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
 import { priceSeries, candleSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
-import type { BinaryAsset } from "@/lib/binaryTypes";
+import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import type { LivePrice } from "@/hooks/useBinaryPrices";
 
 
