@@ -222,7 +222,7 @@ export default function BinaryOptions() {
         </Sheet>
 
         {asset ? (
-          <BinaryChart asset={asset} live={prices[asset.symbol]} />
+          <BinaryChart asset={asset} live={prices[asset.symbol]} trades={trades} />
         ) : (
           <div className="glass-panel rounded-xl border border-border/60 h-[260px]" />
         )}
@@ -283,7 +283,7 @@ export default function BinaryOptions() {
 
         <div className="space-y-3 min-w-0">
           {asset ? (
-            <BinaryChart asset={asset} live={prices[asset.symbol]} />
+            <BinaryChart asset={asset} live={prices[asset.symbol]} trades={trades} />
           ) : (
             <div className="glass-panel rounded-xl border border-border/60 h-[340px]" />
           )}
