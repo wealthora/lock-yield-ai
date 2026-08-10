@@ -26,7 +26,10 @@ type ChartStyle = "candles" | "area" | "line";
 interface Props {
   asset: BinaryAsset;
   live?: LivePrice;
+  /** Trades on any asset — filtered to this symbol for chart annotations. */
+  trades?: BinaryTrade[];
 }
+
 
 function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; interval: string; style: ChartStyle }) {
   const ref = useRef<HTMLDivElement>(null);
