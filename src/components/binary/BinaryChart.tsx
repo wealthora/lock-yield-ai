@@ -348,9 +348,17 @@ function SyntheticChart({
   }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
 
   const values = style === "candles" ? candles.flatMap((c) => [c.high, c.low]) : data.map((d) => d.price);
-  const min = values.length ? Math.min(...values) : 0;
-  const max = values.length ? Math.max(...values) : 1;
+  // Keep open-trade entry levels inside the visible price range.
+  const marked = markers.filter((m) => m.status === "open").map((m) => m.entryPrice);
+  const all = [...values, ...marked];
+  const min = all.length ? Math.min(...all) : 0;
+  const max = all.length ? Math.max(...all) : 1;
   const pad = (max - min) * 0.12 || max * 0.001;
+
+  const overlay = (p: Record<string, unknown>) => (
+    <PriceOverlay {...p} asset={asset} live={live} trades={markers} now={now} />
+  );
+
 
   const axes = (
     <>
