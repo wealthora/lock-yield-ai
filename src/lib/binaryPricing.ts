@@ -93,8 +93,13 @@ export function priceAt(asset: PricingAsset, atMs: number = Date.now()): number 
     const phase = seeded(seed + i * 977) * Math.PI * 2;
     drift += Math.sin((t / period) * Math.PI * 2 + phase) * amp;
   }
-  // Micro tick noise keeps consecutive ticks from looking too smooth.
-  drift += (seeded(seed + t) - 0.5) * 0.35;
+  // Fine-grained continuous micro structure: three octaves of smooth noise.
+  // Because each octave is interpolated, tick N+1 is always a small step from
+  // tick N — no discontinuous jumps between unrelated values.
+  drift += smoothNoise(seed + 101, t / 23) * 0.22;
+  drift += smoothNoise(seed + 211, t / 9) * 0.1;
+  drift += smoothNoise(seed + 331, t / 3.5) * 0.045;
+
 
   let multiplier = 1 + drift * vol;
 
