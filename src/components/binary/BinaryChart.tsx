@@ -212,7 +212,7 @@ function Candles(props: Record<string, unknown>) {
 
   return (
     <g>
-      {data.map((c, i) => {
+      {data.map((c) => {
         const cx = xAxis.scale(c.t) + band / 2;
         const up = c.close >= c.open;
         const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
