@@ -387,12 +387,15 @@ function PriceOverlay(props: Record<string, unknown>) {
         );
       })}
 
+      {/* ---- reserved right price area ---- */}
+      <line x1={x2} x2={x2} y1={top} y2={bottom} stroke="hsl(var(--border))" strokeWidth={1} opacity={0.5} />
+
       {/* ---- current price line (moves) ---- */}
       {liveY != null && live && (
         <g>
           <line
             x1={x1}
-            x2={x2}
+            x2={gutterEnd - badgeW - 2}
             y1={liveY}
             y2={liveY}
             stroke="hsl(var(--primary))"
@@ -401,15 +404,15 @@ function PriceOverlay(props: Record<string, unknown>) {
             filter="url(#wo-line-glow)"
           />
           <rect
-            x={x2 - 72}
+            x={gutterEnd - badgeW}
             y={liveY - 9}
-            width={72}
+            width={badgeW}
             height={18}
             rx={3}
             fill="hsl(var(--primary))"
           />
           <text
-            x={x2 - 36}
+            x={gutterEnd - badgeW / 2}
             y={liveY + 4}
             textAnchor="middle"
             fontSize={10}
@@ -420,6 +423,7 @@ function PriceOverlay(props: Record<string, unknown>) {
             {formatPrice(asset, live.price)}
           </text>
         </g>
+
       )}
     </g>
   );
