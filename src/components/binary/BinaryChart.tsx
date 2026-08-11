@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChar
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
-import { priceSeries, candleSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
+import { TICK_MS, priceAt, priceSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import { useNow, type LivePrice } from "@/hooks/useBinaryPrices";
 
@@ -64,11 +64,136 @@ function TradingViewChart({ tvSymbol, interval, style }: { tvSymbol: string; int
 }
 
 interface CandleRow {
-  t: string;
+  t: number;
   open: number;
   high: number;
   low: number;
   close: number;
+  finalized: boolean;
+}
+
+interface CandleState {
+  key: string;
+  history: CandleRow[];
+  active: CandleRow;
+}
+
+const HISTORY_CANDLE_COUNT = 60;
+
+function intervalStart(timestamp: number, stepMs: number) {
+  return Math.floor(timestamp / stepMs) * stepMs;
+}
+
+/** Build a closed candle once from its fixed interval. It is never recomputed after insertion. */
+function buildClosedCandle(asset: BinaryAsset, start: number, stepMs: number): CandleRow {
+  const samples = Math.max(2, Math.min(120, Math.ceil(stepMs / TICK_MS)));
+  const sampleStep = stepMs / samples;
+  let open = priceAt(asset, start);
+  let high = open;
+  let low = open;
+  let close = open;
+
+  for (let index = 1; index <= samples; index += 1) {
+    const price = priceAt(asset, Math.min(start + index * sampleStep, start + stepMs - 1));
+    high = Math.max(high, price);
+    low = Math.min(low, price);
+    close = price;
+  }
+
+  return { t: start, open, high, low, close, finalized: true };
+}
+
+function createInitialCandleState(asset: BinaryAsset, stepMs: number, quote?: LivePrice): CandleState {
+  const timestamp = quote?.ts ?? Date.now();
+  const activeStart = intervalStart(timestamp, stepMs);
+  const history: CandleRow[] = [];
+
+  for (let index = HISTORY_CANDLE_COUNT; index > 0; index -= 1) {
+    history.push(buildClosedCandle(asset, activeStart - index * stepMs, stepMs));
+  }
+
+  const previousClose = history[history.length - 1]?.close ?? priceAt(asset, activeStart);
+  const livePrice = quote?.price ?? previousClose;
+  return {
+    key: `${asset.symbol}:${stepMs}`,
+    history,
+    active: {
+      t: activeStart,
+      open: previousClose,
+      high: Math.max(previousClose, livePrice),
+      low: Math.min(previousClose, livePrice),
+      close: livePrice,
+      finalized: false,
+    },
+  };
+}
+
+/**
+ * Maintains three separate concerns: immutable closed candles, one active
+ * candle, and the independent live quote. Historical objects are only added
+ * and trimmed; an incoming quote can update only the active object.
+ */
+function useImmutableCandles(asset: BinaryAsset, stepMs: number, live?: LivePrice) {
+  const stateKey = `${asset.symbol}:${stepMs}`;
+  const [state, setState] = useState<CandleState>(() => createInitialCandleState(asset, stepMs, live));
+
+  useEffect(() => {
+    setState(createInitialCandleState(asset, stepMs, live));
+  }, [stateKey]);
+
+  useEffect(() => {
+    if (!live) return;
+    const nextStart = intervalStart(live.ts, stepMs);
+
+    setState((current) => {
+      if (current.key !== stateKey) return createInitialCandleState(asset, stepMs, live);
+
+      if (nextStart === current.active.t) {
+        const price = live.price;
+        return {
+          ...current,
+          active: {
+            ...current.active,
+            high: Math.max(current.active.high, price),
+            low: Math.min(current.active.low, price),
+            close: price,
+          },
+        };
+      }
+
+      if (nextStart < current.active.t) return current;
+
+      // Finalize a new object and never reference it as the active candle again.
+      const finalized: CandleRow = { ...current.active, finalized: true };
+      const additions: CandleRow[] = [finalized];
+      let previousClose = finalized.close;
+
+      // Fill intervals missed while the tab was suspended. Each object is
+      // constructed once for its own closed interval and then locked in history.
+      for (let start = current.active.t + stepMs; start < nextStart; start += stepMs) {
+        const closed = buildClosedCandle(asset, start, stepMs);
+        additions.push(closed);
+        previousClose = closed.close;
+      }
+
+      const price = live.price;
+      const history = [...current.history, ...additions].slice(-HISTORY_CANDLE_COUNT);
+      return {
+        key: stateKey,
+        history,
+        active: {
+          t: nextStart,
+          open: previousClose,
+          high: Math.max(previousClose, price),
+          low: Math.min(previousClose, price),
+          close: price,
+          finalized: false,
+        },
+      };
+    });
+  }, [asset, live?.price, live?.ts, stateKey, stepMs]);
+
+  return state.key === stateKey ? [...state.history, state.active] : [];
 }
 
 /**
@@ -87,7 +212,7 @@ function Candles(props: Record<string, unknown>) {
 
   return (
     <g>
-      {data.map((c, i) => {
+      {data.map((c) => {
         const cx = xAxis.scale(c.t) + band / 2;
         const up = c.close >= c.open;
         const color = up ? "hsl(var(--accent))" : "hsl(var(--destructive))";
@@ -97,7 +222,7 @@ function Candles(props: Record<string, unknown>) {
         const yBottom = yAxis.scale(Math.min(c.open, c.close));
         if (!Number.isFinite(cx) || !Number.isFinite(yHigh)) return null;
         return (
-          <g key={i}>
+          <g key={c.t}>
             <line x1={cx} x2={cx} y1={yHigh} y2={yLow} stroke={color} strokeWidth={1} />
             <rect
               x={cx - bw / 2}
@@ -314,27 +439,7 @@ function SyntheticChart({
   const label = (t: number) =>
     new Date(t).toLocaleTimeString("en-US", { hour12: false, minute: "2-digit", second: "2-digit" });
 
-  const candles = useMemo(() => {
-    if (style !== "candles") return [];
-    const endMs = live?.ts ?? Date.now();
-    const raw = candleSeries(asset, 60, stepMs, endMs);
-    return raw.map((c, i) => {
-      const close = i === raw.length - 1 && live ? live.price : c.close;
-      const high = Math.max(c.high, close);
-      const low = Math.min(c.low, close);
-      return {
-        t: label(c.t),
-        open: Number(c.open.toFixed(decimals)),
-        close: Number(close.toFixed(decimals)),
-        high: Number(high.toFixed(decimals)),
-        low: Number(low.toFixed(decimals)),
-        // recharts needs a numeric bar value: base + span
-        low_: low,
-        range: high - low,
-      };
-    });
-    // tick drives the live refresh
-  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
+  const candles = useImmutableCandles(asset, stepMs, live);
 
   const data = useMemo(() => {
     if (style === "candles") return [];
@@ -362,7 +467,12 @@ function SyntheticChart({
 
   const axes = (
     <>
-      <XAxis dataKey="t" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
+      <XAxis
+        dataKey="t"
+        tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+        interval="preserveStartEnd"
+        tickFormatter={(value: number) => label(value)}
+      />
       <YAxis
         domain={[min - pad, max + pad]}
         allowDataOverflow
@@ -371,6 +481,7 @@ function SyntheticChart({
         tickFormatter={(v: number) => v.toFixed(decimals)}
       />
       <Tooltip
+        labelFormatter={(value) => label(Number(value))}
         contentStyle={{
           background: "hsl(var(--card))",
           border: "1px solid hsl(var(--border))",
