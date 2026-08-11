@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChar
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
-import { TICK_MS, priceAt, priceSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
+import { TICK_MS, priceAt, formatPrice, decimalsFor } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import { useNow, type LivePrice } from "@/hooks/useBinaryPrices";
 
@@ -79,6 +79,14 @@ interface CandleState {
 }
 
 const HISTORY_CANDLE_COUNT = 60;
+
+/**
+ * Reserved right-hand price area (px). The plotting area stops before it, so
+ * the newest candle/point never touches the edge and the current-price badge
+ * always has clear space to render in.
+ */
+const RIGHT_GUTTER = 84;
+const CHART_MARGIN = { top: 8, right: RIGHT_GUTTER, bottom: 0, left: 0 };
 
 function intervalStart(timestamp: number, stepMs: number) {
   return Math.floor(timestamp / stepMs) * stepMs;
@@ -264,6 +272,7 @@ function PriceOverlay(props: Record<string, unknown>) {
     live,
     trades,
     now,
+    gutter,
   } = props as unknown as {
     yAxisMap: Record<string, { scale: (v: number) => number }>;
     offset: { left: number; top: number; width: number; height: number };
@@ -271,6 +280,7 @@ function PriceOverlay(props: Record<string, unknown>) {
     live?: LivePrice;
     trades: MarkerTrade[];
     now: number;
+    gutter: number;
   };
 
   const yAxis = yAxisMap && Object.values(yAxisMap)[0];
@@ -278,7 +288,11 @@ function PriceOverlay(props: Record<string, unknown>) {
 
   const x1 = offset.left;
   const x2 = offset.left + offset.width;
+  // Right-side price area: reserved by the chart margin, drawn into here only.
+  const gutterEnd = x2 + gutter;
+  const badgeW = Math.min(gutter - 6, 74);
   const top = offset.top;
+
   const bottom = offset.top + offset.height;
   const clamp = (y: number) => Math.min(bottom - 6, Math.max(top + 6, y));
   const inView = (y: number) => Number.isFinite(y) && y >= top - 40 && y <= bottom + 40;
@@ -374,12 +388,15 @@ function PriceOverlay(props: Record<string, unknown>) {
         );
       })}
 
+      {/* ---- reserved right price area ---- */}
+      <line x1={x2} x2={x2} y1={top} y2={bottom} stroke="hsl(var(--border))" strokeWidth={1} opacity={0.5} />
+
       {/* ---- current price line (moves) ---- */}
       {liveY != null && live && (
         <g>
           <line
             x1={x1}
-            x2={x2}
+            x2={gutterEnd - badgeW - 2}
             y1={liveY}
             y2={liveY}
             stroke="hsl(var(--primary))"
@@ -388,15 +405,15 @@ function PriceOverlay(props: Record<string, unknown>) {
             filter="url(#wo-line-glow)"
           />
           <rect
-            x={x2 - 72}
+            x={gutterEnd - badgeW}
             y={liveY - 9}
-            width={72}
+            width={badgeW}
             height={18}
             rx={3}
             fill="hsl(var(--primary))"
           />
           <text
-            x={x2 - 36}
+            x={gutterEnd - badgeW / 2}
             y={liveY + 4}
             textAnchor="middle"
             fontSize={10}
@@ -407,6 +424,7 @@ function PriceOverlay(props: Record<string, unknown>) {
             {formatPrice(asset, live.price)}
           </text>
         </g>
+
       )}
     </g>
   );
@@ -441,16 +459,12 @@ function SyntheticChart({
 
   const candles = useImmutableCandles(asset, stepMs, live);
 
-  const data = useMemo(() => {
-    if (style === "candles") return [];
-    const endMs = live?.ts ?? Date.now();
-    const raw = priceSeries(asset, 90, stepMs, endMs);
-    return raw.map((p) => ({
-      t: label(p.t),
-      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimals)),
-    }));
-    // tick drives the live refresh
-  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
+  // Line/area share the exact same immutable candle state as the candlestick
+  // view: closed points never move, only the last (active) point updates.
+  const data = useMemo(
+    () => candles.map((c) => ({ t: c.t, price: Number(c.close.toFixed(decimals)) })),
+    [candles, decimals]
+  );
 
   const values = style === "candles" ? candles.flatMap((c) => [c.high, c.low]) : data.map((d) => d.price);
   // Keep open-trade entry levels inside the visible price range.
@@ -461,8 +475,9 @@ function SyntheticChart({
   const pad = (max - min) * 0.12 || max * 0.001;
 
   const overlay = (p: Record<string, unknown>) => (
-    <PriceOverlay {...p} asset={asset} live={live} trades={markers} now={now} />
+    <PriceOverlay {...p} asset={asset} live={live} trades={markers} now={now} gutter={RIGHT_GUTTER} />
   );
+
 
 
   const axes = (
@@ -495,7 +510,7 @@ function SyntheticChart({
   if (style === "candles") {
     return (
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={candles}>
+        <ComposedChart data={candles} margin={CHART_MARGIN}>
           {axes}
           <Bar dataKey="close" fill="transparent" isAnimationActive={false} />
           <Customized component={Candles} />
@@ -509,13 +524,13 @@ function SyntheticChart({
   return (
     <ResponsiveContainer width="100%" height="100%">
       {style === "line" ? (
-        <LineChart data={data}>
+        <LineChart data={data} margin={CHART_MARGIN}>
           {axes}
           <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
           <Customized component={overlay} />
         </LineChart>
       ) : (
-        <AreaChart data={data}>
+        <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>
             <linearGradient id="binaryFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
