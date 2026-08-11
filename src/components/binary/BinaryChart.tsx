@@ -222,7 +222,7 @@ function Candles(props: Record<string, unknown>) {
         const yBottom = yAxis.scale(Math.min(c.open, c.close));
         if (!Number.isFinite(cx) || !Number.isFinite(yHigh)) return null;
         return (
-          <g key={i}>
+          <g key={c.t}>
             <line x1={cx} x2={cx} y1={yHigh} y2={yLow} stroke={color} strokeWidth={1} />
             <rect
               x={cx - bw / 2}
