@@ -16,7 +16,7 @@ import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChar
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
-import { TICK_MS, priceAt, priceSeries, formatPrice, decimalsFor } from "@/lib/binaryPricing";
+import { TICK_MS, priceAt, formatPrice, decimalsFor } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import { useNow, type LivePrice } from "@/hooks/useBinaryPrices";
 
@@ -86,6 +86,7 @@ const HISTORY_CANDLE_COUNT = 60;
  * always has clear space to render in.
  */
 const RIGHT_GUTTER = 84;
+const CHART_MARGIN = { top: 8, right: RIGHT_GUTTER, bottom: 0, left: 0 };
 
 function intervalStart(timestamp: number, stepMs: number) {
   return Math.floor(timestamp / stepMs) * stepMs;
@@ -509,7 +510,7 @@ function SyntheticChart({
   if (style === "candles") {
     return (
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={candles}>
+        <ComposedChart data={candles} margin={CHART_MARGIN}>
           {axes}
           <Bar dataKey="close" fill="transparent" isAnimationActive={false} />
           <Customized component={Candles} />
@@ -523,13 +524,13 @@ function SyntheticChart({
   return (
     <ResponsiveContainer width="100%" height="100%">
       {style === "line" ? (
-        <LineChart data={data}>
+        <LineChart data={data} margin={CHART_MARGIN}>
           {axes}
           <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
           <Customized component={overlay} />
         </LineChart>
       ) : (
-        <AreaChart data={data}>
+        <AreaChart data={data} margin={CHART_MARGIN}>
           <defs>
             <linearGradient id="binaryFill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.45} />
