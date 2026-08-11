@@ -441,16 +441,12 @@ function SyntheticChart({
 
   const candles = useImmutableCandles(asset, stepMs, live);
 
-  const data = useMemo(() => {
-    if (style === "candles") return [];
-    const endMs = live?.ts ?? Date.now();
-    const raw = priceSeries(asset, 90, stepMs, endMs);
-    return raw.map((p) => ({
-      t: label(p.t),
-      price: Number((live && p.t === endMs ? live.price : p.price).toFixed(decimals)),
-    }));
-    // tick drives the live refresh
-  }, [asset.symbol, live?.price, live?.ts, stepMs, tick, style, decimals]);
+  // Line/area share the exact same immutable candle state as the candlestick
+  // view: closed points never move, only the last (active) point updates.
+  const data = useMemo(
+    () => candles.map((c) => ({ t: c.t, price: Number(c.close.toFixed(decimals)) })),
+    [candles, decimals]
+  );
 
   const values = style === "candles" ? candles.flatMap((c) => [c.high, c.low]) : data.map((d) => d.price);
   // Keep open-trade entry levels inside the visible price range.
@@ -461,8 +457,9 @@ function SyntheticChart({
   const pad = (max - min) * 0.12 || max * 0.001;
 
   const overlay = (p: Record<string, unknown>) => (
-    <PriceOverlay {...p} asset={asset} live={live} trades={markers} now={now} />
+    <PriceOverlay {...p} asset={asset} live={live} trades={markers} now={now} gutter={RIGHT_GUTTER} />
   );
+
 
 
   const axes = (
