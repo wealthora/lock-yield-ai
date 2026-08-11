@@ -80,6 +80,13 @@ interface CandleState {
 
 const HISTORY_CANDLE_COUNT = 60;
 
+/**
+ * Reserved right-hand price area (px). The plotting area stops before it, so
+ * the newest candle/point never touches the edge and the current-price badge
+ * always has clear space to render in.
+ */
+const RIGHT_GUTTER = 84;
+
 function intervalStart(timestamp: number, stepMs: number) {
   return Math.floor(timestamp / stepMs) * stepMs;
 }
