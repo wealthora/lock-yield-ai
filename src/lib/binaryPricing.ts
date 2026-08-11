@@ -40,6 +40,22 @@ function seeded(seed: number): number {
   return x - Math.floor(x);
 }
 
+/**
+ * Smooth (continuous) value noise in [-1,1].
+ * Interpolating between integer lattice points guarantees that consecutive
+ * ticks are derived from the same underlying curve, so the price evolves from
+ * its previous value instead of jumping to an unrelated random number.
+ */
+function smoothNoise(seed: number, x: number): number {
+  const i = Math.floor(x);
+  const f = x - i;
+  const s = f * f * (3 - 2 * f);
+  const a = seeded(seed + i * 7919);
+  const b = seeded(seed + (i + 1) * 7919);
+  return (a + (b - a) * s) * 2 - 1;
+}
+
+
 function specialBehaviour(symbol: string) {
   const s = symbol.toLowerCase();
   if (s.startsWith("crash")) return { kind: "crash" as const, ticks: Number(s.replace(/\D/g, "")) || 500 };
