@@ -271,6 +271,7 @@ function PriceOverlay(props: Record<string, unknown>) {
     live,
     trades,
     now,
+    gutter,
   } = props as unknown as {
     yAxisMap: Record<string, { scale: (v: number) => number }>;
     offset: { left: number; top: number; width: number; height: number };
@@ -278,6 +279,7 @@ function PriceOverlay(props: Record<string, unknown>) {
     live?: LivePrice;
     trades: MarkerTrade[];
     now: number;
+    gutter: number;
   };
 
   const yAxis = yAxisMap && Object.values(yAxisMap)[0];
@@ -285,7 +287,11 @@ function PriceOverlay(props: Record<string, unknown>) {
 
   const x1 = offset.left;
   const x2 = offset.left + offset.width;
+  // Right-side price area: reserved by the chart margin, drawn into here only.
+  const gutterEnd = x2 + gutter;
+  const badgeW = Math.min(gutter - 6, 74);
   const top = offset.top;
+
   const bottom = offset.top + offset.height;
   const clamp = (y: number) => Math.min(bottom - 6, Math.max(top + 6, y));
   const inView = (y: number) => Number.isFinite(y) && y >= top - 40 && y <= bottom + 40;
