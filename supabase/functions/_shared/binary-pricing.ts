@@ -40,6 +40,22 @@ function seeded(seed: number): number {
   return x - Math.floor(x);
 }
 
+/**
+ * Smooth (continuous) value noise in [-1,1].
+ * Interpolating between integer lattice points guarantees that consecutive
+ * ticks are derived from the same underlying curve, so the price evolves from
+ * its previous value instead of jumping to an unrelated random number.
+ */
+function smoothNoise(seed: number, x: number): number {
+  const i = Math.floor(x);
+  const f = x - i;
+  const s = f * f * (3 - 2 * f);
+  const a = seeded(seed + i * 7919);
+  const b = seeded(seed + (i + 1) * 7919);
+  return (a + (b - a) * s) * 2 - 1;
+}
+
+
 function specialBehaviour(symbol: string) {
   const s = symbol.toLowerCase();
   if (s.startsWith("crash")) return { kind: "crash" as const, ticks: Number(s.replace(/\D/g, "")) || 500 };
@@ -77,8 +93,10 @@ export function priceAt(asset: PricingAsset, atMs: number = Date.now()): number 
     const phase = seeded(seed + i * 977) * Math.PI * 2;
     drift += Math.sin((t / period) * Math.PI * 2 + phase) * amp;
   }
-  // Micro tick noise keeps consecutive ticks from looking too smooth.
-  drift += (seeded(seed + t) - 0.5) * 0.35;
+  // Fine-grained continuous micro structure: three octaves of smooth noise.
+  drift += smoothNoise(seed + 101, t / 23) * 0.22;
+  drift += smoothNoise(seed + 211, t / 9) * 0.1;
+  drift += smoothNoise(seed + 331, t / 3.5) * 0.045;
 
   let multiplier = 1 + drift * vol;
 
