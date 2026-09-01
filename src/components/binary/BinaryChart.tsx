@@ -307,23 +307,20 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
       </div>
 
       <div className={cn("w-full", fullscreen ? "flex-1" : "h-[260px] sm:h-[380px] xl:h-[420px]")}>
-        {useTv ? (
-          <TradingViewChart tvSymbol={asset.tv_symbol!} interval={tf.tvInterval} style={effectiveStyle} />
-        ) : (
-          <SyntheticChart
-            asset={asset}
-            live={live}
-            style={effectiveStyle}
-            stepMs={tf.stepMs}
-            markers={markers}
-            now={now}
-          />
-
-        )}
+        <LightweightChartView
+          asset={asset}
+          live={live}
+          style={style}
+          stepMs={tf.stepMs}
+          candles={candles}
+          markers={markers}
+          now={now}
+        />
       </div>
       <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
-        Live Wealthora price feed — trades execute and settle on exactly these prices.
+        TradingView charts · Wealthora price feed — trades execute and settle on exactly these prices.
       </p>
+
     </div>
 
   );
