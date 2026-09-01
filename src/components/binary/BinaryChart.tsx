@@ -155,12 +155,10 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const tf = CHART_TIMEFRAMES.find((t) => t.id === timeframe) ?? CHART_TIMEFRAMES[4];
-  // The chart must show the exact feed that settles trades, so every asset is
-  // rendered from the platform price engine (no external TradingView prices).
-  const useTv = false;
-  const effectiveStyle: ChartStyle = style;
 
   const now = useNow(500);
+  const candles = useImmutableCandles(asset, tf.stepMs, live);
+
 
   /**
    * Markers for the selected instrument only, so chart and trade state stay in
