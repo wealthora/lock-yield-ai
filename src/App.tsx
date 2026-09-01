@@ -1,3 +1,4 @@
+import TvSmoke from "./pages/TvSmoke";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -70,6 +71,7 @@ const App = () => (
           <Route path="/dashboard/transactions" element={<DashboardLayout><Transactions /></DashboardLayout>} />
           <Route path="/dashboard/trading-plans" element={<DashboardLayout><TradingPlans /></DashboardLayout>} />
           <Route path="/dashboard/my-plans" element={<DashboardLayout><MyPlans /></DashboardLayout>} />
+          <Route path="/tv-smoke" element={<TvSmoke />} />
           <Route path="/dashboard/binary-options" element={<DashboardLayout><BinaryOptions /></DashboardLayout>} />
           <Route path="/dashboard/profit-history" element={<DashboardLayout><ProfitHistory /></DashboardLayout>} />
           <Route path="/dashboard/referrals" element={<DashboardLayout><Referrals /></DashboardLayout>} />
