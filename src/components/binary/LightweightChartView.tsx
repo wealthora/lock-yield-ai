@@ -129,6 +129,7 @@ export function LightweightChartView({ asset, live, style, stepMs, candles, mark
         horzLine: { color: tokens.border, labelBackgroundColor: tokens.primary },
       },
       localization: {
+        locale: "en-US",
         priceFormatter: (price: number) => price.toFixed(decimals),
       },
       autoSize: true,
@@ -209,12 +210,10 @@ export function LightweightChartView({ asset, live, style, stepMs, candles, mark
       return;
     }
 
-    // Only the active candle changes; closed candles were already committed.
+    // Only the active candle changes; closed candles were already committed to
+    // the series on the ticks that formed them and are never rewritten.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     series.update(toPoint(candles[candles.length - 1]) as any);
-    const closed = candles[candles.length - 2];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (closed) series.update(toPoint(closed) as any);
   }, [candles, style, seriesKey]);
 
   // ---- fixed entry-price lines, one per trade ----
