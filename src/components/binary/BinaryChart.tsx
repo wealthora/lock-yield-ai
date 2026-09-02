@@ -3,6 +3,7 @@ import { Maximize2, Minimize2, CandlestickChart, AreaChart as AreaIcon, LineChar
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CHART_TIMEFRAMES } from "@/lib/binaryConstants";
+import { isOtc } from "@/lib/binaryQuotes";
 import { TICK_MS, priceAt, formatPrice } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import { useNow, type LivePrice } from "@/hooks/useBinaryPrices";
@@ -12,6 +13,7 @@ import {
   type ChartStyle,
   type MarkerTrade,
 } from "./LightweightChartView";
+import { TradingViewAdvancedChart } from "./TradingViewAdvancedChart";
 
 interface Props {
   asset: BinaryAsset;
@@ -156,8 +158,14 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
 
   const tf = CHART_TIMEFRAMES.find((t) => t.id === timeframe) ?? CHART_TIMEFRAMES[4];
 
+  /** Real TradingView data is only available for real, mapped instruments. */
+  const tvSymbol = asset.tv_symbol && !isOtc(asset) ? asset.tv_symbol : null;
+  const [source, setSource] = useState<"tv" | "feed">("tv");
+  const useTv = Boolean(tvSymbol) && source === "tv";
+
   const now = useNow(500);
   const candles = useImmutableCandles(asset, tf.stepMs, live);
+
 
 
   /**
@@ -300,6 +308,26 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
             ))}
           </div>
 
+          {tvSymbol && (
+            <div className="flex items-center rounded-md border border-border/60 overflow-hidden">
+              {([
+                { id: "tv" as const, label: "TV" },
+                { id: "feed" as const, label: "Feed" },
+              ]).map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setSource(s.id)}
+                  className={cn(
+                    "px-2 py-1 text-[10px] font-semibold transition-colors",
+                    source === s.id ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-muted/50"
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          )}
+
           <Button variant="ghost" size="icon" className="h-7 w-7" onClick={toggleFullscreen} aria-label="Fullscreen">
             {fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
           </Button>
@@ -307,6 +335,9 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
       </div>
 
       <div className={cn("w-full", fullscreen ? "flex-1" : "h-[260px] sm:h-[380px] xl:h-[420px]")}>
+        {useTv && tvSymbol ? (
+          <TradingViewAdvancedChart tvSymbol={tvSymbol} interval={tf.tvInterval} chartStyle={style} />
+        ) : (
         <LightweightChartView
           asset={asset}
           live={live}
@@ -316,9 +347,12 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
           markers={markers}
           now={now}
         />
+        )}
       </div>
       <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
-        TradingView charts · Wealthora price feed — trades execute and settle on exactly these prices.
+        {useTv
+          ? "Live TradingView chart · trades execute and settle on the Wealthora price feed shown above."
+          : "TradingView charts · Wealthora price feed — trades execute and settle on exactly these prices."}
       </p>
 
     </div>
