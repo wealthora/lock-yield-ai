@@ -156,8 +156,14 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
 
   const tf = CHART_TIMEFRAMES.find((t) => t.id === timeframe) ?? CHART_TIMEFRAMES[4];
 
+  /** Real TradingView data is only available for real, mapped instruments. */
+  const tvSymbol = asset.tv_symbol && !isOtc(asset) ? asset.tv_symbol : null;
+  const [source, setSource] = useState<"tv" | "feed">("tv");
+  const useTv = Boolean(tvSymbol) && source === "tv";
+
   const now = useNow(500);
   const candles = useImmutableCandles(asset, tf.stepMs, live);
+
 
 
   /**
