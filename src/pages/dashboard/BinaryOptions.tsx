@@ -139,6 +139,8 @@ export default function BinaryOptions() {
           stake,
           expiry_seconds: expirySeconds,
           quote_ts: quote.ts,
+          price: quote.price,
+
         },
       });
       const payload = data as { trade?: BinaryTrade; error?: string } | null;
