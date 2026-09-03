@@ -580,6 +580,57 @@ export type Database = {
           },
         ]
       }
+      market_anchors: {
+        Row: {
+          anchor_ts: string
+          price: number
+          provider_symbol: string
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          anchor_ts?: string
+          price: number
+          provider_symbol: string
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          anchor_ts?: string
+          price?: number
+          provider_symbol?: string
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_feed_state: {
+        Row: {
+          day_credits: number
+          day_start: string
+          id: number
+          last_call_at: string | null
+          minute_credits: number
+          minute_start: string
+        }
+        Insert: {
+          day_credits?: number
+          day_start?: string
+          id?: number
+          last_call_at?: string | null
+          minute_credits?: number
+          minute_start?: string
+        }
+        Update: {
+          day_credits?: number
+          day_start?: string
+          id?: number
+          last_call_at?: string | null
+          minute_credits?: number
+          minute_start?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
