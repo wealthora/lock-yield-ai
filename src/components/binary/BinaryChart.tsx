@@ -7,6 +7,7 @@ import { isOtc } from "@/lib/binaryQuotes";
 import { TICK_MS, priceAt, formatPrice } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinaryTrade } from "@/lib/binaryTypes";
 import { useNow, type LivePrice } from "@/hooks/useBinaryPrices";
+import { useRealCandles } from "@/hooks/useRealCandles";
 import {
   LightweightChartView,
   type CandleRow,
@@ -164,7 +165,10 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
   const useTv = Boolean(tvSymbol) && source === "tv";
 
   const now = useNow(500);
-  const candles = useImmutableCandles(asset, tf.stepMs, live);
+  const syntheticCandles = useImmutableCandles(asset, tf.stepMs, live);
+  const realCandles = useRealCandles(asset, tf.stepMs, live);
+  /** Real market candles when the asset has a live feed, otherwise the platform engine. */
+  const candles = realCandles && realCandles.length > 0 ? realCandles : realCandles ? [] : syntheticCandles;
 
 
 
@@ -351,8 +355,10 @@ export function BinaryChart({ asset, live, trades = [] }: Props) {
       </div>
       <p className="px-3 py-1.5 text-[10px] text-muted-foreground border-t border-border/50">
         {useTv
-          ? "Live TradingView chart · trades execute and settle on the Wealthora price feed shown above."
-          : "TradingView charts · Wealthora price feed — trades execute and settle on exactly these prices."}
+          ? "Live TradingView chart · trades execute and settle on the market feed shown above."
+          : realCandles
+            ? "Live Binance market data · trades execute and settle on exactly these prices."
+            : "Wealthora price feed — trades execute and settle on exactly these prices."}
       </p>
 
     </div>

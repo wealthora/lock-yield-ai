@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.2";
 import { priceAt } from "../_shared/binary-pricing.ts";
+import { realPriceAt } from "../_shared/market-data.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,13 +55,14 @@ async function settleExpired(userId: string) {
   for (const trade of due) {
     const { data: asset } = await admin
       .from("binary_assets")
-      .select("symbol, base_price, volatility_level, category")
+      .select("symbol, base_price, volatility_level, category, tv_symbol")
       .eq("symbol", trade.symbol)
       .maybeSingle();
     if (!asset) continue;
 
     const expiryMs = new Date(trade.expires_at).getTime();
-    const exitPrice = priceAt(asset, expiryMs);
+    // Real market close at expiry where a live feed exists, else the platform engine.
+    const exitPrice = (await realPriceAt(asset, expiryMs)) ?? priceAt(asset, expiryMs);
     const entryPrice = Number(trade.entry_price);
 
     let result: "win" | "loss" | "tie";
@@ -231,7 +233,15 @@ Deno.serve(async (req) => {
       return json({ error: "Price changed before the trade was placed. Please try again." }, 409);
     // Fill from the exact quote tick shown in the browser, avoiding a different
     // entry when the network request crosses a 500 ms pricing boundary.
-    const entryPrice = priceAt(asset, canonicalQuoteTs);
+    const entryPrice = (await realPriceAt(asset, canonicalQuoteTs)) ?? priceAt(asset, canonicalQuoteTs);
+
+    // Reject fills that drifted from the price shown in the browser.
+    const clientPrice = Number(body.price);
+    if (Number.isFinite(clientPrice) && clientPrice > 0) {
+      const drift = Math.abs(entryPrice - clientPrice) / clientPrice;
+      if (drift > 0.005)
+        return json({ error: "Price moved before the trade was placed. Please try again." }, 409);
+    }
     const payoutPercent = Number(asset.payout_percent);
     const potentialPayout = Number((stake * (1 + payoutPercent / 100)).toFixed(2));
 
