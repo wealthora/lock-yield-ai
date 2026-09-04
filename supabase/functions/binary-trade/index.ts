@@ -39,6 +39,29 @@ async function notify(userId: string, title: string, message: string, metadata: 
   }
 }
 
+/**
+ * Rebase the deterministic engine onto the newest real price anchor
+ * (Twelve Data: forex, commodities, US stocks) so fills and settlements use the
+ * same real market level the trader sees in the browser.
+ */
+async function anchoredAsset<T extends { symbol: string; category: string; base_price: number }>(
+  asset: T
+): Promise<T> {
+  if (!twelveDataSymbol(asset)) return asset;
+  const { data: anchor } = await admin
+    .from("market_anchors")
+    .select("price, anchor_ts")
+    .eq("symbol", asset.symbol)
+    .maybeSingle();
+  if (!anchor) return asset;
+
+  const atMs = new Date(anchor.anchor_ts as string).getTime();
+  if (!Number.isFinite(atMs)) return asset;
+  const scale = anchorScale(priceAt(asset as never, atMs), Number(anchor.price));
+  return { ...asset, base_price: Number(asset.base_price) * scale };
+}
+
+
 /** Settle every expired open trade for a user. Idempotent. */
 async function settleExpired(userId: string) {
   const nowIso = new Date().toISOString();
