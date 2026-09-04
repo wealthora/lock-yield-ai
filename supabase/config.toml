@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.ai-support-chat]
 verify_jwt = false
+
+[functions.market-anchors]
+verify_jwt = false

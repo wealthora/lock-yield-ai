@@ -84,10 +84,11 @@ async function settleExpired(userId: string) {
       .eq("symbol", trade.symbol)
       .maybeSingle();
     if (!asset) continue;
+    const priced = await anchoredAsset(asset as never);
 
     const expiryMs = new Date(trade.expires_at).getTime();
     // Real market close at expiry where a live feed exists, else the platform engine.
-    const exitPrice = (await realPriceAt(asset, expiryMs)) ?? priceAt(asset, expiryMs);
+    const exitPrice = (await realPriceAt(asset, expiryMs)) ?? priceAt(priced as never, expiryMs);
     const entryPrice = Number(trade.entry_price);
 
     let result: "win" | "loss" | "tie";
@@ -258,7 +259,9 @@ Deno.serve(async (req) => {
       return json({ error: "Price changed before the trade was placed. Please try again." }, 409);
     // Fill from the exact quote tick shown in the browser, avoiding a different
     // entry when the network request crosses a 500 ms pricing boundary.
-    const entryPrice = (await realPriceAt(asset, canonicalQuoteTs)) ?? priceAt(asset, canonicalQuoteTs);
+    const pricedAsset = await anchoredAsset(asset as never);
+    const entryPrice =
+      (await realPriceAt(asset, canonicalQuoteTs)) ?? priceAt(pricedAsset as never, canonicalQuoteTs);
 
     // Reject fills that drifted from the price shown in the browser.
     const clientPrice = Number(body.price);
