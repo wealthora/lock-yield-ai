@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.2";
 import { priceAt } from "../_shared/binary-pricing.ts";
 import { realPriceAt } from "../_shared/market-data.ts";
+import { anchorScale, twelveDataSymbol } from "../_shared/twelve-data.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +39,29 @@ async function notify(userId: string, title: string, message: string, metadata: 
   }
 }
 
+/**
+ * Rebase the deterministic engine onto the newest real price anchor
+ * (Twelve Data: forex, commodities, US stocks) so fills and settlements use the
+ * same real market level the trader sees in the browser.
+ */
+async function anchoredAsset<T extends { symbol: string; category: string; base_price: number }>(
+  asset: T
+): Promise<T> {
+  if (!twelveDataSymbol(asset)) return asset;
+  const { data: anchor } = await admin
+    .from("market_anchors")
+    .select("price, anchor_ts")
+    .eq("symbol", asset.symbol)
+    .maybeSingle();
+  if (!anchor) return asset;
+
+  const atMs = new Date(anchor.anchor_ts as string).getTime();
+  if (!Number.isFinite(atMs)) return asset;
+  const scale = anchorScale(priceAt(asset as never, atMs), Number(anchor.price));
+  return { ...asset, base_price: Number(asset.base_price) * scale };
+}
+
+
 /** Settle every expired open trade for a user. Idempotent. */
 async function settleExpired(userId: string) {
   const nowIso = new Date().toISOString();
@@ -59,10 +84,11 @@ async function settleExpired(userId: string) {
       .eq("symbol", trade.symbol)
       .maybeSingle();
     if (!asset) continue;
+    const priced = await anchoredAsset(asset as never);
 
     const expiryMs = new Date(trade.expires_at).getTime();
     // Real market close at expiry where a live feed exists, else the platform engine.
-    const exitPrice = (await realPriceAt(asset, expiryMs)) ?? priceAt(asset, expiryMs);
+    const exitPrice = (await realPriceAt(asset, expiryMs)) ?? priceAt(priced as never, expiryMs);
     const entryPrice = Number(trade.entry_price);
 
     let result: "win" | "loss" | "tie";
@@ -233,7 +259,9 @@ Deno.serve(async (req) => {
       return json({ error: "Price changed before the trade was placed. Please try again." }, 409);
     // Fill from the exact quote tick shown in the browser, avoiding a different
     // entry when the network request crosses a 500 ms pricing boundary.
-    const entryPrice = (await realPriceAt(asset, canonicalQuoteTs)) ?? priceAt(asset, canonicalQuoteTs);
+    const pricedAsset = await anchoredAsset(asset as never);
+    const entryPrice =
+      (await realPriceAt(asset, canonicalQuoteTs)) ?? priceAt(pricedAsset as never, canonicalQuoteTs);
 
     // Reject fills that drifted from the price shown in the browser.
     const clientPrice = Number(body.price);

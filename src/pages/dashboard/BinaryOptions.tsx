@@ -15,12 +15,16 @@ import { ActiveBinaryTrades } from "@/components/binary/ActiveBinaryTrades";
 import { BinaryTradeHistory } from "@/components/binary/BinaryTradeHistory";
 import { BinaryPerformance } from "@/components/binary/BinaryPerformance";
 import { useBinaryPrices, useNow } from "@/hooks/useBinaryPrices";
+import { useAnchoredAssets } from "@/hooks/useMarketAnchors";
 import { formatPrice } from "@/lib/binaryPricing";
 import type { BinaryAsset, BinarySettings, BinaryTrade } from "@/lib/binaryTypes";
 
 
 export default function BinaryOptions() {
-  const [assets, setAssets] = useState<BinaryAsset[]>([]);
+  const [rawAssets, setRawAssets] = useState<BinaryAsset[]>([]);
+  // Forex / commodities / stocks are rebased onto real Twelve Data prices.
+  const assets = useAnchoredAssets(rawAssets);
+
   const [settings, setSettings] = useState<BinarySettings | null>(null);
   const [trades, setTrades] = useState<BinaryTrade[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -65,7 +69,7 @@ export default function BinaryOptions() {
       ]);
 
       const list = (assetRes.data ?? []) as unknown as BinaryAsset[];
-      setAssets(list);
+      setRawAssets(list);
       setSettings(settingRes.data as unknown as BinarySettings | null);
       setSelected((prev) => prev || list[0]?.symbol || "");
 
