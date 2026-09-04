@@ -20,7 +20,10 @@ import type { BinaryAsset, BinarySettings, BinaryTrade } from "@/lib/binaryTypes
 
 
 export default function BinaryOptions() {
-  const [assets, setAssets] = useState<BinaryAsset[]>([]);
+  const [rawAssets, setRawAssets] = useState<BinaryAsset[]>([]);
+  // Forex / commodities / stocks are rebased onto real Twelve Data prices.
+  const assets = useAnchoredAssets(rawAssets);
+
   const [settings, setSettings] = useState<BinarySettings | null>(null);
   const [trades, setTrades] = useState<BinaryTrade[]>([]);
   const [favorites, setFavorites] = useState<string[]>([]);
