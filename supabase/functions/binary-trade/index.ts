@@ -1,6 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.33.2";
 import { priceAt } from "../_shared/binary-pricing.ts";
 import { realPriceAt } from "../_shared/market-data.ts";
+import { anchorScale, twelveDataSymbol } from "../_shared/twelve-data.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
