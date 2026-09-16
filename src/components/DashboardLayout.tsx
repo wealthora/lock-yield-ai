@@ -20,7 +20,6 @@ import {
   Plus,
   ArrowUpRight,
   ChevronDown,
-  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -74,7 +73,6 @@ const navGroups = [
     items: [
       { title: "Trading Plans", href: "/dashboard/trading-plans", icon: Briefcase },
       { title: "My Plans", href: "/dashboard/my-plans", icon: FolderOpen },
-      { title: "Binary Options", href: "/dashboard/binary-options", icon: Zap },
       { title: "Profit History", href: "/dashboard/profit-history", icon: LineChart },
     ],
   },
