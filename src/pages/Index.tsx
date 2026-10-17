@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Bot, TrendingUp, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import MarketTicker from "@/components/MarketTicker";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import logo from "/wealthora-logo.png";
 import { useEffect } from "react";
 const Index = () => {
@@ -28,6 +29,7 @@ const Index = () => {
             <img src={logo} alt="Wealthora ai" className="h-[48px] w-auto drop-shadow-md dark:drop-shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all duration-300 hover:scale-105" />
           </div>
           <div className="flex items-center gap-4">
+            <InstallAppButton />
             <Link to="/auth">
               <Button variant="ghost">Sign In</Button>
             </Link>
