@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useInactivityLogout } from "@/hooks/useInactivityLogout";
 import { useTheme } from "@/hooks/useTheme";
 import { NotificationBell } from "@/components/NotificationBell";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { UserAvatar } from "@/components/AvatarSelector";
 import {
   Sidebar,
@@ -272,6 +273,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <header className="h-14 border-b border-border flex items-center px-4 gap-2 bg-card/50 backdrop-blur sticky top-0 z-30">
               <SidebarTrigger />
               <div className="ml-auto flex items-center gap-2">
+                <InstallAppButton />
                 <NotificationBell />
                 <Button
                   variant="ghost"
