@@ -24,10 +24,8 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: null,
         runtimeCaching: [
           {
-            // Same-origin hashed build assets only (JS/CSS/fonts/images).
-            urlPattern: ({ request, url }) =>
-              url.origin === self.location.origin &&
-              ["script", "style", "font", "image", "worker"].includes(request.destination),
+            // Same-origin hashed build assets only (Vite emits them under /assets/).
+            urlPattern: /\/assets\/.+/,
             handler: "CacheFirst",
             options: {
               cacheName: "wealthora-static-assets",
