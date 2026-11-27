@@ -125,6 +125,7 @@ export type Database = {
           id: string
           initial_amount: number
           locked_amount: number
+          reinvestment_source_id: string | null
           start_date: string
           status: string | null
           updated_at: string
@@ -141,6 +142,7 @@ export type Database = {
           id?: string
           initial_amount: number
           locked_amount: number
+          reinvestment_source_id?: string | null
           start_date?: string
           status?: string | null
           updated_at?: string
@@ -157,6 +159,7 @@ export type Database = {
           id?: string
           initial_amount?: number
           locked_amount?: number
+          reinvestment_source_id?: string | null
           start_date?: string
           status?: string | null
           updated_at?: string
@@ -383,6 +386,197 @@ export type Database = {
           },
         ]
       }
+      kitepay_customer_links: {
+        Row: {
+          kitepay_customer_id: string
+          linked_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          kitepay_customer_id: string
+          linked_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          kitepay_customer_id?: string
+          linked_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kitepay_rate_limits: {
+        Row: {
+          bucket_key: string
+          hit_count: number
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          hit_count?: number
+          window_start: string
+        }
+        Update: {
+          bucket_key?: string
+          hit_count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
+      kitepay_request_nonces: {
+        Row: {
+          created_at: string
+          expires_at: string
+          nonce: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          nonce: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          nonce?: string
+        }
+        Relationships: []
+      }
+      kitepay_transfer_events: {
+        Row: {
+          actor: string
+          created_at: string
+          details: Json
+          event_type: string
+          from_status: string | null
+          id: string
+          provider_event_id: string | null
+          to_status: string | null
+          transfer_id: string
+        }
+        Insert: {
+          actor: string
+          created_at?: string
+          details?: Json
+          event_type: string
+          from_status?: string | null
+          id?: string
+          provider_event_id?: string | null
+          to_status?: string | null
+          transfer_id: string
+        }
+        Update: {
+          actor?: string
+          created_at?: string
+          details?: Json
+          event_type?: string
+          from_status?: string | null
+          id?: string
+          provider_event_id?: string | null
+          to_status?: string | null
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kitepay_transfer_events_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "kitepay_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kitepay_transfers: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string
+          currency: string
+          deposit_request_id: string | null
+          destination_wallet: string | null
+          direction: string
+          external_reference: string | null
+          failure_reason: string | null
+          id: string
+          idempotency_key: string
+          kitepay_customer_id: string
+          last_webhook_at: string | null
+          last_webhook_error: string | null
+          reference: string
+          reversed_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          webhook_attempts: number
+          webhook_delivery_status: string
+          withdrawal_request_id: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_request_id?: string | null
+          destination_wallet?: string | null
+          direction: string
+          external_reference?: string | null
+          failure_reason?: string | null
+          id?: string
+          idempotency_key: string
+          kitepay_customer_id: string
+          last_webhook_at?: string | null
+          last_webhook_error?: string | null
+          reference: string
+          reversed_at?: string | null
+          status: string
+          updated_at?: string
+          user_id: string
+          webhook_attempts?: number
+          webhook_delivery_status?: string
+          withdrawal_request_id?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          deposit_request_id?: string | null
+          destination_wallet?: string | null
+          direction?: string
+          external_reference?: string | null
+          failure_reason?: string | null
+          id?: string
+          idempotency_key?: string
+          kitepay_customer_id?: string
+          last_webhook_at?: string | null
+          last_webhook_error?: string | null
+          reference?: string
+          reversed_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          webhook_attempts?: number
+          webhook_delivery_status?: string
+          withdrawal_request_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kitepay_transfers_deposit_request_id_fkey"
+            columns: ["deposit_request_id"]
+            isOneToOne: false
+            referencedRelation: "deposit_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kitepay_transfers_withdrawal_request_id_fkey"
+            columns: ["withdrawal_request_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -591,6 +785,8 @@ export type Database = {
           id: string
           referred_id: string
           referrer_id: string
+          reversal_transfer_id: string | null
+          reversed_at: string | null
           reward_amount: number
         }
         Insert: {
@@ -599,6 +795,8 @@ export type Database = {
           id?: string
           referred_id: string
           referrer_id: string
+          reversal_transfer_id?: string | null
+          reversed_at?: string | null
           reward_amount: number
         }
         Update: {
@@ -607,9 +805,19 @@ export type Database = {
           id?: string
           referred_id?: string
           referrer_id?: string
+          reversal_transfer_id?: string | null
+          reversed_at?: string | null
           reward_amount?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_reversal_transfer_id_fkey"
+            columns: ["reversal_transfer_id"]
+            isOneToOne: false
+            referencedRelation: "kitepay_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -815,6 +1023,7 @@ export type Database = {
           available_balance: number
           created_at: string
           id: string
+          kitepay_reserved_balance: number
           locked_balance: number
           returns_balance: number
           updated_at: string
@@ -824,6 +1033,7 @@ export type Database = {
           available_balance?: number
           created_at?: string
           id?: string
+          kitepay_reserved_balance?: number
           locked_balance?: number
           returns_balance?: number
           updated_at?: string
@@ -833,6 +1043,7 @@ export type Database = {
           available_balance?: number
           created_at?: string
           id?: string
+          kitepay_reserved_balance?: number
           locked_balance?: number
           returns_balance?: number
           updated_at?: string
@@ -881,6 +1092,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_deposit_request: {
+        Args: { p_admin_notes?: string; p_request_id: string }
+        Returns: Json
+      }
+      admin_approve_withdrawal_request: {
+        Args: { p_admin_notes?: string; p_request_id: string }
+        Returns: Json
+      }
+      create_bot_investment: {
+        Args: {
+          p_amount: number
+          p_auto_reinvest: boolean
+          p_bot_id: string
+          p_lock_days: number
+          p_reinvestment_source_id?: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -909,6 +1139,45 @@ export type Database = {
       increment_returns_balance: {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
+      }
+      kitepay_apply_transfer_event: {
+        Args: {
+          p_action: string
+          p_amount: number
+          p_currency: string
+          p_external_reference?: string
+          p_failure_reason?: string
+          p_provider_event_id: string
+          p_reference: string
+          p_target_status?: string
+        }
+        Returns: Json
+      }
+      kitepay_check_rate_limit: {
+        Args: {
+          p_bucket_key: string
+          p_max_requests: number
+          p_window_seconds: number
+        }
+        Returns: boolean
+      }
+      kitepay_create_transfer: {
+        Args: {
+          p_amount: number
+          p_currency: string
+          p_direction: string
+          p_idempotency_key: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      kitepay_link_customer: {
+        Args: { p_kitepay_customer_id: string; p_user_id: string }
+        Returns: Json
+      }
+      kitepay_record_webhook_delivery: {
+        Args: { p_error?: string; p_reference: string; p_status: string }
+        Returns: Json
       }
     }
     Enums: {

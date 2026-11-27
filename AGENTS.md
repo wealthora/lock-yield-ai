@@ -1,0 +1,1 @@
+KitePay money movement must use signed server requests and atomic database functions; store only transfer coordination metadata in the KitePay table and keep Wealthora wallets, request rows, and activities as the financial source of truth to prevent bypasses and duplicate accounting.
